@@ -101,6 +101,19 @@ describe('evaluate 的上限與溢出', () => {
     expect(r.gaps.electiveInMajor).toBe(0)
   })
 
+  it('系外選修另外列出，含必修與外文溢出', () => {
+    const courses = [c('限本系選修', 26), c('一般選修', 10), c('系訂必修', 53)]
+    const r = evaluate(courses, program)
+    expect(r.counted.electiveInMajor).toBe(26)
+    expect(r.counted.electiveOutside).toBe(13)
+  })
+
+  it('選修超過門檻被截掉時，系外選修也跟著扣', () => {
+    const r = evaluate([c('限本系選修', 40), c('一般選修', 30)], program)
+    expect(r.counted.elective).toBe(54)
+    expect(r.counted.electiveOutside).toBe(14)
+  })
+
   it('限本系選修不足時有缺口', () => {
     const r = evaluate([c('限本系選修', 12)], program)
     expect(r.gaps.electiveInMajor).toBe(8)

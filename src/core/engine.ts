@@ -19,7 +19,11 @@ export function tally(courses: Course[], programId: string): Tally {
 
 export type Evaluation = {
   taken: Tally
-  counted: { major: number; electiveInMajor: number; elective: number; common: number }
+  /** electiveOutside：選修合計扣掉系內選修，含必修抵免與外文超修的溢出 */
+  counted: {
+    major: number; electiveInMajor: number; electiveOutside: number
+    elective: number; common: number
+  }
   totalTaken: number
   totalCounted: number
   gaps: {
@@ -65,7 +69,10 @@ export function evaluate(courses: Course[], program: Program): Evaluation {
 
   return {
     taken,
-    counted: { major, electiveInMajor, elective, common },
+    counted: {
+      major, electiveInMajor, elective, common,
+      electiveOutside: Math.max(0, elective - Math.min(electiveInMajor, elective)),
+    },
     totalTaken,
     totalCounted,
     gaps: {

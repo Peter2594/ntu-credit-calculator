@@ -19,12 +19,26 @@ export type Requirements = {
 
 export type ProgramKind = '主修' | '雙主修' | '輔系'
 
+/** 系訂必修科目表的一列，來自台大必修課程查詢系統。 */
+export type RequiredCourse = {
+  code: string          // 課號，如 IM1003
+  identifier: string    // 課程識別碼，如 705 10300
+  name: string
+  credits: number
+  group?: string        // 群組別：有值表示「數門擇一」類的群修
+  scope: string         // 必修認可範圍，如「限本系課程」「不限本院(系)課程」
+}
+
 export type Program = {
   id: string
   kind: ProgramKind
   name: string
+  /** 識別碼前三碼，多個以逗號分隔（如系與所：705,725）。 */
   deptPrefix: string
   requirements: Requirements
+  requiredCourses?: RequiredCourse[]
+  /** 門檻從官方資料帶入時記下來源，方便使用者核對。 */
+  source?: { year: string; deptCode: string }
 }
 
 export type Slot = {

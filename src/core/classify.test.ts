@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { classify, deptPrefixOf, applyClassification } from './classify.js'
+import { classify, deptPrefixOf, applyClassification, isOwnDeptGenEd } from './classify.js'
 import type { Course, Program } from './types.js'
 import type { ParsedCourse } from './parser.js'
 
@@ -104,5 +104,60 @@ describe('不及格', () => {
 
   it('通過仍照常歸類', () => {
     expect(classify(course({ identifier: '900 10100', grade: '通過' }), program)).toBe('限本系選修')
+  })
+})
+
+describe('系訂必修清單', () => {
+  const withList: Program = {
+    ...program,
+    deptPrefix: '900,925',
+    requiredCourses: [
+      { code: 'AAA1003', identifier: '900 10300', name: '本系核心一', credits: 3, scope: '限本系課程' },
+      { code: 'MATH4006', identifier: '201 49810', name: '微積分1', credits: 2, scope: '不限本院(系)課程' },
+    ],
+  }
+
+  it('課號或識別碼符合清單就是系訂必修', () => {
+    expect(classify(course({ code: 'AAA1003', identifier: '900 10300' }), withList)).toBe('系訂必修')
+    expect(classify(course({ code: 'MATH4006', identifier: '201 49810' }), withList)).toBe('系訂必修')
+  })
+
+  it('識別碼空格不同也認得', () => {
+    expect(classify(course({ code: 'X', identifier: '90010300' }), withList)).toBe('系訂必修')
+  })
+
+  it('認可範圍不限本系時，他系同名課也算', () => {
+    expect(classify(course({ code: 'MATH4106', identifier: '221 U1510', name: '微積分1' }), withList)).toBe('系訂必修')
+  })
+
+  it('限本系課程的必修，他系同名課不算', () => {
+    expect(classify(course({ code: 'BBB1003', identifier: '666 10300', name: '本系核心一' }), withList)).toBe('一般選修')
+  })
+
+  it('必修清單優先於通識領域', () => {
+    expect(classify(course({ code: 'AAA1003', identifier: '900 10300', genEdDomain: 'A8*' }), withList)).toBe('系訂必修')
+  })
+
+  it('多個本系前綴都算系內選修', () => {
+    expect(classify(course({ identifier: '925 U0100' }), withList)).toBe('限本系選修')
+  })
+})
+
+describe('系上開的通識課', () => {
+  it('沒有星號的通識，即使是本系開的仍算通識', () => {
+    expect(classify(course({ identifier: '900 00100', genEdDomain: 'A5' }), program)).toBe('通識')
+  })
+
+  it('有星號的專業通識課若為本系開授，不得採計通識，改算系內選修', () => {
+    expect(classify(course({ identifier: '900 20100', genEdDomain: 'A5*' }), program)).toBe('限本系選修')
+  })
+
+  it('他系開的專業通識課照常算通識', () => {
+    expect(classify(course({ identifier: '666 20100', genEdDomain: 'A5*' }), program)).toBe('通識')
+  })
+
+  it('isOwnDeptGenEd 標出需要使用者確認的課', () => {
+    expect(isOwnDeptGenEd(course({ identifier: '900 00100', genEdDomain: 'A5' }), program)).toBe(true)
+    expect(isOwnDeptGenEd(course({ identifier: '666 00100', genEdDomain: 'A5' }), program)).toBe(false)
   })
 })
