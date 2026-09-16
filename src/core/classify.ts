@@ -7,12 +7,15 @@ export function deptPrefixOf(identifier?: string): string {
 }
 
 const WITHDRAWN = '停修'
+/** 不及格沒有拿到學分。 */
+const FAILED = new Set(['F', 'X', '不通過'])
 
 export function classify(course: ParsedCourse, program: Program): Category {
   const prefix = deptPrefixOf(course.identifier)
   const code = course.code ?? ''
 
   if (course.grade === WITHDRAWN) return '不計入'
+  if (course.grade && FAILED.has(course.grade)) return '不計入'
   if (course.genEdDomain) return '通識'
   if (prefix === '101' || code.startsWith('CHIN')) return '國文'
   if (prefix === '102' || code.startsWith('FL')) return '外文'

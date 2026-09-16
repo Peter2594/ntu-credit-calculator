@@ -94,3 +94,15 @@ describe('applyClassification', () => {
     expect(result.assignments).toContainEqual({ programId: 'p2', category: '限本系選修' })
   })
 })
+
+describe('不及格', () => {
+  it('F、X、不通過的課不計入', () => {
+    for (const grade of ['F', 'X', '不通過']) {
+      expect(classify(course({ identifier: '900 10100', grade }), program)).toBe('不計入')
+    }
+  })
+
+  it('通過仍照常歸類', () => {
+    expect(classify(course({ identifier: '900 10100', grade: '通過' }), program)).toBe('限本系選修')
+  })
+})
