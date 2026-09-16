@@ -4,7 +4,7 @@ import { reclassifyAll, setCategory } from '../../core/courses'
 import type { AppState } from '../../core/storage'
 import { CATEGORIES, type Category, type Course } from '../../core/types'
 import type { Actions } from '../App'
-import { SEMESTER_PATTERN, newId } from '../constants'
+import { SEMESTER_PATTERN, categoryLabel, newId } from '../constants'
 import { ProgramProgress } from './Progress'
 
 type Props = { state: AppState; actions: Actions }
@@ -104,7 +104,7 @@ export function TrialView({ state, actions }: Props) {
                         onChange={(e) => update(c.id, p.id, e.target.value as Category)}
                         aria-label={`${c.name} 在 ${p.name || p.kind} 的分類`}
                       >
-                        {CATEGORIES.map((k) => <option key={k}>{k}</option>)}
+                        {CATEGORIES.map((k) => <option key={k} value={k}>{categoryLabel(k)}</option>)}
                       </select>
                     </label>
                   ))}

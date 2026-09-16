@@ -159,5 +159,7 @@ describe('系上開的通識課', () => {
   it('isOwnDeptGenEd 標出需要使用者確認的課', () => {
     expect(isOwnDeptGenEd(course({ identifier: '900 00100', genEdDomain: 'A5' }), program)).toBe(true)
     expect(isOwnDeptGenEd(course({ identifier: '666 00100', genEdDomain: 'A5' }), program)).toBe(false)
+    // 有星號的已經確定改算系內選修，不需要再問
+    expect(isOwnDeptGenEd(course({ identifier: '900 20100', genEdDomain: 'A5*' }), program)).toBe(false)
   })
 })

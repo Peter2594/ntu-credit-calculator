@@ -30,3 +30,10 @@ export const isPlanned = (c: { grade?: string }) => !c.grade
 export function formatSlots(slots: Slot[] = []): string {
   return slots.map((s) => `${DAY_LABEL[s.day]} ${s.periods.join(',')}`).join('、')
 }
+
+/** 核心分類名沿用規章用語，介面上改用學生習慣的說法。 */
+export const CATEGORY_LABEL: Record<string, string> = {
+  限本系選修: '系內選修',
+  一般選修: '系外選修',
+}
+export const categoryLabel = (c: string) => CATEGORY_LABEL[c] ?? c

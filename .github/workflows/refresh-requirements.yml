@@ -1,0 +1,30 @@
+# 每年開學前重抓台大課程規定，新學年度的學系資料才會出現在下拉選單。
+name: 更新課程規定資料
+
+on:
+  schedule:
+    - cron: '0 2 15 8 *'   # 每年 8/15（台灣時間 10:00）
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: 抓取最近六個學年度
+        run: |
+          latest=$(curl -s https://curri.aca.ntu.edu.tw/NTUVoxCourse/index.php/api/semesters | node -e "process.stdin.on('data',d=>console.log(JSON.parse(d).data[0]))")
+          node scripts/fetch-requirements.ts $((latest - 5)) $latest
+      - name: 有變動才提交
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/requirements
+          git diff --cached --quiet || git commit -m "chore(data): 更新課程規定資料"
+          git push

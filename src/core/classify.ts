@@ -29,11 +29,12 @@ export function isRequiredCourse(course: ParsedCourse, program: Program): boolea
 }
 
 /**
- * 本系開的通識課。依規定「若為畢業學系所開授，仍不得採計為通識學分」，
- * 但各系實務不一，工具先算通識、由介面提醒使用者確認。
+ * 本系開的一般通識課（無星號）。依規定「若為畢業學系所開授，仍不得採計為通識學分」，
+ * 但各系實務不一，工具先算通識、由介面提醒使用者確認。有星號的規定明確，classify 直接處理。
  */
 export function isOwnDeptGenEd(course: ParsedCourse, program: Program): boolean {
-  return !!course.genEdDomain && deptPrefixesOf(program).includes(deptPrefixOf(course.identifier))
+  return !!course.genEdDomain && !course.genEdDomain.endsWith('*') &&
+    deptPrefixesOf(program).includes(deptPrefixOf(course.identifier))
 }
 
 export function classify(course: ParsedCourse, program: Program): Category {

@@ -2,6 +2,7 @@ import type { AppState } from '../../core/storage'
 import type { Program, ProgramKind, Requirements } from '../../core/types'
 import type { Actions, Tab } from '../App'
 import { newId } from '../constants'
+import { OfficialPicker } from './OfficialPicker'
 
 type Field = { key: keyof Requirements; label: string; hint?: string }
 
@@ -9,7 +10,7 @@ const MAIN_FIELDS: Field[] = [
   { key: 'total', label: '畢業總學分' },
   { key: 'major', label: '系訂必修' },
   { key: 'elective', label: '選修' },
-  { key: 'electiveInMajor', label: '其中限本系選修', hint: '選修裡至少要有幾學分是本系課' },
+  { key: 'electiveInMajor', label: '其中系內選修至少', hint: '選修裡至少要有幾學分是本系開的課' },
   { key: 'common', label: '共同必修＋通識', hint: '國文、外文、通識合計' },
   { key: 'pe', label: '體育', hint: '不計入畢業總學分' },
 ]
@@ -37,9 +38,7 @@ export function ProgramSetup({ state, actions, goTo }: Props) {
       <div className="section-head">
         <h2>學程設定</h2>
         <p className="muted">
-          填入系上的畢業門檻。數字在
-          <a href="https://curri.aca.ntu.edu.tw/" target="_blank" rel="noreferrer"> 台大必修課程查詢系統 </a>
-          或系網的「應修學分」可以查到。沒有規定的欄位留空即可。
+          選入學年度和學系，畢業門檻與系訂必修會從台大課程規定自動帶入。帶入後每個數字都還能改。
         </p>
       </div>
 
@@ -64,7 +63,7 @@ export function ProgramSetup({ state, actions, goTo }: Props) {
 
       <div className="row wrap">
         <button className="btn primary" onClick={() => actions.addProgram(blankProgram(hasMajor ? '雙主修' : '主修'))}>
-          ＋ 新增{hasMajor ? '學程' : '主修'}
+          ＋ 新增{hasMajor ? '雙主修或輔系' : '主修'}
         </button>
         {programs.length > 0 && (
           <button className="btn" onClick={() => goTo('courses')}>下一步：匯入成績 →</button>
@@ -118,16 +117,8 @@ function ProgramCard({ program, onChange, onDelete }: {
 
   return (
     <article className="card">
-      <div className="grid-3">
-        <label className="field">
-          <span className="field-label">名稱</span>
-          <input
-            placeholder="例：資訊管理學系"
-            value={program.name}
-            onChange={(e) => onChange({ ...program, name: e.target.value })}
-          />
-        </label>
-        <label className="field">
+      <div className="row between wrap">
+        <label className="inline-field">
           <span className="field-label">類型</span>
           <select
             value={program.kind}
@@ -136,31 +127,40 @@ function ProgramCard({ program, onChange, onDelete }: {
             {KINDS.map((k) => <option key={k}>{k}</option>)}
           </select>
         </label>
-        <label className="field">
-          <span className="field-label">識別碼前三碼</span>
-          <input
-            placeholder="例：705"
-            maxLength={3}
-            value={program.deptPrefix}
-            onChange={(e) => onChange({ ...program, deptPrefix: e.target.value.trim().toUpperCase() })}
-          />
-          <span className="field-hint">成績單上課程識別碼的開頭，用來認出本系課</span>
-        </label>
+        <button className="btn ghost small danger-text" onClick={onDelete}>刪除這個學程</button>
       </div>
 
-      <div className="grid-3">{MAIN_FIELDS.map(renderField)}</div>
+      <OfficialPicker program={program} onChange={onChange} />
 
-      <details>
-        <summary>國文、外文、通識各自的門檻（選填）</summary>
-        <p className="field-hint">
-          填了才能正確處理超修：國文與通識超修不計入選修，外文超修會計入選修。
-        </p>
-        <div className="grid-3">{DETAIL_FIELDS.map(renderField)}</div>
+      <details open={!program.source}>
+        <summary>{program.source ? '檢視或修改門檻數字' : '或手動填寫門檻'}</summary>
+        <div className="stack-sm">
+          <div className="grid-2">
+            <label className="field">
+              <span className="field-label">名稱</span>
+              <input
+                placeholder="例：資訊管理學系"
+                value={program.name}
+                onChange={(e) => onChange({ ...program, name: e.target.value })}
+              />
+            </label>
+            <label className="field">
+              <span className="field-label">本系識別碼前三碼</span>
+              <input
+                placeholder="例：705,725"
+                value={program.deptPrefix}
+                onChange={(e) => onChange({ ...program, deptPrefix: e.target.value.toUpperCase() })}
+              />
+              <span className="field-hint">用來分辨系內、系外選修。系與所前綴不同時用逗號分開</span>
+            </label>
+          </div>
+          <div className="grid-3">{MAIN_FIELDS.map(renderField)}</div>
+          <p className="field-hint">
+            國文、外文、通識各自的門檻會影響超修怎麼算：國文與通識超修不計入選修，外文超修會計入選修。
+          </p>
+          <div className="grid-3">{DETAIL_FIELDS.map(renderField)}</div>
+        </div>
       </details>
-
-      <div className="row end">
-        <button className="btn ghost danger-text" onClick={onDelete}>刪除這個學程</button>
-      </div>
     </article>
   )
 }

@@ -160,6 +160,10 @@ fieldset { border: 0; margin: 0; padding: 0; }
 .segmented button.active { background: var(--accent-soft); color: var(--text); font-weight: 600; }
 
 .chip { font-size: 0.75rem; padding: 1px 8px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
+.chip.warn { background: var(--warn-bg); color: var(--warn-text); margin-left: 6px; vertical-align: 1px; }
+.warn-text { color: var(--warn-text); }
+.stack-xs { display: flex; flex-direction: column; gap: 6px; }
+.grid-picker { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
 .chip.accent { background: var(--accent-soft); color: var(--accent); margin-left: 6px; vertical-align: 1px; }
 .period-chips { display: flex; flex-wrap: wrap; gap: 4px; }
 .chip-toggle {
@@ -235,7 +239,7 @@ fieldset { border: 0; margin: 0; padding: 0; }
 .slot-name { display: block; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 @media (max-width: 640px) {
-  .grid-2, .grid-3 { grid-template-columns: minmax(0, 1fr); }
+  .grid-2, .grid-3, .grid-picker { grid-template-columns: minmax(0, 1fr); }
   .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .masthead-inner { padding-top: 12px; }
   .privacy-badge { font-size: 0.72rem; }

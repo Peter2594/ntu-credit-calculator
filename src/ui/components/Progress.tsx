@@ -9,9 +9,11 @@ type RowProps = {
   /** 試算時與基準相比的變化 */
   delta?: number
   big?: boolean
+  /** 本來就沒有門檻的項目（如系外選修），不顯示「未設定門檻」 */
+  targetless?: boolean
 }
 
-export function ProgressRow({ label, value, required, note, delta, big }: RowProps) {
+export function ProgressRow({ label, value, required, note, delta, big, targetless }: RowProps) {
   const hasTarget = required !== undefined && required > 0
   const pct = hasTarget ? Math.min(100, (value / required) * 100) : 0
   const done = hasTarget && value >= required
@@ -47,7 +49,7 @@ export function ProgressRow({ label, value, required, note, delta, big }: RowPro
         {hasTarget ? (
           done ? <span className="ok">✓ 已達標</span> : <span className="gap">還差 {gap} 學分</span>
         ) : (
-          <span className="muted">未設定門檻</span>
+          !targetless && <span className="muted">未設定門檻</span>
         )}
         {note && <span className="muted">{note}</span>}
       </div>
@@ -77,12 +79,24 @@ export function ProgramProgress({ program, result, baseline }: {
       />
       <div className="grid-2">
         <ProgressRow label="系訂必修" value={result.counted.major} required={req.major} delta={d((e) => e.counted.major)} />
-        <ProgressRow label="選修" value={result.counted.elective} required={req.elective} delta={d((e) => e.counted.elective)} />
+        <ProgressRow label="選修合計" value={result.counted.elective} required={req.elective} delta={d((e) => e.counted.elective)} />
         <ProgressRow
-          label="其中限本系選修"
+          label="系內選修"
           value={result.counted.electiveInMajor}
           required={req.electiveInMajor}
           delta={d((e) => e.counted.electiveInMajor)}
+          note={req.electiveInMajor !== undefined ? '至少要修的本系選修' : undefined}
+        />
+        <ProgressRow
+          label="系外選修"
+          targetless
+          value={result.counted.electiveOutside}
+          delta={d((e) => e.counted.electiveOutside)}
+          note={
+            req.elective !== undefined && req.electiveInMajor !== undefined
+              ? `最多採計 ${req.elective - req.electiveInMajor} 學分，含必修抵免與外文超修`
+              : '含必修抵免與外文超修'
+          }
         />
         <ProgressRow label="共同必修＋通識" value={result.counted.common} required={req.common} delta={d((e) => e.counted.common)} />
         <ProgressRow

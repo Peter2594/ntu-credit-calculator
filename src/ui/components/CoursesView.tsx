@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react'
 import { parseTranscript, type ParsedCourse } from '../../core/parser'
-import { deptPrefixOf } from '../../core/classify'
+import { deptPrefixOf, deptPrefixesOf, isOwnDeptGenEd } from '../../core/classify'
 import { SYNTHETIC_TRANSCRIPT } from '../../core/fixtures/transcript'
 import type { AppState } from '../../core/storage'
 import { CATEGORIES, type Category, type Course } from '../../core/types'
 import type { Actions, Tab } from '../App'
-import { isPlanned } from '../constants'
+import { categoryLabel, isPlanned } from '../constants'
 
 type Props = { state: AppState; actions: Actions; goTo(tab: Tab): void }
 type Filter = 'all' | 'dept' | 'planned'
@@ -31,7 +31,7 @@ export function CoursesView({ state, actions, goTo }: Props) {
     setFilter('dept')
   }
 
-  const prefixes = new Set(state.programs.map((p) => p.deptPrefix).filter(Boolean))
+  const prefixes = new Set(state.programs.flatMap(deptPrefixesOf))
   const visible = state.courses.filter((c) =>
     filter === 'dept' ? prefixes.has(deptPrefixOf(c.identifier))
       : filter === 'planned' ? isPlanned(c)
@@ -124,8 +124,9 @@ export function CoursesView({ state, actions, goTo }: Props) {
       {justImported !== null && (
         <div className="notice ok-bg">
           已匯入 {justImported} 門課。
-          <strong>成績單沒有標示必修或選修</strong>，本系課一律先算「限本系選修」。
-          請在下方把系訂必修改掉，抵免的課也在這裡調整。
+          {state.programs.some((p) => p.requiredCourses?.length)
+            ? <>系訂必修已依課程規定自動標好，<strong>抵免或群組選修</strong>的課請在下方自己調整。</>
+            : <><strong>成績單沒有標示必修或選修</strong>，本系課一律先算「系內選修」。請在下方把系訂必修改掉。</>}
           {state.programs.length === 0 && (
             <> 你還沒設定學程，<button className="link" onClick={() => goTo('programs')}>先去設定</button>才能分類。</>
           )}
@@ -176,6 +177,9 @@ function CourseItem({ course, state, actions }: { course: Course; state: AppStat
         <div className="course-name">
           {course.name}
           {course.overridden && <span className="chip accent">手動</span>}
+          {!course.overridden && state.programs.some((p) => isOwnDeptGenEd(course, p)) && (
+            <span className="chip warn" title="依規定，畢業學系開授的課可能不採計通識">本系通識，請確認</span>
+          )}
         </div>
         <div className="course-meta muted">
           <span className="mono">{course.identifier || course.code || '—'}</span>
@@ -196,7 +200,7 @@ function CourseItem({ course, state, actions }: { course: Course; state: AppStat
                 aria-label={`${course.name} 在 ${p.name || p.kind} 的分類`}
               >
                 {!current && <option value="">—</option>}
-                {CATEGORIES.map((k) => <option key={k}>{k}</option>)}
+                {CATEGORIES.map((k) => <option key={k} value={k}>{categoryLabel(k)}</option>)}
               </select>
             </label>
           )

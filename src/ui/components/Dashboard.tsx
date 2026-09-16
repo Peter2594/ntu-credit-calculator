@@ -4,6 +4,7 @@ import { findConflicts } from '../../core/conflicts'
 import type { AppState } from '../../core/storage'
 import type { Tab } from '../App'
 import { isPlanned } from '../constants'
+import { isOwnDeptGenEd } from '../../core/classify'
 import { ProgramProgress } from './Progress'
 
 type Props = { state: AppState; goTo(tab: Tab): void }
@@ -58,9 +59,11 @@ export function Dashboard({ state, goTo }: Props) {
       )}
 
       {programs.map((p) => {
-        const unconfirmed = courses.filter(
+        const hasList = (p.requiredCourses?.length ?? 0) > 0
+        const unconfirmed = hasList ? 0 : courses.filter(
           (c) => !c.overridden && c.assignments.some((a) => a.programId === p.id && a.category === '限本系選修'),
         ).length
+        const ownGenEd = courses.filter((c) => !c.overridden && isOwnDeptGenEd(c, p)).length
         return (
           <article className="card" key={p.id}>
             <div className="card-head">
@@ -69,7 +72,12 @@ export function Dashboard({ state, goTo }: Props) {
             </div>
             {unconfirmed > 0 && (
               <button className="notice clickable" onClick={() => goTo('courses')}>
-                有 {unconfirmed} 門本系課預設算「限本系選修」。其中若有系訂必修，請到「課程」改掉，否則必修進度會偏低。
+                沒有必修清單，{unconfirmed} 門本系課先算「系內選修」。其中若有系訂必修，請到「課程」改掉，否則必修進度會偏低。
+              </button>
+            )}
+            {ownGenEd > 0 && (
+              <button className="notice clickable" onClick={() => goTo('courses')}>
+                有 {ownGenEd} 門通識課是本系開的，先算通識。依規定本系開授的課可能不採計通識，請到「課程」確認。
               </button>
             )}
             <ProgramProgress program={p} result={evaluate(counted, p)} />
