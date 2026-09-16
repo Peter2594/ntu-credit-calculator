@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  courseKey, mergeImported, reclassifyAll, setCategory,
+  courseKey, mergeImported, reclassifyAll, setCategory, requiredProgress,
   resetCategory, removeProgram,
 } from './courses.js'
 import type { Course, Program } from './types.js'
@@ -72,5 +72,50 @@ describe('reclassifyAll 與 removeProgram', () => {
     const courses = mergeImported([], [parsed()], [p1, p2])
     const result = removeProgram(courses, 'p2')
     expect(result[0]!.assignments).toEqual([{ programId: 'p1', category: '限本系選修' }])
+  })
+})
+
+describe('requiredProgress', () => {
+  const listed: Program = {
+    ...p1,
+    requiredCourses: [
+      { code: 'AAA1001', identifier: '900 10100', name: '甲系導論', credits: 3, scope: '限本系課程' },
+      { code: 'AAA2001', identifier: '900 20100', name: '甲系進階', credits: 3, scope: '限本系課程' },
+      { code: 'MATH4006', identifier: '201 49810', name: '微積分1', credits: 2, scope: '不限本院(系)課程' },
+      { code: 'AAA3001', identifier: '900 30100', name: '甲系專題', credits: 2, scope: '限本系課程' },
+    ],
+  }
+
+  const taken = mergeImported([], [
+    parsed(),                                                         // 甲系導論 已修
+    parsed({ code: 'AAA2001', identifier: '900 20100', name: '甲系進階', grade: '停修' }),
+    parsed({ code: 'OTHER1', identifier: '777 10100', name: '替代課程', grade: 'A' }),
+  ], [listed])
+  const planned: Course = {
+    id: 'plan', name: '微積分1', credits: 2, semester: '115-2',
+    assignments: [], overridden: false,
+  }
+  const courses = reclassifyAll([
+    ...taken.map((c) => (c.name === '替代課程' ? setCategory(c, 'p1', '系訂必修') : c)),
+    planned,
+  ], [listed])
+
+  const r = requiredProgress(courses, listed)
+
+  it('逐門標出已修、已排課表、還沒修', () => {
+    expect(r.items.map((i) => [i.required.name, i.status])).toEqual([
+      ['甲系導論', 'done'],
+      ['甲系進階', 'missing'],   // 停修不算修過
+      ['微積分1', 'planned'],
+      ['甲系專題', 'missing'],
+    ])
+  })
+
+  it('還沒修的學分合計', () => {
+    expect(r.missingCredits).toBe(5)
+  })
+
+  it('手動算必修但不在清單上的課另外列出（多為抵免）', () => {
+    expect(r.extras.map((c) => c.name)).toEqual(['替代課程'])
   })
 })

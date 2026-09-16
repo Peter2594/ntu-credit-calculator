@@ -225,6 +225,22 @@ fieldset { border: 0; margin: 0; padding: 0; }
 .table th { position: sticky; top: 0; background: var(--surface-2); font-weight: 600; }
 .num { text-align: right !important; font-variant-numeric: tabular-nums; }
 
+/* 系訂必修清單 */
+.required-list { border-top: 1px solid var(--border); padding-top: 12px; }
+.required-list > summary { font-size: 0.92rem; color: var(--text); }
+.req-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.req-item {
+  display: grid; grid-template-columns: 5.2em minmax(0, 1fr) auto auto; gap: 10px;
+  align-items: center; padding: 5px 4px; font-size: 0.88rem; border-radius: 6px;
+}
+.req-item.done { color: var(--muted); }
+.req-status { font-size: 0.75rem; text-align: center; border-radius: 999px; padding: 1px 0; background: var(--surface-2); }
+.req-status.missing { background: var(--warn-bg); color: var(--warn-text); font-weight: 600; }
+.req-status.planned { background: var(--accent-soft); color: var(--accent); }
+.req-name { min-width: 0; }
+.req-name .chip { margin-left: 6px; }
+.req-note { font-size: 0.8rem; margin: 8px 0 0; }
+
 /* 課表 */
 .timetable-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
 .timetable { width: 100%; min-width: 560px; border-collapse: collapse; table-layout: fixed; font-size: 0.8rem; }
@@ -245,4 +261,6 @@ fieldset { border: 0; margin: 0; padding: 0; }
   .privacy-badge { font-size: 0.72rem; }
   .content { padding-top: 18px; }
   .course-controls { width: 100%; }
+  .req-item { grid-template-columns: 5.2em minmax(0, 1fr) auto; }
+  .req-code { display: none; }
 }

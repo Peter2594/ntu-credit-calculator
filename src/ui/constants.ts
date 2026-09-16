@@ -16,7 +16,7 @@ export const DAYS: { id: Slot['day']; label: string }[] = [
 
 export const DAY_LABEL: Record<Slot['day'], string> = { 1: '一', 2: '二', 3: '三', 4: '四', 5: '五' }
 
-export const SEMESTER_PATTERN = /^\d{3}-[12]$/
+export const SEMESTER_PATTERN = /^\d{3}-[1-4]$/
 
 export function newId(): string {
   return typeof crypto !== 'undefined' && 'randomUUID' in crypto

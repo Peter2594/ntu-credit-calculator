@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { load, save, type AppState } from '../core/storage'
 import { reclassifyAll } from '../core/courses'
+import { SEMESTER_PATTERN } from './constants'
 
 /**
  * 載入時修正舊存檔。
@@ -15,8 +16,10 @@ function migrate(state: AppState): AppState {
     if (!p.source || r.chineseGenEd !== undefined || !onePlan) return p
     return { ...p, requirements: { ...r, chinese: 6, genEd: 15, chineseGenEd: 18 } }
   })
+  // 舊版解析器遇到整頁複製時，會把「實得學分數為：」等統計列誤當學期；這些課重新匯入即可取代
+  const courses = state.courses.filter((c) => !c.grade || !c.semester || SEMESTER_PATTERN.test(c.semester))
   // 分類規則會隨版本修正，未手動覆寫的課每次載入都重新歸類
-  return { programs, courses: reclassifyAll(state.courses, programs) }
+  return { programs, courses: reclassifyAll(courses, programs) }
 }
 
 /** localStorage 在私密視窗或被封鎖時可能拋錯，讀寫失敗就只留在記憶體。 */

@@ -1,4 +1,4 @@
-import type { Category, Course, Program } from './types.js'
+import type { Category, Course, Program, RequiredCourse } from './types.js'
 import type { ParsedCourse } from './parser.js'
 
 /** 識別碼前三碼即開課單位代碼，格式不一但位置固定。 */
@@ -28,15 +28,17 @@ export function withGraduatePrefix(prefix: string): string {
 
 const squash = (s?: string) => (s ?? '').replace(/\s+/g, '').toUpperCase()
 
-/** 對照系訂必修科目表。認可範圍不限本系時，他系開的同名課也算。 */
-export function isRequiredCourse(course: ParsedCourse, program: Program): boolean {
+/** 這門課是否滿足某一門系訂必修。認可範圍不限本系時，他系開的同名課也算。 */
+export function matchesRequired(course: ParsedCourse, r: RequiredCourse): boolean {
   const code = squash(course.code)
   const identifier = squash(course.identifier)
-  return (program.requiredCourses ?? []).some((r) =>
-    (code !== '' && squash(r.code) === code) ||
+  return (code !== '' && squash(r.code) === code) ||
     (identifier !== '' && squash(r.identifier) === identifier) ||
-    (!r.scope.includes('限本系') && r.name === course.name),
-  )
+    (!r.scope.includes('限本系') && r.name === course.name)
+}
+
+export function isRequiredCourse(course: ParsedCourse, program: Program): boolean {
+  return (program.requiredCourses ?? []).some((r) => matchesRequired(course, r))
 }
 
 /**

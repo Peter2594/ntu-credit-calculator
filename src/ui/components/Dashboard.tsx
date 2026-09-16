@@ -6,6 +6,7 @@ import type { Tab } from '../App'
 import { isPlanned } from '../constants'
 import { isOwnDeptGenEd } from '../../core/classify'
 import { ProgramProgress } from './Progress'
+import { RequiredList } from './RequiredList'
 
 type Props = { state: AppState; goTo(tab: Tab): void }
 
@@ -81,6 +82,7 @@ export function Dashboard({ state, goTo }: Props) {
               </button>
             )}
             <ProgramProgress program={p} result={evaluate(counted, p)} />
+            <RequiredList program={p} courses={courses} />
           </article>
         )
       })}
