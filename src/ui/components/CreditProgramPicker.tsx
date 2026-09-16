@@ -8,7 +8,7 @@ type CreditProgram = {
   total: number | null
   rules: string
   groups?: NonNullable<Program['requiredGroups']>
-  courses: { identifier?: string; name: string; credits: number; group?: string }[]
+  courses: { identifier?: string; name: string; credits: number; group?: string; matchName?: boolean }[]
 }
 
 let cache: Promise<CreditProgram[]> | null = null
@@ -28,7 +28,7 @@ function loadPrograms(): Promise<CreditProgram[]> {
 
 /**
  * 有識別碼的課只以識別碼比對（同名課很多，避免誤判）；
- * 清單只有課名時才以課名比對。
+ * 清單只有課名、或標明課名具辨識度（matchName）時才以課名比對。
  */
 function toRequired(c: CreditProgram['courses'][number]): RequiredCourse {
   return {
@@ -37,7 +37,7 @@ function toRequired(c: CreditProgram['courses'][number]): RequiredCourse {
     name: c.name,
     credits: c.credits,
     ...(c.group ? { group: c.group } : {}),
-    scope: c.identifier ? '限本系課程' : '不限本院(系)課程',
+    scope: c.identifier && !c.matchName ? '限本系課程' : '不限本院(系)課程',
   }
 }
 
