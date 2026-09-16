@@ -55,7 +55,7 @@ export function evaluate(courses: Course[], program: Program): Evaluation {
   const foreign = capped(taken['外文'], req.foreign)
   const foreignOverflow = overflow(taken['外文'], req.foreign)
   const commonRaw = taken['國文'] + taken['外文'] + taken['通識']
-  const common = capped(chinese + foreign + genEd, req.common)
+  const common = capped(capped(chinese + genEd, req.chineseGenEd) + foreign, req.common)
 
   // 規則 5：限本系選修是下限，超修仍計入選修合計
   const electiveInMajor = taken['限本系選修']

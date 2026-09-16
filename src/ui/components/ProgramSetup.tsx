@@ -19,6 +19,7 @@ const DETAIL_FIELDS: Field[] = [
   { key: 'chinese', label: '國文' },
   { key: 'foreign', label: '外文' },
   { key: 'genEd', label: '通識' },
+  { key: 'chineseGenEd', label: '國文＋通識合計', hint: '例：國文 6＋通識 12 或 國文 3＋通識 15 皆為 18' },
 ]
 
 const KINDS: ProgramKind[] = ['主修', '雙主修', '輔系']
@@ -158,7 +159,7 @@ function ProgramCard({ program, onChange, onDelete }: {
           <p className="field-hint">
             國文、外文、通識各自的門檻會影響超修怎麼算：國文與通識超修不計入選修，外文超修會計入選修。
           </p>
-          <div className="grid-3">{DETAIL_FIELDS.map(renderField)}</div>
+          <div className="grid-4">{DETAIL_FIELDS.map(renderField)}</div>
         </div>
       </details>
     </article>

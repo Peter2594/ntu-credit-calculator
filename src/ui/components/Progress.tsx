@@ -43,7 +43,7 @@ export function ProgressRow({ label, value, required, note, delta, big, targetle
           <div className={done ? 'bar-fill done' : 'bar-fill'} style={{ width: `${pct}%` }} />
         </div>
       ) : (
-        <div className="bar empty" />
+        <div className="bar no-target" />
       )}
       <div className="progress-foot">
         {hasTarget ? (

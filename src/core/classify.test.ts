@@ -175,3 +175,19 @@ describe('withGraduatePrefix', () => {
     expect(withGraduatePrefix('725')).toBe('725')
   })
 })
+
+describe('識別碼不是體育室或外文系開的共同必修', () => {
+  it('健康體適能、專項運動依課名認成體育', () => {
+    expect(classify(course({ identifier: 'H01 99900', name: '健康體適能' }), program)).toBe('體育')
+    expect(classify(course({ identifier: 'H01 99901', name: '專項運動：羽球' }), program)).toBe('體育')
+  })
+
+  it('掛在本系的大一英文班仍算外文', () => {
+    expect(classify(course({ identifier: '900 13200', name: '英文(附一小時英聽)二' }), program)).toBe('外文')
+    expect(classify(course({ identifier: '900 13201', name: '大一英文一' }), program)).toBe('外文')
+  })
+
+  it('一般含「英文」的專業課不受影響', () => {
+    expect(classify(course({ identifier: '900 50100', name: '商用英文寫作' }), program)).toBe('限本系選修')
+  })
+})

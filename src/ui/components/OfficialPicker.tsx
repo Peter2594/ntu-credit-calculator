@@ -2,6 +2,17 @@ import { useEffect, useState } from 'react'
 import type { Program } from '../../core/types'
 import { withGraduatePrefix } from '../../core/classify'
 import { loadYear, loadYears, officialPageUrl, type OfficialDept, type OfficialYear } from '../officialData'
+import type { ChinesePlan } from '../../core/curri'
+
+/** 把「國文 6＋通識 12」「國文 3＋通識 15」合成一組上限，學生不必自己選方案。 */
+function chineseGenEdCaps(plans: ChinesePlan[]) {
+  if (plans.length === 0) return {}
+  return {
+    chinese: Math.max(...plans.map((p) => p.chinese)),
+    genEd: Math.max(...plans.map((p) => p.genEd)),
+    chineseGenEd: Math.max(...plans.map((p) => p.chinese + p.genEd)),
+  }
+}
 
 type Props = { program: Program; onChange(p: Program): void }
 
@@ -27,22 +38,22 @@ export function OfficialPicker({ program, onChange }: Props) {
     loadYear(year).then(setData).catch(() => setError(true))
   }, [year])
 
+  const selected = program.source?.year === year ? program.source.deptCode : ''
+  // 只在下拉的年度就是帶入來源年度時才比對，避免拿到別年同代碼的系
+  const dept = selected ? data?.departments.find((d) => d.code === selected) : undefined
+
   if (error) {
     return <p className="notice warn">官方資料載入失敗，請在下方手動填寫門檻。</p>
   }
 
-  const selected = program.source?.year === year ? program.source.deptCode : ''
-  const dept = data?.departments.find((d) => d.code === program.source?.deptCode)
-
   const apply = (d: OfficialDept) => {
-    const plan = d.chinesePlans[0]
     onChange({
       ...program,
       name: d.name,
       deptPrefix: withGraduatePrefix(d.deptPrefix),
       requirements: {
         ...d.requirements,
-        ...(plan ? { chinese: plan.chinese, genEd: plan.genEd } : {}),
+        ...chineseGenEdCaps(d.chinesePlans),
       },
       requiredCourses: d.requiredCourses,
       source: { year, deptCode: d.code },
@@ -88,25 +99,9 @@ export function OfficialPicker({ program, onChange }: Props) {
             （清單 {program.requiredCourses?.length ?? 0} 門）、選修 {program.requirements.elective ?? '—'}
             {program.requirements.electiveInMajor !== undefined && `（系內至少 ${program.requirements.electiveInMajor}）`}
             、共同＋通識 {program.requirements.common ?? '—'}。
+            {program.requirements.chineseGenEd !== undefined &&
+              ` 國文與通識合計採計 ${program.requirements.chineseGenEd}（國文至多 ${program.requirements.chinese}、通識至多 ${program.requirements.genEd}），兩種國文方案都適用。`}
           </div>
-          {dept && dept.chinesePlans.length > 1 && (
-            <label className="inline-field">
-              <span>國文方案</span>
-              <select
-                value={`${program.requirements.chinese}+${program.requirements.genEd}`}
-                onChange={(e) => {
-                  const [chinese, genEd] = e.target.value.split('+').map(Number)
-                  onChange({ ...program, requirements: { ...program.requirements, chinese, genEd } })
-                }}
-              >
-                {dept.chinesePlans.map((p) => (
-                  <option key={`${p.chinese}+${p.genEd}`} value={`${p.chinese}+${p.genEd}`}>
-                    國文 {p.chinese} ＋ 通識 {p.genEd}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
           {incomplete && (
             <div className="warn-text">
               必修清單只列出 {listed} 學分，少於應修 {program.requirements.major}：

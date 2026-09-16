@@ -7,6 +7,9 @@ export function deptPrefixOf(identifier?: string): string {
 }
 
 const WITHDRAWN = '停修'
+// 共同必修有時掛在其他單位的識別碼下（共教中心開的健康體適能、各系自開的大一英文班），只能靠課名認
+const PE_NAME = /健康體適能|專項運動/
+const FOREIGN_NAME = /^(英文\s*[(（]|英文[一二]|大一英文|大一外文)/
 /** 不及格沒有拿到學分。 */
 const FAILED = new Set(['F', 'X', '不通過'])
 
@@ -57,8 +60,8 @@ export function classify(course: ParsedCourse, program: Program): Category {
   if (course.genEdDomain?.endsWith('*') && ownDept) return '限本系選修'
   if (course.genEdDomain) return '通識'
   if (prefix === '101' || code.startsWith('CHIN')) return '國文'
-  if (prefix === '102' || code.startsWith('FL')) return '外文'
-  if (prefix === '002' || code.startsWith('PE')) return '體育'
+  if (prefix === '102' || code.startsWith('FL') || FOREIGN_NAME.test(course.name)) return '外文'
+  if (prefix === '002' || code.startsWith('PE') || PE_NAME.test(course.name)) return '體育'
   // 服務學習自 114 學年度起不計入畢業總學分。115 起入學者可計選修至多 2 學分，
   // 但那取決於入學年度，工具不猜 —— 由使用者手動覆寫。
   if (code.startsWith('StuAct') || course.name.includes('服務學習')) return '不計入'

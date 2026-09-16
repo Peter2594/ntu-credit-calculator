@@ -85,6 +85,41 @@ describe('evaluate 的上限與溢出', () => {
     expect(r.counted.elective).toBe(10)
   })
 
+  describe('國文與通識合併上限（國文 6＋通識 12 或 國文 3＋通識 15）', () => {
+    const plans: Program = {
+      ...program,
+      requirements: { ...program.requirements, chinese: 6, genEd: 15, chineseGenEd: 18 },
+    }
+
+    it('走國文 3＋通識 15 時，通識 15 學分全部採計', () => {
+      const r = evaluate([c('國文', 3), c('通識', 15)], plans)
+      expect(r.counted.common).toBe(18)
+      expect(r.totalTaken - r.totalCounted).toBe(0)
+    })
+
+    it('走國文 6＋通識 12 時也全部採計', () => {
+      const r = evaluate([c('國文', 6), c('通識', 12)], plans)
+      expect(r.counted.common).toBe(18)
+    })
+
+    it('兩者合計超過 18 的部分才不計入', () => {
+      const r = evaluate([c('國文', 3), c('通識', 18), c('一般選修', 10)], plans)
+      expect(r.counted.common).toBe(18)
+      expect(r.counted.elective).toBe(10)
+    })
+
+    it('國文 6＋通識 15 時合計只採計 18', () => {
+      const r = evaluate([c('國文', 6), c('通識', 15)], plans)
+      expect(r.counted.common).toBe(18)
+      expect(r.totalTaken - r.totalCounted).toBe(3)
+    })
+
+    it('國文仍以 6 為上限', () => {
+      const r = evaluate([c('國文', 9), c('通識', 6)], plans)
+      expect(r.counted.common).toBe(12)
+    })
+  })
+
   it('外文超修的部分計入選修（與國文、通識相反）', () => {
     // 外文門檻 6，修了 9，超修的 3 進選修
     const courses = [c('外文', 9), c('一般選修', 10)]

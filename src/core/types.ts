@@ -12,6 +12,9 @@ export type Requirements = {
   chinese?: number         // 國文個別門檻
   foreign?: number         // 外文個別門檻
   genEd?: number           // 通識個別門檻
+  /** 國文＋通識合計上限。國文 6＋通識 12 與 國文 3＋通識 15 兩方案其實是同一條：
+   *  國文至多 6、通識至多 15、兩者合計至多 18，不必讓學生選方案。 */
+  chineseGenEd?: number
   elective?: number
   electiveInMajor?: number
   pe?: number
