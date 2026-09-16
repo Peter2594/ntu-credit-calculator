@@ -1,59 +1,86 @@
 import type { Evaluation } from '../../core/engine'
 import type { Program } from '../../core/types'
 
-type RowProps = {
-  label: string
-  value: number
-  required?: number
-  note?: string
-  /** 試算時與基準相比的變化 */
-  delta?: number
-  big?: boolean
-  /** 本來就沒有門檻的項目（如系外選修），不顯示「未設定門檻」 */
-  targetless?: boolean
+export type Tone = 'major' | 'in' | 'out' | 'elective' | 'common' | 'pe'
+
+/** 說明收進圖示，滑鼠移上或聚焦時才顯示，版面保持乾淨。 */
+export function Info({ text }: { text: string }) {
+  return (
+    <span className="info" tabIndex={0} role="img" aria-label={text} data-tip={text}>
+      i
+    </span>
+  )
 }
 
-export function ProgressRow({ label, value, required, note, delta, big, targetless }: RowProps) {
+function Delta({ value }: { value?: number }) {
+  if (value === undefined || value === 0) return null
+  return <span className={value > 0 ? 'delta up' : 'delta down'}>{value > 0 ? `+${value}` : value}</span>
+}
+
+type TileProps = {
+  label: string
+  tone: Tone
+  value: number
+  required?: number
+  delta?: number
+  info?: string
+}
+
+export function StatTile({ label, tone, value, required, delta, info }: TileProps) {
   const hasTarget = required !== undefined && required > 0
   const pct = hasTarget ? Math.min(100, (value / required) * 100) : 0
-  const done = hasTarget && value >= required
   const gap = hasTarget ? Math.max(0, required - value) : 0
 
   return (
-    <div className={big ? 'progress big' : 'progress'}>
-      <div className="progress-head">
-        <span className="progress-label">{label}</span>
-        <span className="progress-num">
-          <strong>{value}</strong>
-          {delta !== undefined && delta !== 0 && (
-            <span className="delta">{delta > 0 ? `+${delta}` : delta}</span>
-          )}
-          {hasTarget && <span className="muted"> / {required}</span>}
+    <div className={`tile tone-${tone}`}>
+      <div className="tile-head">
+        <span className="tile-label">
+          <span className="dot" />
+          {label}
+          {info && <Info text={info} />}
         </span>
+        {hasTarget && (gap === 0
+          ? <span className="badge ok">達標</span>
+          : <span className="badge gap">差 {gap}</span>)}
       </div>
-      {hasTarget ? (
-        <div
-          className="bar"
-          role="progressbar"
-          aria-label={label}
-          aria-valuemin={0}
-          aria-valuemax={required}
-          aria-valuenow={Math.min(value, required)}
-        >
-          <div className={done ? 'bar-fill done' : 'bar-fill'} style={{ width: `${pct}%` }} />
-        </div>
-      ) : (
-        <div className="bar no-target" />
-      )}
-      <div className="progress-foot">
-        {hasTarget ? (
-          done ? <span className="ok">✓ 已達標</span> : <span className="gap">還差 {gap} 學分</span>
-        ) : (
-          !targetless && <span className="muted">未設定門檻</span>
-        )}
-        {note && <span className="muted">{note}</span>}
+      <div className="tile-value">
+        <strong>{value}</strong>
+        {hasTarget && <span className="of">/ {required}</span>}
+        <Delta value={delta} />
+      </div>
+      <div
+        className={hasTarget ? 'bar' : 'bar no-target'}
+        {...(hasTarget && {
+          role: 'progressbar',
+          'aria-label': label,
+          'aria-valuemin': 0,
+          'aria-valuemax': required,
+          'aria-valuenow': Math.min(value, required),
+        })}
+      >
+        {hasTarget && <div className="bar-fill" style={{ width: `${pct}%` }} />}
       </div>
     </div>
+  )
+}
+
+function Ring({ value, total }: { value: number; total?: number }) {
+  const r = 52
+  const circumference = 2 * Math.PI * r
+  const pct = total ? Math.min(1, value / total) : 0
+  return (
+    <svg className="ring" viewBox="0 0 120 120" aria-hidden="true">
+      <circle className="ring-track" cx="60" cy="60" r={r} />
+      <circle
+        className="ring-fill"
+        cx="60" cy="60" r={r}
+        strokeDasharray={circumference}
+        strokeDashoffset={circumference * (1 - pct)}
+        transform="rotate(-90 60 60)"
+      />
+      <text x="60" y="58" className="ring-pct">{Math.round(pct * 100)}%</text>
+      <text x="60" y="78" className="ring-sub">完成</text>
+    </svg>
   )
 }
 
@@ -66,45 +93,72 @@ export function ProgramProgress({ program, result, baseline }: {
   const req = program.requirements
   const d = (pick: (e: Evaluation) => number) => (baseline ? pick(result) - pick(baseline) : undefined)
   const lost = result.totalTaken - result.totalCounted
+  const remaining = req.total !== undefined ? Math.max(0, req.total - result.totalCounted) : undefined
+  const outsideCap = req.elective !== undefined && req.electiveInMajor !== undefined
+    ? req.elective - req.electiveInMajor
+    : undefined
+
+  const gaps = [
+    { label: '系訂必修', gap: result.gaps.major },
+    { label: '系內選修', gap: result.gaps.electiveInMajor },
+    { label: '選修', gap: result.gaps.elective },
+    { label: '共同＋通識', gap: result.gaps.common },
+    { label: '體育', gap: result.pe.gap },
+  ].filter((g) => g.gap > 0)
 
   return (
-    <div className="stack-sm">
-      <ProgressRow
-        big
-        label="畢業總學分"
-        value={result.totalCounted}
-        required={req.total}
-        delta={d((e) => e.totalCounted)}
-        note={lost > 0 ? `實修 ${result.totalTaken}，其中 ${lost} 學分因超修上限不計入` : undefined}
-      />
-      <div className="grid-2">
-        <ProgressRow label="系訂必修" value={result.counted.major} required={req.major} delta={d((e) => e.counted.major)} />
-        <ProgressRow label="選修合計" value={result.counted.elective} required={req.elective} delta={d((e) => e.counted.elective)} />
-        <ProgressRow
-          label="系內選修"
-          value={result.counted.electiveInMajor}
-          required={req.electiveInMajor}
+    <div className="stack">
+      <div className="hero">
+        <Ring value={result.totalCounted} total={req.total} />
+        <div className="hero-body">
+          <div className="hero-label">
+            畢業學分
+            {lost > 0 && <Info text={`實修 ${result.totalTaken} 學分，其中 ${lost} 學分因超修上限不計入`} />}
+          </div>
+          <div className="hero-value">
+            <strong>{result.totalCounted}</strong>
+            {req.total !== undefined && <span className="of">/ {req.total}</span>}
+            <Delta value={d((e) => e.totalCounted)} />
+          </div>
+          {remaining !== undefined && (
+            <div className={remaining === 0 ? 'hero-remaining ok' : 'hero-remaining'}>
+              {remaining === 0 ? '已達畢業學分' : `還差 ${remaining} 學分`}
+            </div>
+          )}
+          {gaps.length > 0 && (
+            <div className="gap-chips">
+              {gaps.map((g) => <span key={g.label} className="gap-chip">{g.label} −{g.gap}</span>)}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="tiles">
+        <StatTile tone="major" label="系訂必修" value={result.counted.major} required={req.major} delta={d((e) => e.counted.major)} />
+        <StatTile tone="elective" label="選修合計" value={result.counted.elective} required={req.elective} delta={d((e) => e.counted.elective)} />
+        <StatTile
+          tone="in" label="系內選修"
+          value={result.counted.electiveInMajor} required={req.electiveInMajor}
           delta={d((e) => e.counted.electiveInMajor)}
-          note={req.electiveInMajor !== undefined ? '至少要修的本系選修' : undefined}
+          info="選修中至少要有這麼多學分是本系（含研究所）開的課"
         />
-        <ProgressRow
-          label="系外選修"
-          targetless
+        <StatTile
+          tone="out" label="系外選修"
           value={result.counted.electiveOutside}
           delta={d((e) => e.counted.electiveOutside)}
-          note={
-            req.elective !== undefined && req.electiveInMajor !== undefined
-              ? `最多採計 ${req.elective - req.electiveInMajor} 學分，含必修抵免與外文超修`
-              : '含必修抵免與外文超修'
-          }
+          info={`${outsideCap !== undefined ? `最多採計 ${outsideCap} 學分。` : ''}含必修抵免餘數與外文超修`}
         />
-        <ProgressRow label="共同必修＋通識" value={result.counted.common} required={req.common} delta={d((e) => e.counted.common)} />
-        <ProgressRow
-          label="體育"
-          value={result.pe.taken}
-          required={req.pe}
+        <StatTile
+          tone="common" label="共同＋通識"
+          value={result.counted.common} required={req.common}
+          delta={d((e) => e.counted.common)}
+          info="國文、外文、通識合計。國文最多 6、通識最多 15、兩者合計最多 18"
+        />
+        <StatTile
+          tone="pe" label="體育"
+          value={result.pe.taken} required={req.pe}
           delta={d((e) => e.pe.taken)}
-          note="不計入畢業總學分"
+          info="必修但不計入畢業總學分"
         />
       </div>
     </div>

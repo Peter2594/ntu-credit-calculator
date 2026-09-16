@@ -3,6 +3,7 @@ import { requiredKey, requiredProgress, type RequiredItem } from '../../core/cou
 import type { Course, Program } from '../../core/types'
 import type { Actions } from '../App'
 import { isPlanned } from '../constants'
+import { Info } from './Progress'
 
 const STATUS_LABEL: Record<RequiredItem['status'], string> = {
   missing: '還沒修',
@@ -44,8 +45,8 @@ export function RequiredList({ program, courses, actions }: Props) {
           {i.status === 'waived' && (
             <span className="muted req-by">
               {i.course
-                ? `← ${i.course.name}（${i.course.credits} 學分${i.course.credits > i.required.credits ? `，餘 ${i.course.credits - i.required.credits} 學分計入選修` : ''}）`
-                : '← 免修，不計學分'}
+                ? `以 ${i.course.name} 抵免${i.course.credits > i.required.credits ? `，餘 ${i.course.credits - i.required.credits} 學分計入選修` : ''}`
+                : '免修'}
             </span>
           )}
         </span>
@@ -88,26 +89,18 @@ export function RequiredList({ program, courses, actions }: Props) {
   return (
     <details className="required-list" open={missing.length > 0}>
       <summary>
-        系訂必修清單：
+        <span className="req-title">系訂必修清單</span>
         {missing.length > 0
-          ? <strong className="gap">還差 {missing.length} 門、{missingCredits} 學分</strong>
-          : <strong className="ok">清單上的課都修了、已排入或已抵免</strong>}
-        {planned.length > 0 && <span className="muted">（另有 {planned.length} 門已排課表）</span>}
+          ? <strong className="gap">還差 {missing.length} 門 · {missingCredits} 學分</strong>
+          : <strong className="ok">全部完成</strong>}
+        <Info text="課號不同的抵免按「抵免」指定用哪門課抵，學分多出的部分計入選修；免修不增加學分" />
+        {planned.length > 0 && <span className="muted"> · {planned.length} 門已排課表</span>}
       </summary>
 
       <ul className="req-items">{[...missing, ...planned, ...settled].map(renderItem)}</ul>
 
-      <p className="muted req-note">
-        課號不同但系辦核可的抵免，按「抵免」選擇用哪門課抵：那門課改算系訂必修，學分多出的部分計入選修。
-        選「免修」只會把這門從清單拿掉，不增加學分，必修學分仍需補足。
-      </p>
       {extras.length > 0 && (
-        <p className="muted req-note">
-          手動算成系訂必修、但還沒指定抵哪一門的課：{extras.map((c) => c.name).join('、')}。
-        </p>
-      )}
-      {items.some((i) => i.required.group) && (
-        <p className="muted req-note">標「群組」的課是群組選修，同一群組通常只需修其中幾門，用不到的可以標免修。</p>
+        <p className="req-note">尚未指定抵哪一門：{extras.map((c) => c.name).join('、')}</p>
       )}
     </details>
   )

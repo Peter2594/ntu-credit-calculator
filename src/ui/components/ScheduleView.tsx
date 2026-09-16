@@ -47,9 +47,6 @@ export function ScheduleView({ state, actions }: Props) {
           </datalist>
         </label>
       </div>
-      <p className="muted">
-        這裡加入的是還沒修完的課。它們不會影響「只算已修」的進度，但可以在進度頁切到「含課表」看排完之後的樣子。
-      </p>
 
       {!SEMESTER_PATTERN.test(semester) && (
         <p className="notice warn">學期格式是「學年-學期」，例如 115-1。</p>

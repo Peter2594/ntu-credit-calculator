@@ -3,6 +3,7 @@ import type { Program, ProgramKind, Requirements } from '../../core/types'
 import type { Actions, Tab } from '../App'
 import { newId } from '../constants'
 import { OfficialPicker } from './OfficialPicker'
+import { Info } from './Progress'
 
 type Field = { key: keyof Requirements; label: string; hint?: string }
 
@@ -38,9 +39,6 @@ export function ProgramSetup({ state, actions, goTo }: Props) {
     <section className="stack">
       <div className="section-head">
         <h2>學程設定</h2>
-        <p className="muted">
-          選入學年度和學系，畢業門檻與系訂必修會從台大課程規定自動帶入。帶入後每個數字都還能改。
-        </p>
       </div>
 
       {programs.length === 0 && (
@@ -74,7 +72,6 @@ export function ProgramSetup({ state, actions, goTo }: Props) {
       {(programs.length > 0 || state.courses.length > 0) && (
         <details className="danger-zone">
           <summary>清除資料</summary>
-          <p className="muted">刪除這台瀏覽器裡所有學程與課程，無法復原。</p>
           <button
             className="btn danger"
             onClick={() => {
@@ -104,7 +101,7 @@ function ProgramCard({ program, onChange, onDelete }: {
 
   const renderField = (f: Field) => (
     <label key={f.key} className="field">
-      <span className="field-label">{f.label}</span>
+      <span className="field-label">{f.label}{f.hint && <Info text={f.hint} />}</span>
       <input
         type="number"
         inputMode="numeric"
@@ -112,7 +109,7 @@ function ProgramCard({ program, onChange, onDelete }: {
         value={program.requirements[f.key] ?? ''}
         onChange={(e) => setReq(f.key, e.target.value)}
       />
-      {f.hint && <span className="field-hint">{f.hint}</span>}
+
     </label>
   )
 
@@ -146,19 +143,15 @@ function ProgramCard({ program, onChange, onDelete }: {
               />
             </label>
             <label className="field">
-              <span className="field-label">本系識別碼前三碼</span>
+              <span className="field-label">本系識別碼前三碼<Info text="用來分辨系內、系外選修；系與所前綴不同時用逗號分開" /></span>
               <input
                 placeholder="例：705,725"
                 value={program.deptPrefix}
                 onChange={(e) => onChange({ ...program, deptPrefix: e.target.value.toUpperCase() })}
               />
-              <span className="field-hint">用來分辨系內、系外選修。系與所前綴不同時用逗號分開</span>
             </label>
           </div>
           <div className="grid-3">{MAIN_FIELDS.map(renderField)}</div>
-          <p className="field-hint">
-            國文、外文、通識各自的門檻會影響超修怎麼算：國文與通識超修不計入選修，外文超修會計入選修。
-          </p>
           <div className="grid-4">{DETAIL_FIELDS.map(renderField)}</div>
         </div>
       </details>

@@ -55,7 +55,7 @@ export function Dashboard({ state, actions, goTo }: Props) {
 
       {conflicts.length > 0 && (
         <button className="notice warn clickable" onClick={() => goTo('schedule')}>
-          課表有 {conflicts.length} 處衝堂，點此查看
+          課表有 {conflicts.length} 處衝堂 →
         </button>
       )}
 
@@ -66,19 +66,20 @@ export function Dashboard({ state, actions, goTo }: Props) {
         ).length
         const ownGenEd = courses.filter((c) => !c.overridden && isOwnDeptGenEd(c, p)).length
         return (
-          <article className="card" key={p.id}>
+          <article className="card program-card" key={p.id}>
             <div className="card-head">
               <h3>{p.name || '未命名學程'}</h3>
               <span className="chip">{p.kind}</span>
+              {p.source && <span className="chip">{p.source.year} 入學</span>}
             </div>
             {unconfirmed > 0 && (
               <button className="notice clickable" onClick={() => goTo('courses')}>
-                沒有必修清單，{unconfirmed} 門本系課先算「系內選修」。其中若有系訂必修，請到「課程」改掉，否則必修進度會偏低。
+                {unconfirmed} 門本系課暫列系內選修，其中的必修請到「課程」改掉 →
               </button>
             )}
             {ownGenEd > 0 && (
               <button className="notice clickable" onClick={() => goTo('courses')}>
-                有 {ownGenEd} 門通識課是本系開的，先算通識。依規定本系開授的課可能不採計通識，請到「課程」確認。
+                {ownGenEd} 門本系開的通識課可能不採計通識，請確認 →
               </button>
             )}
             <ProgramProgress program={p} result={evaluate(counted, p)} />

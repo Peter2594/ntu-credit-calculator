@@ -48,17 +48,12 @@ export function CoursesView({ state, actions, goTo }: Props) {
     <section className="stack">
       <div className="section-head">
         <h2>匯入成績</h2>
-        <ol className="steps muted">
-          <li>登入 myNTU，打開「歷年成績」頁面</li>
-          <li>用 Ctrl+A 全選、Ctrl+C 複製</li>
-          <li>貼到下方，按「解析」</li>
-        </ol>
       </div>
 
       <div className="card stack-sm">
         <textarea
           rows={6}
-          placeholder="把歷年成績整頁貼在這裡"
+          placeholder={'myNTU「歷年成績」頁面 → Ctrl+A 全選 → Ctrl+C 複製 → 貼在這裡'}
           value={raw}
           onChange={(e) => {
             setRaw(e.target.value)
@@ -143,9 +138,6 @@ export function CoursesView({ state, actions, goTo }: Props) {
               <button className={filter === 'planned' ? 'active' : ''} onClick={() => setFilter('planned')}>計畫中</button>
             </div>
           </div>
-          <p className="muted">
-            每門課可以依學程改分類。改過的會標「手動」，重新匯入也不會被蓋掉。
-          </p>
 
           {visible.length === 0 && <p className="muted">沒有符合的課程。</p>}
 

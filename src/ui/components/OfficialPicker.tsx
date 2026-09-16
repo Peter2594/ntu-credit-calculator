@@ -92,27 +92,19 @@ export function OfficialPicker({ program, onChange }: Props) {
       </div>
 
       {program.source && (
-        <div className="notice ok-bg stack-xs">
-          <div>
-            已帶入 <strong>{program.source.year} 學年度入學 {program.name}</strong>：
-            畢業 {program.requirements.total ?? '—'}、系訂必修 {program.requirements.major ?? '—'}
-            （清單 {program.requiredCourses?.length ?? 0} 門）、選修 {program.requirements.elective ?? '—'}
-            {program.requirements.electiveInMajor !== undefined && `（系內至少 ${program.requirements.electiveInMajor}）`}
-            、共同＋通識 {program.requirements.common ?? '—'}。
-            {program.requirements.chineseGenEd !== undefined &&
-              ` 國文與通識合計採計 ${program.requirements.chineseGenEd}（國文至多 ${program.requirements.chinese}、通識至多 ${program.requirements.genEd}），兩種國文方案都適用。`}
+        <div className="source-summary">
+          <div className="source-stats">
+            <span><b>{program.requirements.total ?? '—'}</b>畢業</span>
+            <span><b>{program.requirements.major ?? '—'}</b>系訂必修</span>
+            <span><b>{program.requirements.elective ?? '—'}</b>選修</span>
+            {program.requirements.electiveInMajor !== undefined && <span><b>{program.requirements.electiveInMajor}</b>系內至少</span>}
+            <span><b>{program.requirements.common ?? '—'}</b>共同＋通識</span>
           </div>
           {incomplete && (
-            <div className="warn-text">
-              必修清單只列出 {listed} 學分，少於應修 {program.requirements.major}：
-              有些必修是「群組選修」，要到「課程」自己標成系訂必修。
-            </div>
+            <div className="warn-text small">必修清單只列出 {listed} 學分，部分為群組選修，請在進度頁自行標記。</div>
           )}
-          {program.requirements.electiveInMajor === undefined && (
-            <div className="muted">這個系的規定沒寫明系內選修下限，有的話請在下方補上。</div>
-          )}
-          <a href={officialPageUrl(program.source.year, program.source.deptCode)} target="_blank" rel="noreferrer">
-            對照官方課程規定 ↗
+          <a className="small" href={officialPageUrl(program.source.year, program.source.deptCode)} target="_blank" rel="noreferrer">
+            官方課程規定 ↗
           </a>
         </div>
       )}

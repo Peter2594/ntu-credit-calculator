@@ -58,9 +58,6 @@ export function TrialView({ state, actions }: Props) {
     <section className="stack">
       <div className="section-head">
         <h2>試算</h2>
-        <p className="muted">
-          加入「如果修這些課」的假設，看各項缺口怎麼變。以已修加上課表裡的課為基準，試算內容不會存檔。
-        </p>
       </div>
 
       <form className="card stack-sm" onSubmit={add}>

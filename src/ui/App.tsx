@@ -92,12 +92,12 @@ export function App() {
     <div className="app">
       <header className="masthead">
         <div className="masthead-inner">
-          <div>
-            <h1>大學生學分計算表</h1>
-            <p className="tagline">貼上歷年成績，看離畢業還差幾學分</p>
+          <div className="brand">
+            <span className="brand-mark" aria-hidden="true">學</span>
+            <h1>學分計算表</h1>
           </div>
           <span className="privacy-badge" title="沒有伺服器，資料不會上傳">
-            資料只存在這台瀏覽器
+            <span className="lock" aria-hidden="true">●</span> 資料只存在本機
           </span>
         </div>
         <nav className="tabs" aria-label="主選單">
@@ -127,9 +127,7 @@ export function App() {
         {tab === 'programs' && <ProgramSetup state={state} actions={actions} goTo={setTab} />}
       </main>
 
-      <footer className="footer">
-        非學校官方工具，計算結果僅供參考，實際畢業資格以系辦審查與課程規定為準。
-      </footer>
+      <footer className="footer">非官方工具 · 以系辦審查為準</footer>
     </div>
   )
 }
