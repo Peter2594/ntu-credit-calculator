@@ -136,7 +136,7 @@ export function ProgramProgress({ program, result, baseline }: {
         </div>
       </div>
 
-      {!isMain ? (
+      {program.kind === '學程' ? null : !isMain ? (
         <div className="tiles">
           {req.major !== undefined && (
             <StatTile tone="major" label="系訂必修" value={result.counted.major} required={req.major} delta={d((e) => e.counted.major)} />

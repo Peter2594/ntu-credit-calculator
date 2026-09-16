@@ -361,6 +361,8 @@ fieldset { border: 0; margin: 0; padding: 0; }
 .req-action { text-align: right; }
 .req-waive { grid-column: 2 / -1; display: flex; gap: 6px; align-items: center; }
 .req-waive select { flex: 1; min-width: 0; padding: 6px 10px; font-size: 0.86rem; }
+.req-group + .req-group { margin-top: 10px; }
+.req-group-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.86rem; padding: 4px 8px; }
 .req-note { font-size: 0.8rem; margin: 10px 0 0; color: var(--muted); }
 
 /* 課表 */

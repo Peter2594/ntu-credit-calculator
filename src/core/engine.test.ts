@@ -292,3 +292,31 @@ describe('輔系有選課範圍時只採計範圍內的課', () => {
     expect(r.get('m')!.counted.elective).toBe(3)
   })
 })
+
+describe('學分學程', () => {
+  const main: Program = { id: 'm', kind: '主修', name: '甲系', deptPrefix: '900', requirements: { total: 128, elective: 30 } }
+  const prog: Program = {
+    id: 'p', kind: '學程', name: '編造學程', deptPrefix: '', requirements: { total: 15 }, requiredMode: 'pick',
+    requiredCourses: [
+      { code: '', identifier: '777 U0100', name: '學程核心', credits: 3, scope: '不限本院(系)課程', group: '核心' },
+      { code: '', identifier: '', name: '只有課名的課', credits: 3, scope: '不限本院(系)課程', group: '應用' },
+    ],
+  }
+  const byId: Course = {
+    id: 'a', name: '改過名的核心', credits: 3, semester: '114-1', grade: 'A', overridden: false,
+    identifier: '777 U0100', assignments: [],
+  }
+  const byName: Course = {
+    id: 'b', name: '只有課名的課', credits: 3, semester: '114-2', grade: 'A', overridden: false,
+    identifier: '888 10000', assignments: [],
+  }
+  const other: Course = { ...byName, id: 'c', name: '無關的課', identifier: '999 10000' }
+
+  it('清單內的課（識別碼或課名相符）才算學程學分，且不從主修扣除', async () => {
+    const { reclassifyAll } = await import('./courses.js')
+    const courses = reclassifyAll([byId, byName, other], [main, prog])
+    const r = evaluateAll(courses, [main, prog])
+    expect(r.get('p')!.totalCounted).toBe(6)
+    expect(r.get('m')!.counted.elective).toBe(9)
+  })
+})

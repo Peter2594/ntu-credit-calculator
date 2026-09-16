@@ -3,6 +3,7 @@ import type { Program, ProgramKind, Requirements } from '../../core/types'
 import type { Actions, Tab } from '../App'
 import { newId } from '../constants'
 import { OfficialPicker } from './OfficialPicker'
+import { CreditProgramPicker } from './CreditProgramPicker'
 import { Info } from './Progress'
 
 type Field = { key: keyof Requirements; label: string; hint?: string }
@@ -23,7 +24,7 @@ const DETAIL_FIELDS: Field[] = [
   { key: 'chineseGenEd', label: '國文＋通識合計', hint: '例：國文 6＋通識 12 或 國文 3＋通識 15 皆為 18' },
 ]
 
-const KINDS: ProgramKind[] = ['主修', '雙主修', '輔系']
+const KINDS: ProgramKind[] = ['主修', '雙主修', '輔系', '學程']
 
 function blankProgram(kind: ProgramKind): Program {
   return { id: newId(), kind, name: '', deptPrefix: '', requirements: {} }
@@ -128,8 +129,11 @@ function ProgramCard({ program, onChange, onDelete }: {
         <button className="btn ghost small danger-text" onClick={onDelete}>刪除這個學程</button>
       </div>
 
-      <OfficialPicker program={program} onChange={onChange} />
+      {program.kind === '學程'
+        ? <CreditProgramPicker program={program} onChange={onChange} />
+        : <OfficialPicker program={program} onChange={onChange} />}
 
+      {program.kind !== '學程' && (
       <details open={!program.source}>
         <summary>{program.source ? '檢視或修改門檻數字' : '或手動填寫門檻'}</summary>
         <div className="stack-sm">
@@ -164,6 +168,7 @@ function ProgramCard({ program, onChange, onDelete }: {
           )}
         </div>
       </details>
+      )}
     </article>
   )
 }

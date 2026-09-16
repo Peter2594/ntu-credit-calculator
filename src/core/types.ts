@@ -20,7 +20,7 @@ export type Requirements = {
   pe?: number
 }
 
-export type ProgramKind = '主修' | '雙主修' | '輔系'
+export type ProgramKind = '主修' | '雙主修' | '輔系' | '學程'
 
 /** 系訂必修科目表的一列，來自台大必修課程查詢系統。 */
 export type RequiredCourse = {
@@ -42,6 +42,8 @@ export type Program = {
   requiredCourses?: RequiredCourse[]
   /** all：清單每門都要修（主修、雙主修）；pick：從清單任選湊滿學分（輔系） */
   requiredMode?: 'all' | 'pick'
+  /** 學分學程的模組要求（各模組至少／至多幾門、幾學分），只供顯示與提醒 */
+  requiredGroups?: { name: string; minCourses?: number; maxCourses?: number; minCredits?: number; maxCredits?: number }[]
   /** 該系公告的科目說明原文，沒有課程清單時顯示給使用者 */
   requiredNote?: string
   /**
