@@ -60,8 +60,8 @@ export function removeProgram(courses: Course[], programId: string): Course[] {
 
 export type RequiredItem = {
   required: RequiredCourse
-  /** done：已修過；planned：排在課表但還沒成績；missing：還沒修 */
-  status: 'done' | 'planned' | 'missing'
+  /** done：已修過；planned：排在課表但還沒成績；waived：抵免或免修；missing：還沒修 */
+  status: 'done' | 'planned' | 'waived' | 'missing'
   course?: Course
 }
 
@@ -77,9 +77,19 @@ export function requiredProgress(courses: Course[], program: Program): RequiredP
   const counted = courses.filter((c) =>
     c.assignments.some((a) => a.programId === program.id && a.category === '系訂必修'),
   )
-  const used = new Set<string>()
+  const byId = new Map(courses.map((c) => [c.id, c]))
+  const waivers = new Map((program.waivers ?? []).map((w) => [w.key, w]))
+  const used = new Set((program.waivers ?? []).flatMap((w) => (w.courseId ? [w.courseId] : [])))
 
   const items = (program.requiredCourses ?? []).map((required): RequiredItem => {
+    const waiver = waivers.get(requiredKey(required))
+    if (waiver) {
+      const substitute = waiver.courseId ? byId.get(waiver.courseId) : undefined
+      // 抵免用的課被刪掉時，這門回到未修，而不是默默維持已抵免
+      if (!waiver.courseId || substitute) {
+        return { required, status: 'waived', ...(substitute ? { course: substitute } : {}) }
+      }
+    }
     const matches = counted.filter((c) => matchesRequired(c, required))
     const done = matches.find((c) => c.grade)
     const planned = matches.find((c) => !c.grade)
@@ -93,4 +103,30 @@ export function requiredProgress(courses: Course[], program: Program): RequiredP
     missingCredits: items.filter((i) => i.status === 'missing').reduce((s, i) => s + i.required.credits, 0),
     extras: counted.filter((c) => !used.has(c.id) && !(program.requiredCourses ?? []).some((r) => matchesRequired(c, r))),
   }
+}
+
+export const requiredKey = (r: RequiredCourse) => `${r.code}|${r.identifier}`
+
+/**
+ * 系辦核可的抵免常常課號、課名都不同，自動比對永遠認不出來，由使用者指定。
+ * 指定抵免課程時，那門課也一併改算系訂必修。
+ */
+export function waiveRequired(
+  program: Program,
+  courses: Course[],
+  required: RequiredCourse,
+  courseId?: string,
+): { program: Program; courses: Course[] } {
+  const key = requiredKey(required)
+  const waivers = [...(program.waivers ?? []).filter((w) => w.key !== key), { key, ...(courseId ? { courseId } : {}) }]
+  return {
+    program: { ...program, waivers },
+    courses: courseId
+      ? courses.map((c) => (c.id === courseId ? setCategory(c, program.id, '系訂必修') : c))
+      : courses,
+  }
+}
+
+export function unwaiveRequired(program: Program, key: string): Program {
+  return { ...program, waivers: (program.waivers ?? []).filter((w) => w.key !== key) }
 }

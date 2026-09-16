@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  courseKey, mergeImported, reclassifyAll, setCategory, requiredProgress,
+  courseKey, mergeImported, reclassifyAll, setCategory, requiredProgress, requiredKey, waiveRequired, unwaiveRequired,
   resetCategory, removeProgram,
 } from './courses.js'
 import type { Course, Program } from './types.js'
@@ -117,5 +117,53 @@ describe('requiredProgress', () => {
 
   it('手動算必修但不在清單上的課另外列出（多為抵免）', () => {
     expect(r.extras.map((c) => c.name)).toEqual(['替代課程'])
+  })
+})
+
+describe('抵免與免修', () => {
+  const listed: Program = {
+    ...p1,
+    requiredCourses: [
+      { code: 'AAA1001', identifier: '900 10100', name: '甲系導論', credits: 3, scope: '限本系課程' },
+      { code: 'ACC1001', identifier: '800 10100', name: '會計原理', credits: 3, scope: '限本院課程' },
+      { code: 'LAB1001', identifier: '900 10900', name: '實驗課', credits: 1, scope: '限本系課程' },
+    ],
+  }
+  const [substitute] = mergeImported([], [
+    parsed({ code: 'ACC9001', identifier: '801 10100', name: '替代會計', grade: 'A' }),
+  ], [listed])
+  const acc = listed.requiredCourses![1]!
+  const lab = listed.requiredCourses![2]!
+
+  it('指定一門課抵免：該課改算系訂必修，清單顯示已抵免', () => {
+    const { program, courses } = waiveRequired(listed, [substitute!], acc, substitute!.id)
+    expect(courses[0]!.assignments).toContainEqual({ programId: 'p1', category: '系訂必修' })
+    expect(courses[0]!.overridden).toBe(true)
+
+    const r = requiredProgress(courses, program)
+    const item = r.items.find((i) => i.required.code === 'ACC1001')!
+    expect(item.status).toBe('waived')
+    expect(item.course?.name).toBe('替代會計')
+    expect(r.extras).toEqual([])
+    expect(r.missingCredits).toBe(4) // 甲系導論 3 + 實驗課 1
+  })
+
+  it('免修不需要指定課程', () => {
+    const { program } = waiveRequired(listed, [], lab)
+    const item = requiredProgress([], program).items.find((i) => i.required.code === 'LAB1001')!
+    expect(item.status).toBe('waived')
+    expect(item.course).toBeUndefined()
+  })
+
+  it('抵免的課被刪掉後，該門回到還沒修', () => {
+    const { program } = waiveRequired(listed, [substitute!], acc, substitute!.id)
+    const item = requiredProgress([], program).items.find((i) => i.required.code === 'ACC1001')!
+    expect(item.status).toBe('missing')
+  })
+
+  it('取消抵免', () => {
+    const { program, courses } = waiveRequired(listed, [substitute!], acc, substitute!.id)
+    const undone = unwaiveRequired(program, requiredKey(acc))
+    expect(requiredProgress(courses, undone).items.find((i) => i.required.code === 'ACC1001')!.status).toBe('missing')
   })
 })

@@ -1,4 +1,5 @@
 import { CATEGORIES, type Category, type Course, type Program } from './types.js'
+import { requiredKey } from './courses.js'
 
 export type Tally = Record<Category, number>
 
@@ -40,13 +41,28 @@ const overflow = (value: number, limit?: number) =>
 const gap = (value: number, limit?: number) =>
   limit === undefined ? 0 : Math.max(0, limit - value)
 
+function waiverSurplus(courses: Course[], program: Program): number {
+  const byId = new Map(courses.map((c) => [c.id, c]))
+  const required = new Map((program.requiredCourses ?? []).map((r) => [requiredKey(r), r]))
+  return (program.waivers ?? []).reduce((sum, w) => {
+    const course = w.courseId ? byId.get(w.courseId) : undefined
+    const target = required.get(w.key)
+    const countsAsMajor = course?.assignments.some((a) => a.programId === program.id && a.category === '系訂必修')
+    return course && target && countsAsMajor ? sum + Math.max(0, course.credits - target.credits) : sum
+  }, 0)
+}
+
 export function evaluate(courses: Course[], program: Program): Evaluation {
   const taken = tally(courses, program.id)
   const req = program.requirements
 
-  // 規則 4：系訂必修超修（抵免餘數）溢出到一般選修
-  const major = capped(taken['系訂必修'], req.major)
-  const majorOverflow = overflow(taken['系訂必修'], req.major)
+  // 抵免課學分多於被抵的必修時，差額依規定計入一般選修（如 4 學分抵 3 學分，餘 1）
+  const surplus = waiverSurplus(courses, program)
+  const majorTaken = taken['系訂必修'] - surplus
+
+  // 規則 4：系訂必修超修溢出到一般選修
+  const major = capped(majorTaken, req.major)
+  const majorOverflow = overflow(majorTaken, req.major) + surplus
 
   // 規則 1、2：國文與通識超修的部分丟棄
   // 規則 3：外文超修的部分計入選修（與前兩者相反）

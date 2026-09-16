@@ -3,7 +3,9 @@ import type { Category, Course, Program } from '../core/types'
 import type { ParsedCourse } from '../core/parser'
 import {
   mergeImported, reclassifyAll, removeProgram, resetCategory, setCategory,
+  unwaiveRequired, waiveRequired,
 } from '../core/courses'
+import type { RequiredCourse } from '../core/types'
 import { useAppState } from './useAppState'
 import { Dashboard } from './components/Dashboard'
 import { CoursesView } from './components/CoursesView'
@@ -31,6 +33,8 @@ export type Actions = {
   setCourseCategory(courseId: string, programId: string, category: Category): void
   resetCourse(courseId: string): void
   clearAll(): void
+  waive(programId: string, required: RequiredCourse, courseId?: string): void
+  unwaive(programId: string, key: string): void
 }
 
 export function App() {
@@ -70,6 +74,18 @@ export function App() {
         courses: s.courses.map((c) => (c.id === courseId ? resetCategory(c, s.programs) : c)),
       })),
     clearAll: () => setState({ programs: [], courses: [] }),
+    waive: (programId, required, courseId) =>
+      setState((s) => {
+        const target = s.programs.find((p) => p.id === programId)
+        if (!target) return s
+        const { program, courses } = waiveRequired(target, s.courses, required, courseId)
+        return { programs: s.programs.map((p) => (p.id === programId ? program : p)), courses }
+      }),
+    unwaive: (programId, key) =>
+      setState((s) => ({
+        ...s,
+        programs: s.programs.map((p) => (p.id === programId ? unwaiveRequired(p, key) : p)),
+      })),
   }
 
   return (
@@ -104,7 +120,7 @@ export function App() {
             瀏覽器不允許儲存資料（可能是私密瀏覽），關掉分頁後內容會消失。
           </p>
         )}
-        {tab === 'dashboard' && <Dashboard state={state} goTo={setTab} />}
+        {tab === 'dashboard' && <Dashboard state={state} actions={actions} goTo={setTab} />}
         {tab === 'courses' && <CoursesView state={state} actions={actions} goTo={setTab} />}
         {tab === 'schedule' && <ScheduleView state={state} actions={actions} />}
         {tab === 'trial' && <TrialView state={state} actions={actions} />}

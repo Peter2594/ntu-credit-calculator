@@ -230,13 +230,18 @@ fieldset { border: 0; margin: 0; padding: 0; }
 .required-list > summary { font-size: 0.92rem; color: var(--text); }
 .req-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 .req-item {
-  display: grid; grid-template-columns: 5.2em minmax(0, 1fr) auto auto; gap: 10px;
+  display: grid; grid-template-columns: 5.2em minmax(0, 1fr) auto 3.6em; gap: 10px;
   align-items: center; padding: 5px 4px; font-size: 0.88rem; border-radius: 6px;
 }
 .req-item.done { color: var(--muted); }
 .req-status { font-size: 0.75rem; text-align: center; border-radius: 999px; padding: 1px 0; background: var(--surface-2); }
 .req-status.missing { background: var(--warn-bg); color: var(--warn-text); font-weight: 600; }
-.req-status.planned { background: var(--accent-soft); color: var(--accent); }
+.req-status.planned, .req-status.waived { background: var(--accent-soft); color: var(--accent); }
+.req-item.waived { color: var(--muted); }
+.req-by { display: block; font-size: 0.78rem; }
+.req-action { text-align: right; }
+.req-waive { grid-column: 2 / -1; display: flex; gap: 6px; align-items: center; }
+.req-waive select { flex: 1; min-width: 0; }
 .req-name { min-width: 0; }
 .req-name .chip { margin-left: 6px; }
 .req-note { font-size: 0.8rem; margin: 8px 0 0; }
@@ -261,6 +266,7 @@ fieldset { border: 0; margin: 0; padding: 0; }
   .privacy-badge { font-size: 0.72rem; }
   .content { padding-top: 18px; }
   .course-controls { width: 100%; }
-  .req-item { grid-template-columns: 5.2em minmax(0, 1fr) auto; }
-  .req-code { display: none; }
+  .req-item { grid-template-columns: 5.2em minmax(0, 1fr) 3.6em; }
+  .req-credits { display: none; }
+  .req-waive { grid-column: 1 / -1; }
 }

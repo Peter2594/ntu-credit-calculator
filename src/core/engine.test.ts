@@ -186,3 +186,30 @@ describe('evaluate 的上限與溢出', () => {
     expect(r.totalCounted).toBe(128)
   })
 })
+
+describe('抵免的學分差額', () => {
+  const withList: Program = {
+    ...program,
+    requiredCourses: [{ code: 'ECO1001', identifier: '303 10100', name: '個經', credits: 3, scope: '不限本院(系)課程' }],
+  }
+  const sub: Course = {
+    id: 'sub', name: '個經與實習', credits: 4, semester: '113-1', grade: '通過',
+    assignments: [{ programId: 'p1', category: '系訂必修' }], overridden: true,
+  }
+
+  it('4 學分抵 3 學分必修，餘 1 學分計入選修', () => {
+    const p = { ...withList, waivers: [{ key: 'ECO1001|303 10100', courseId: 'sub' }] }
+    const r = evaluate([sub], p)
+    expect(r.counted.major).toBe(3)
+    expect(r.counted.elective).toBe(1)
+    expect(r.counted.electiveOutside).toBe(1)
+    expect(r.totalCounted).toBe(4)
+  })
+
+  it('免修不增加學分，必修缺口照算', () => {
+    const p = { ...withList, waivers: [{ key: 'ECO1001|303 10100' }] }
+    const r = evaluate([], p)
+    expect(r.counted.major).toBe(0)
+    expect(r.gaps.major).toBe(50)
+  })
+})

@@ -40,6 +40,11 @@ export type Program = {
   deptPrefix: string
   requirements: Requirements
   requiredCourses?: RequiredCourse[]
+  /**
+   * 系訂必修的抵免與免修，key 為 requiredKey（課號|識別碼）。
+   * 有 courseId 表示用那門課抵；沒有則為免修。
+   */
+  waivers?: { key: string; courseId?: string }[]
   /** 門檻從官方資料帶入時記下來源，方便使用者核對。 */
   source?: { year: string; deptCode: string }
 }

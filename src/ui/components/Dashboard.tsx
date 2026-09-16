@@ -2,15 +2,15 @@ import { useState } from 'react'
 import { evaluate } from '../../core/engine'
 import { findConflicts } from '../../core/conflicts'
 import type { AppState } from '../../core/storage'
-import type { Tab } from '../App'
+import type { Actions, Tab } from '../App'
 import { isPlanned } from '../constants'
 import { isOwnDeptGenEd } from '../../core/classify'
 import { ProgramProgress } from './Progress'
 import { RequiredList } from './RequiredList'
 
-type Props = { state: AppState; goTo(tab: Tab): void }
+type Props = { state: AppState; actions: Actions; goTo(tab: Tab): void }
 
-export function Dashboard({ state, goTo }: Props) {
+export function Dashboard({ state, actions, goTo }: Props) {
   const { programs, courses } = state
   const plannedCount = courses.filter(isPlanned).length
   const [includePlanned, setIncludePlanned] = useState(false)
@@ -82,7 +82,7 @@ export function Dashboard({ state, goTo }: Props) {
               </button>
             )}
             <ProgramProgress program={p} result={evaluate(counted, p)} />
-            <RequiredList program={p} courses={courses} />
+            <RequiredList program={p} courses={courses} actions={actions} />
           </article>
         )
       })}
