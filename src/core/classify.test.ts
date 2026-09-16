@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { classify, deptPrefixOf, applyClassification, isOwnDeptGenEd } from './classify.js'
+import { classify, deptPrefixOf, applyClassification, isOwnDeptGenEd, withGraduatePrefix } from './classify.js'
 import type { Course, Program } from './types.js'
 import type { ParsedCourse } from './parser.js'
 
@@ -161,5 +161,17 @@ describe('系上開的通識課', () => {
     expect(isOwnDeptGenEd(course({ identifier: '666 00100', genEdDomain: 'A5' }), program)).toBe(false)
     // 有星號的已經確定改算系內選修，不需要再問
     expect(isOwnDeptGenEd(course({ identifier: '900 20100', genEdDomain: 'A5*' }), program)).toBe(false)
+  })
+})
+
+describe('withGraduatePrefix', () => {
+  it('大學部前綴補上同系研究所（第二碼 0 → 2）', () => {
+    expect(withGraduatePrefix('705')).toBe('705,725')
+    expect(withGraduatePrefix('902')).toBe('902,922')
+  })
+
+  it('不符合慣例的前綴原樣保留', () => {
+    expect(withGraduatePrefix('H01')).toBe('H01')
+    expect(withGraduatePrefix('725')).toBe('725')
   })
 })

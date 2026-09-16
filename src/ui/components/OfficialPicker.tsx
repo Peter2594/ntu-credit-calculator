@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Program } from '../../core/types'
+import { withGraduatePrefix } from '../../core/classify'
 import { loadYear, loadYears, officialPageUrl, type OfficialDept, type OfficialYear } from '../officialData'
 
 type Props = { program: Program; onChange(p: Program): void }
@@ -38,7 +39,7 @@ export function OfficialPicker({ program, onChange }: Props) {
     onChange({
       ...program,
       name: d.name,
-      deptPrefix: d.deptPrefix,
+      deptPrefix: withGraduatePrefix(d.deptPrefix),
       requirements: {
         ...d.requirements,
         ...(plan ? { chinese: plan.chinese, genEd: plan.genEd } : {}),

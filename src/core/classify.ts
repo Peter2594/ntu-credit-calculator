@@ -15,6 +15,14 @@ export function deptPrefixesOf(program: Program): string[] {
   return program.deptPrefix.split(/[,，\s]+/).map((p) => p.trim().toUpperCase()).filter(Boolean)
 }
 
+/**
+ * 台大識別碼慣例：大學部第二碼為 0，同系研究所為 2（資管 705／725、資工 902／922）。
+ * 研究所開的課也是本系開授，計入系內選修。
+ */
+export function withGraduatePrefix(prefix: string): string {
+  return /^\d0\d$/.test(prefix) ? `${prefix},${prefix[0]}2${prefix[2]}` : prefix
+}
+
 const squash = (s?: string) => (s ?? '').replace(/\s+/g, '').toUpperCase()
 
 /** 對照系訂必修科目表。認可範圍不限本系時，他系開的同名課也算。 */
