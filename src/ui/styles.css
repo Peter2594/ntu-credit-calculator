@@ -241,12 +241,18 @@ fieldset { border: 0; margin: 0; padding: 0; }
 
 /* 帶入的官方門檻 */
 .source-summary { display: flex; flex-direction: column; gap: 8px; }
-.source-stats { display: flex; flex-wrap: wrap; gap: 8px; }
-.source-stats span {
+.source-stats { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.source-stats > span:not(.info) {
   display: flex; flex-direction: column; min-width: 76px; padding: 8px 12px;
   background: var(--surface-2); border-radius: var(--radius-sm); font-size: 0.74rem; color: var(--muted);
 }
 .source-stats b { font-size: 1.2rem; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1.2; }
+
+.rule-details { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; }
+.rule-details details > summary { font-size: 0.8rem; font-weight: 600; }
+.rule-details details[open] > summary { margin-bottom: 4px; }
+.rule-text { margin: 0; white-space: pre-line; font-size: 0.82rem; background: var(--surface-2); padding: 8px 10px; border-radius: 8px; }
+.rule-details .chip { margin-left: 0; }
 
 /* 總覽 */
 .hero { display: flex; align-items: center; gap: 24px; }

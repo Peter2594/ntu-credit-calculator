@@ -1,5 +1,6 @@
 /**
- * 從台大必修課程查詢系統抓各系應修學分與系訂必修科目，輸出成 public/data/requirements/{年度}.json。
+ * 從台大必修課程查詢系統抓各系應修學分與系訂必修科目，並從教務處「轉系、輔系及雙主修相關規定查詢」
+ * 抓輔系與雙主修規定，輸出成 public/data/requirements/{年度}.json。
  *
  * 用法：node scripts/fetch-requirements.ts [起始年度] [結束年度]（預設 110 115）
  *
@@ -11,6 +12,7 @@ import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseRequiredCourses, parseRequirementPage } from '../src/core/curri.ts'
+import { parseRulePage, type RulePage } from '../src/core/regrules.ts'
 
 const BASE = 'https://curri.aca.ntu.edu.tw/NTUVoxCourse/index.php'
 const DELAY_MS = 400
@@ -36,6 +38,37 @@ async function get(url: string, cacheFile: string): Promise<string> {
       return body
     } catch (err) {
       if (attempt >= 3) throw new Error(`${url}: ${(err as Error).message}`)
+      await sleep(DELAY_MS * 5 * attempt)
+    }
+  }
+}
+
+const REG_RULES = 'https://reg227.aca.ntu.edu.tw/tmd/stuquery/show_s.asp'
+/** 該站是 Big5 表單，查詢類別與送出按鈕的值要以 Big5 編碼 */
+const RULE_KIND = { minor: '%BB%B2%A8t', doubleMajor: '%C2%F9%A5D%AD%D7' } as const
+const SUBMIT = '%ACd%B8%DF'
+
+async function getRule(year: string, kind: keyof typeof RULE_KIND, code: string): Promise<RulePage | undefined> {
+  const cacheFile = join(CACHE, year, `${code}-${kind}.html`)
+  if (existsSync(cacheFile)) return parseRulePage(await readFile(cacheFile, 'utf8')) ?? undefined
+  for (let attempt = 1; ; attempt++) {
+    await sleep(DELAY_MS)
+    try {
+      const res = await fetch(REG_RULES, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': 'ntu-credit-calculator/0.1 (student project)',
+        },
+        body: `year=${year}&select=${RULE_KIND[kind]}&dept_code=${code}&search=${SUBMIT}`,
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const body = new TextDecoder('big5').decode(await res.arrayBuffer())
+      await mkdir(dirname(cacheFile), { recursive: true })
+      await writeFile(cacheFile, body)
+      return parseRulePage(body) ?? undefined
+    } catch (err) {
+      if (attempt >= 3) throw new Error(`${kind} ${year} ${code}: ${(err as Error).message}`)
       await sleep(DELAY_MS * 5 * attempt)
     }
   }
@@ -78,6 +111,11 @@ async function fetchYear(year: string) {
     const major = page.requirements.major ?? 0
     if (listed < major) problems.push(`${code} ${name}：必修科目表只列出 ${listed} 學分，應修 ${major}`)
 
+    // 教務處規定查詢用 4 碼；分學群的系（60800）對應整個學系（6080）
+    const ruleCode = code.slice(0, 4)
+    const minor = await getRule(year, 'minor', ruleCode)
+    const doubleMajor = await getRule(year, 'doubleMajor', ruleCode)
+
     departments.push({
       code,
       name,
@@ -85,6 +123,8 @@ async function fetchYear(year: string) {
       requirements: page.requirements,
       chinesePlans: page.chinesePlans,
       requiredCourses,
+      ...(minor ? { minor } : {}),
+      ...(doubleMajor ? { doubleMajor } : {}),
     })
     process.stdout.write('.')
   }

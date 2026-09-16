@@ -3,6 +3,7 @@ import type { Program, ProgramKind, Requirements } from '../../core/types'
 import { withGraduatePrefix } from '../../core/classify'
 import { loadYear, loadYears, officialPageUrl, type OfficialDept, type OfficialYear } from '../officialData'
 import type { ChinesePlan } from '../../core/curri'
+import type { RulePage } from '../../core/regrules'
 import { Info } from './Progress'
 
 /** 把「國文 6＋通識 12」「國文 3＋通識 15」合成一組上限，學生不必自己選方案。 */
@@ -15,7 +16,7 @@ function chineseGenEdCaps(plans: ChinesePlan[]) {
   }
 }
 
-/** 台大輔系辦法的最低學分；各系可能要求更多或指定科目。 */
+/** 台大輔系辦法的最低學分；該系沒公告最低學分時使用。 */
 export const MINOR_MIN_CREDITS = 20
 
 /**
@@ -31,7 +32,7 @@ function requirementsFor(kind: ProgramKind, d: OfficialDept): Pick<Program, 'req
     const requirements: Requirements = major === undefined ? {} : { major, total: major }
     return { requirements, requiredCourses: d.requiredCourses }
   }
-  return { requirements: { total: MINOR_MIN_CREDITS }, requiredCourses: [] }
+  return { requirements: { total: d.minor?.minCredits ?? MINOR_MIN_CREDITS }, requiredCourses: [] }
 }
 
 type Props = { program: Program; onChange(p: Program): void }
@@ -131,18 +132,52 @@ export function OfficialPicker({ program, onChange }: Props) {
               <span><b>{program.requirements.total ?? '—'}</b>{program.kind}學分</span>
               {program.kind === '雙主修' && <span><b>{program.requirements.major ?? '—'}</b>系訂必修</span>}
               <Info text={program.kind === '輔系'
-                ? '依台大輔系辦法：輔系科目由該系指定、至少 20 學分；輔系學分不計入本系畢業學分，本系必修也不能兼充輔系。各系指定科目請查該系規定'
+                ? '學分數取自教務處公告（未公告時依輔系辦法至少 20）。輔系學分不計入本系畢業學分，本系必修也不能兼充輔系'
                 : '依台大雙主修辦法：須修畢加修學系全部系訂必修及指定選修。指定選修請自行加進學分數；兩系性質相同的必修能否兼充由系上決定'} />
             </div>
           )}
+          {dept && program.kind !== '主修' && <RuleDetails kind={program.kind} rules={program.kind === '輔系' ? dept.minor : dept.doubleMajor} />}
           {incomplete && (
             <div className="warn-text small">必修清單只列出 {listed} 學分，部分為群組選修，請在進度頁自行標記。</div>
           )}
-          <a className="small" href={officialPageUrl(program.source.year, program.source.deptCode)} target="_blank" rel="noreferrer">
-            官方課程規定 ↗
-          </a>
+          {program.kind === '主修' ? (
+            <a className="small" href={officialPageUrl(program.source.year, program.source.deptCode)} target="_blank" rel="noreferrer">
+              官方課程規定 ↗
+            </a>
+          ) : (
+            <a className="small" href="https://reg227.aca.ntu.edu.tw/tmd/stuquery/student.asp" target="_blank" rel="noreferrer">
+              教務處輔系、雙主修規定查詢 ↗
+            </a>
+          )}
         </div>
       )}
+    </div>
+  )
+}
+
+function RuleDetails({ kind, rules }: { kind: ProgramKind; rules?: RulePage }) {
+  if (!rules) return <div className="small muted">教務處沒有公告這個系的{kind}規定。</div>
+  const closed = rules.quota === 0
+  const rows: [string, string | undefined][] = [
+    ['必修科目', rules.required],
+    ['選修科目', rules.electives],
+    ['申請資格', rules.eligibility],
+    ['備註', rules.note],
+  ]
+  return (
+    <div className="rule-details">
+      <div className="row wrap tight">
+        {rules.quota !== undefined && (
+          <span className={closed ? 'chip warn' : 'chip'}>{closed ? `不招收${kind}` : `名額 ${rules.quota}`}</span>
+        )}
+        {kind === '輔系' && rules.minCredits !== undefined && <span className="chip accent">最低 {rules.minCredits} 學分</span>}
+      </div>
+      {rows.filter(([, v]) => v && v !== '無').map(([label, value]) => (
+        <details key={label} open={label !== '申請資格' && label !== '備註'}>
+          <summary>{label}</summary>
+          <p className="rule-text">{value}</p>
+        </details>
+      ))}
     </div>
   )
 }

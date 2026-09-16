@@ -1,4 +1,5 @@
 import type { ChinesePlan } from '../core/curri'
+import type { RulePage } from '../core/regrules'
 import type { RequiredCourse, Requirements } from '../core/types'
 
 export type OfficialDept = {
@@ -8,6 +9,9 @@ export type OfficialDept = {
   requirements: Requirements
   chinesePlans: ChinesePlan[]
   requiredCourses: RequiredCourse[]
+  /** 教務處公告的輔系、雙主修規定；科目多為文字說明 */
+  minor?: RulePage
+  doubleMajor?: RulePage
 }
 
 export type OfficialYear = { year: string; fetchedAt: string; departments: OfficialDept[] }
