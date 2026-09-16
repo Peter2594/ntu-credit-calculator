@@ -1,4 +1,4 @@
-import { CATEGORIES, type Category, type Course } from './types.js'
+import { CATEGORIES, type Category, type Course, type Program } from './types.js'
 
 export type Tally = Record<Category, number>
 
@@ -15,4 +15,70 @@ export function tally(courses: Course[], programId: string): Tally {
     }
   }
   return result
+}
+
+export type Evaluation = {
+  taken: Tally
+  counted: { major: number; electiveInMajor: number; elective: number; common: number }
+  totalTaken: number
+  totalCounted: number
+  gaps: {
+    major: number; electiveInMajor: number
+    elective: number; common: number; total: number
+  }
+  pe: { taken: number; required: number; gap: number }
+}
+
+const capped = (value: number, limit?: number) =>
+  limit === undefined ? value : Math.min(value, limit)
+const overflow = (value: number, limit?: number) =>
+  limit === undefined ? 0 : Math.max(0, value - limit)
+const gap = (value: number, limit?: number) =>
+  limit === undefined ? 0 : Math.max(0, limit - value)
+
+export function evaluate(courses: Course[], program: Program): Evaluation {
+  const taken = tally(courses, program.id)
+  const req = program.requirements
+
+  // 規則 4：系訂必修超修（抵免餘數）溢出到一般選修
+  const major = capped(taken['系訂必修'], req.major)
+  const majorOverflow = overflow(taken['系訂必修'], req.major)
+
+  // 規則 1、2：國文與通識超修的部分丟棄
+  // 規則 3：外文超修的部分計入選修（與前兩者相反）
+  const chinese = capped(taken['國文'], req.chinese)
+  const genEd = capped(taken['通識'], req.genEd)
+  const foreign = capped(taken['外文'], req.foreign)
+  const foreignOverflow = overflow(taken['外文'], req.foreign)
+  const commonRaw = taken['國文'] + taken['外文'] + taken['通識']
+  const common = capped(chinese + foreign + genEd, req.common)
+
+  // 規則 5：限本系選修是下限，超修仍計入選修合計
+  const electiveInMajor = taken['限本系選修']
+  const electiveRaw =
+    electiveInMajor + taken['一般選修'] + majorOverflow + foreignOverflow
+  const elective = capped(electiveRaw, req.elective)
+
+  const totalCounted = major + elective + common
+  const totalTaken =
+    taken['系訂必修'] + taken['限本系選修'] + taken['一般選修'] + commonRaw
+
+  return {
+    taken,
+    counted: { major, electiveInMajor, elective, common },
+    totalTaken,
+    totalCounted,
+    gaps: {
+      major: gap(major, req.major),
+      electiveInMajor: gap(electiveInMajor, req.electiveInMajor),
+      elective: gap(elective, req.elective),
+      common: gap(common, req.common),
+      total: gap(totalCounted, req.total),
+    },
+    pe: {
+      taken: taken['體育'],
+      required: req.pe ?? 0,
+      gap: gap(taken['體育'], req.pe),
+    },
+  }
 }
