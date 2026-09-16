@@ -127,9 +127,11 @@ function allocateMinors(courses: Course[], programs: Program[]): Map<string, Set
     const target = minor.requirements.total ?? Infinity
     const ids = new Set<string>()
     let sum = 0
+    // 有公告選課範圍時只採計範圍內的課（被歸為系訂必修者）
+    const counts: string[] = minor.requiredMode === 'pick' ? ['系訂必修'] : ['系訂必修', '限本系選修']
     const eligible = courses
       .filter((c) => !taken.has(c.id))
-      .filter((c) => ['系訂必修', '限本系選修'].includes(categoryOf(c, minor.id) ?? ''))
+      .filter((c) => counts.includes(categoryOf(c, minor.id) ?? ''))
       .filter((c) => !main || categoryOf(c, main.id) !== '系訂必修')
       .sort((a, b) => a.semester.localeCompare(b.semester))
 

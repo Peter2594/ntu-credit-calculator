@@ -3,7 +3,7 @@ import type { Program, ProgramKind, Requirements } from '../../core/types'
 import { withGraduatePrefix } from '../../core/classify'
 import { loadYear, loadYears, officialPageUrl, type OfficialDept, type OfficialYear } from '../officialData'
 import type { ChinesePlan } from '../../core/curri'
-import type { RulePage } from '../../core/regrules'
+import { minorPool, type RulePage } from '../../core/regrules'
 import { Info } from './Progress'
 
 /** 把「國文 6＋通識 12」「國文 3＋通識 15」合成一組上限，學生不必自己選方案。 */
@@ -19,20 +19,33 @@ function chineseGenEdCaps(plans: ChinesePlan[]) {
 /** 台大輔系辦法的最低學分；該系沒公告最低學分時使用。 */
 export const MINOR_MIN_CREDITS = 20
 
+type Derived = Pick<Program, 'requirements' | 'requiredCourses' | 'requiredMode' | 'requiredNote'>
+
 /**
- * 官方資料只有主修規定。雙主修須修畢加修學系的系訂必修，其餘共同必修、通識在主修採計；
- * 輔系則是至少 20 學分的該系課程，不套用主修必修清單。
+ * 依類型套用門檻。雙主修須修畢加修學系的系訂必修，共同必修、通識在主修採計；
+ * 輔系用教務處公告的最低學分，公告能推定範圍時帶入選課清單（任選湊滿學分）。
  */
-function requirementsFor(kind: ProgramKind, d: OfficialDept): Pick<Program, 'requirements' | 'requiredCourses'> {
+function requirementsFor(kind: ProgramKind, d: OfficialDept): Derived {
   if (kind === '主修') {
-    return { requirements: { ...d.requirements, ...chineseGenEdCaps(d.chinesePlans) }, requiredCourses: d.requiredCourses }
+    return {
+      requirements: { ...d.requirements, ...chineseGenEdCaps(d.chinesePlans) },
+      requiredCourses: d.requiredCourses, requiredMode: 'all', requiredNote: undefined,
+    }
   }
   if (kind === '雙主修') {
     const major = d.requirements.major
     const requirements: Requirements = major === undefined ? {} : { major, total: major }
-    return { requirements, requiredCourses: d.requiredCourses }
+    return { requirements, requiredCourses: d.requiredCourses, requiredMode: 'all', requiredNote: undefined }
   }
-  return { requirements: { total: d.minor?.minCredits ?? MINOR_MIN_CREDITS }, requiredCourses: [] }
+  const pool = minorPool(d.minor, d.requiredCourses, withGraduatePrefix(d.deptPrefix).split(','))
+  const note = [d.minor?.required, d.minor?.electives].filter((t) => t && t !== '無').join('\n')
+  return {
+    requirements: { total: d.minor?.minCredits ?? MINOR_MIN_CREDITS },
+    requiredCourses: pool,
+    requiredMode: pool.length > 0 ? 'pick' : undefined,
+    // 沒有公告也存空字串，表示已經套用過，避免重複觸發補範圍
+    requiredNote: note,
+  }
 }
 
 type Props = { program: Program; onChange(p: Program): void }
@@ -76,7 +89,9 @@ export function OfficialPicker({ program, onChange }: Props) {
   // 帶入後才改類型（例如主修改成輔系），依新類型重新套用門檻
   useEffect(() => {
     // 舊存檔沒記錄類型，當時一律以主修帶入
-    if (dept && program.source && (program.source.kind ?? '主修') !== program.kind) {
+    // 早期帶入的輔系沒有選課範圍，資料載入後補上
+    const minorOutdated = program.kind === '輔系' && program.requiredMode === undefined && program.requiredNote === undefined
+    if (dept && program.source && ((program.source.kind ?? '主修') !== program.kind || minorOutdated)) {
       onChange({ ...program, ...requirementsFor(program.kind, dept), source: { ...program.source, kind: program.kind } })
     }
   }, [dept, program, onChange])
@@ -84,7 +99,6 @@ export function OfficialPicker({ program, onChange }: Props) {
   if (error) {
     return <p className="notice warn">官方資料載入失敗，請在下方手動填寫門檻。</p>
   }
-
 
   const listed = program.requiredCourses?.reduce((s, c) => s + c.credits, 0) ?? 0
   const incomplete = !!program.source && program.kind !== '輔系' && listed < (program.requirements.major ?? 0)

@@ -5,6 +5,8 @@
  * 因為雙主修依辦法須修畢加修學系全部系訂必修與指定選修。
  * 科目欄多為文字說明（如「詳見系網」「系訂必修中任選 24 學分」），不是課程清單。
  */
+import type { RequiredCourse } from './types.js'
+
 export type RulePage = {
   quota?: number
   eligibility?: string
@@ -53,4 +55,22 @@ export function parseRulePage(html: string): RulePage | null {
     }
   }
   return page
+}
+
+/**
+ * 輔系的選課範圍。教務處只公告文字說明；說明提到「系訂必修」「專業必修」時
+ * （如「系訂必修科目中任選 24 學分」），以該系系訂必修清單為範圍，否則無法推定。
+ */
+export function minorPool(
+  rules: RulePage | undefined,
+  requiredCourses: RequiredCourse[],
+  deptPrefixes: string[] = [],
+): RequiredCourse[] {
+  const text = `${rules?.required ?? ''} ${rules?.electives ?? ''}`
+  if (!/(系訂|專業)必修/.test(text)) return []
+  // 「本系開授之專業必修」不含外系開的必修（如微積分）
+  if (/開授/.test(text) && deptPrefixes.length > 0) {
+    return requiredCourses.filter((c) => deptPrefixes.includes(c.identifier.slice(0, 3)))
+  }
+  return requiredCourses
 }

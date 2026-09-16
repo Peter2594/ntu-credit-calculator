@@ -273,3 +273,22 @@ describe('evaluateAll：輔系學分不計入本系畢業學分', () => {
     expect(r.get('d')!.totalCounted).toBe(12)
   })
 })
+
+describe('輔系有選課範圍時只採計範圍內的課', () => {
+  const main: Program = { id: 'm', kind: '主修', name: '甲系', deptPrefix: '900', requirements: { total: 128 } }
+  const minor: Program = {
+    id: 'n', kind: '輔系', name: '乙系', deptPrefix: '666', requirements: { total: 6 }, requiredMode: 'pick',
+    requiredCourses: [{ code: 'Y1', identifier: '666 10000', name: '乙必修', credits: 3, scope: '限本系課程' }],
+  }
+  const mk = (id: string, cats: Record<string, Category>): Course => ({
+    id, name: id, credits: 3, semester: '113-1', grade: 'A', overridden: false,
+    assignments: Object.entries(cats).map(([programId, category]) => ({ programId, category })),
+  })
+
+  it('範圍外的乙系課不算輔系，留給主修', () => {
+    const courses = [mk('inPool', { m: '一般選修', n: '系訂必修' }), mk('outPool', { m: '一般選修', n: '限本系選修' })]
+    const r = evaluateAll(courses, [main, minor])
+    expect(r.get('n')!.totalCounted).toBe(3)
+    expect(r.get('m')!.counted.elective).toBe(3)
+  })
+})

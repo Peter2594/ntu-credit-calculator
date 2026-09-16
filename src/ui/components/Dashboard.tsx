@@ -85,7 +85,7 @@ export function Dashboard({ state, actions, goTo }: Props) {
               </button>
             )}
             <ProgramProgress program={p} result={results.get(p.id)!} />
-            <RequiredList program={p} courses={courses} actions={actions} />
+            <RequiredList program={p} courses={courses} actions={actions} pickGap={results.get(p.id)?.gaps.total} />
           </article>
         )
       })}

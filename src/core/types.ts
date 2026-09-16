@@ -40,6 +40,10 @@ export type Program = {
   deptPrefix: string
   requirements: Requirements
   requiredCourses?: RequiredCourse[]
+  /** all：清單每門都要修（主修、雙主修）；pick：從清單任選湊滿學分（輔系） */
+  requiredMode?: 'all' | 'pick'
+  /** 該系公告的科目說明原文，沒有課程清單時顯示給使用者 */
+  requiredNote?: string
   /**
    * 系訂必修的抵免與免修，key 為 requiredKey（課號|識別碼）。
    * 有 courseId 表示用那門課抵；沒有則為免修。

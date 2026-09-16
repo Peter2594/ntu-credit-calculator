@@ -14,12 +14,57 @@ const STATUS_LABEL: Record<RequiredItem['status'], string> = {
 
 const WAIVE_ONLY = '__waive__'
 
-type Props = { program: Program; courses: Course[]; actions: Actions }
+type Props = {
+  program: Program
+  courses: Course[]
+  actions: Actions
+  /** 任選模式（輔系）還差的學分，來自 evaluateAll */
+  pickGap?: number
+}
 
 /** 系訂必修逐門對照，讓學生直接看到還差哪幾門，並能標記抵免或免修。 */
-export function RequiredList({ program, courses, actions }: Props) {
+export function RequiredList({ program, courses, actions, pickGap }: Props) {
   const [editing, setEditing] = useState<string | null>(null)
-  if (!program.requiredCourses?.length) return null
+  if (!program.requiredCourses?.length) {
+    return program.requiredNote ? (
+      <div className="required-list">
+        <div className="req-summary">
+          <span className="req-title">{program.kind}科目</span>
+          <Info text="該系沒有公告課程清單，以下為教務處公告原文，請依系上規定自行在課程頁標記" />
+        </div>
+        <p className="rule-text">{program.requiredNote}</p>
+      </div>
+    ) : null
+  }
+
+  if (program.requiredMode === 'pick') {
+    const { items } = requiredProgress(courses, program)
+    const taken = items.filter((i) => i.status === 'done' || i.status === 'planned')
+    const options = items.filter((i) => i.status === 'missing')
+    return (
+      <details className="required-list" open={(pickGap ?? 0) > 0}>
+        <summary>
+          <span className="req-title">{program.kind}科目</span>
+          {(pickGap ?? 0) > 0
+            ? <strong className="gap">還差 {pickGap} 學分 · 可選 {options.length} 門</strong>
+            : <strong className="ok">學分已達標</strong>}
+          <Info text={`從該系系訂必修中任選，湊滿學分即可（依教務處公告推定）${program.requiredNote ? `。公告原文：${program.requiredNote}` : ''}`} />
+        </summary>
+        <ul className="req-items">
+          {[...taken, ...options].map((i) => (
+            <li key={requiredKey(i.required)} className={`req-item ${i.status === 'missing' ? 'option' : i.status}`}>
+              <span className={`req-status ${i.status === 'missing' ? 'option' : i.status}`}>
+                {i.status === 'missing' ? '可選' : STATUS_LABEL[i.status]}
+              </span>
+              <span className="req-name">{i.required.name}</span>
+              <span className="muted req-credits">{i.required.credits} 學分</span>
+              <span className="req-action" />
+            </li>
+          ))}
+        </ul>
+      </details>
+    )
+  }
 
   const { items, missingCredits, extras } = requiredProgress(courses, program)
   const missing = items.filter((i) => i.status === 'missing')
