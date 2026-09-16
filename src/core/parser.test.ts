@@ -81,3 +81,49 @@ describe('parseTranscript：整頁複製時夾雜標題與統計列', () => {
     expect(courses.every((c) => c.credits <= 4)).toBe(true)
   })
 })
+
+describe('parseTranscript：手機複製的格式', () => {
+  const expected = [
+    { semester: '113-1', code: 'LANG1001', identifier: '102 83300', credits: 3, name: '英文一', grade: 'A+' },
+    { semester: '113-1', code: 'WEB1001', identifier: '900 U3960', credits: 3, name: 'Web APP開發', grade: 'A' },
+    { semester: '113-2', code: 'GE1001', identifier: 'H01 02000', credits: 2, name: '藝術鑑賞', grade: '通過' },
+  ]
+  const pick = (text: string) =>
+    parseTranscript(text).map(({ semester, code, identifier, credits, name, grade }) => ({ semester, code, identifier, credits, name, grade }))
+
+  it('整列在同一行、以 Tab 分隔', () => {
+    const text = [
+      '學年期\t課號\t課程識別碼\t班次\t學分\t課程名稱\t成績',
+      '113-1\tLANG1001\t102 83300\t15\t3\t英文一\tA+',
+      '113-1\tWEB1001\t900 U3960\t01\t3\tWeb APP開發\tA',
+      '113-2\tGE1001\tH01 02000\tA1\t2\t藝術鑑賞\t通過',
+      '平均成績：\t4.00\t實得學分數為：\t8',
+    ].join('\n')
+    expect(pick(text)).toEqual(expected)
+  })
+
+  it('整列在同一行、以空格分隔（識別碼中間的空格也被打散）', () => {
+    const text = [
+      '學年期 課號 課程識別碼 班次 學分 課程名稱 成績',
+      '113-1 LANG1001 102 83300 15 3 英文一 A+',
+      '113-1 WEB1001 900 U3960 01 3 Web APP開發 A',
+      '平均成績： 4.00 實得學分數為： 6',
+      '113-2 GE1001 H01 02000 A1 2 藝術鑑賞 通過',
+    ].join('\n')
+    expect(pick(text)).toEqual(expected)
+  })
+
+  it('每個欄位帶標籤', () => {
+    const text = [
+      '學年期：113-1', '課號：LANG1001', '課程識別碼：102 83300', '班次：15', '學分：3', '課程名稱：英文一', '成績：A+',
+      '學年期：113-1', '課號：WEB1001', '課程識別碼：900 U3960', '班次：01', '學分：3', '課程名稱：Web APP開發', '成績：A',
+      '學年期：113-2', '課號：GE1001', '課程識別碼：H01 02000', '通識領域：A1', '學分：2', '課程名稱：藝術鑑賞', '成績：通過',
+    ].join('\n')
+    expect(pick(text)).toEqual(expected)
+  })
+
+  it('不斷行空白與 Windows 換行也能處理', () => {
+    const text = '113-1\r\nLANG1001\r\n102\u00a083300\r\n15\r\n3\r\n英文一\r\nA+\r\n'
+    expect(pick(text)).toEqual([expected[0]])
+  })
+})

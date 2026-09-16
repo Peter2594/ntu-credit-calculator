@@ -85,7 +85,7 @@ export function CoursesView({ state, actions, goTo }: Props) {
         )}
         {preview && preview.length === 0 && (
           <p className="notice warn">
-            沒有解析出任何課程。請確認是從 myNTU 歷年成績頁整頁複製的內容。
+            沒有解析出任何課程。手機上可以試試：瀏覽器選單切換成「電腦版網站」再全選複製，或改用電腦操作。
           </p>
         )}
         {preview && preview.length > 0 && (
