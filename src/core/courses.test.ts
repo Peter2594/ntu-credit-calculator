@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   courseKey, mergeImported, reclassifyAll, setCategory, requiredProgress, requiredKey, waiveRequired, unwaiveRequired,
-  resetCategory, removeProgram,
+  resetCategory, removeProgram, updateGrades,
 } from './courses.js'
 import type { Course, Program } from './types.js'
 import type { ParsedCourse } from './parser.js'
@@ -165,5 +165,23 @@ describe('抵免與免修', () => {
     const { program, courses } = waiveRequired(listed, [substitute!], acc, substitute!.id)
     const undone = unwaiveRequired(program, requiredKey(acc))
     expect(requiredProgress(courses, undone).items.find((i) => i.required.code === 'ACC1001')!.status).toBe('missing')
+  })
+})
+
+describe('updateGrades：用手機版內容更新已匯入課程的成績', () => {
+  const existing = mergeImported([], [
+    parsed({ semester: '114-2', name: '甲系導論', grade: '' }),
+    parsed({ semester: '114-2', code: 'BBB1', identifier: '900 20000', name: '甲系 進階', grade: '' }),
+  ], [p1])
+
+  it('依學期與課名比對，課名空白差異不影響', () => {
+    const r = updateGrades(existing, [
+      { semester: '114-2', name: '甲系導論', grade: 'A' },
+      { semester: '114-2', name: '甲系  進階', grade: 'B+' },
+      { semester: '114-2', name: '沒匯入過的課', grade: 'A+' },
+    ])
+    expect(r.courses.map((c) => c.grade)).toEqual(['A', 'B+'])
+    expect(r.updated).toBe(2)
+    expect(r.unmatched).toEqual(['沒匯入過的課'])
   })
 })

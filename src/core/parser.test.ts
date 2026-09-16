@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseTranscript } from './parser.js'
+import { parseTranscript, parseGradeRows } from './parser.js'
 import { SYNTHETIC_TRANSCRIPT } from './fixtures/transcript.js'
 
 describe('parseTranscript', () => {
@@ -125,5 +125,31 @@ describe('parseTranscript：手機複製的格式', () => {
   it('不斷行空白與 Windows 換行也能處理', () => {
     const text = '113-1\r\nLANG1001\r\n102\u00a083300\r\n15\r\n3\r\n英文一\r\nA+\r\n'
     expect(pick(text)).toEqual([expected[0]])
+  })
+})
+
+describe('parseGradeRows：手機版頁面只有學期、領域、課名、成績', () => {
+  const MOBILE = [
+    '113-1', '編造體育課', 'A+', '❮',
+    '113-1', '編造服務課', '通過', '❮',
+    '113-1', 'A5*', '編造專業通識', '通過', '❮',
+    '113-1', 'A6', '☆編造 程式課', 'A+',
+  ].join('\n')
+
+  it('完整格式解析不到課程', () => {
+    expect(parseTranscript(MOBILE)).toEqual([])
+  })
+
+  it('讀出學期、課名、成績與通識領域', () => {
+    expect(parseGradeRows(MOBILE)).toEqual([
+      { semester: '113-1', name: '編造體育課', grade: 'A+' },
+      { semester: '113-1', name: '編造服務課', grade: '通過' },
+      { semester: '113-1', name: '編造專業通識', grade: '通過', genEdDomain: 'A5*' },
+      { semester: '113-1', name: '☆編造 程式課', grade: 'A+', genEdDomain: 'A6' },
+    ])
+  })
+
+  it('完整格式的成績單不會被當成手機版', () => {
+    expect(parseGradeRows(SYNTHETIC_TRANSCRIPT)).toEqual([])
   })
 })

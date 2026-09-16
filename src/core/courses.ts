@@ -130,3 +130,25 @@ export function waiveRequired(
 export function unwaiveRequired(program: Program, key: string): Program {
   return { ...program, waivers: (program.waivers ?? []).filter((w) => w.key !== key) }
 }
+
+const sameName = (a: string, b: string) => a.replace(/\s+/g, '') === b.replace(/\s+/g, '')
+
+/** 以學期＋課名比對，更新已匯入課程的成績（手機版頁面只有這些欄位）。 */
+export function updateGrades(
+  courses: Course[],
+  rows: { semester: string; name: string; grade: string }[],
+): { courses: Course[]; updated: number; unmatched: string[] } {
+  const next = [...courses]
+  let updated = 0
+  const unmatched: string[] = []
+  for (const row of rows) {
+    const at = next.findIndex((c) => c.semester === row.semester && sameName(c.name, row.name))
+    if (at === -1) {
+      unmatched.push(row.name)
+      continue
+    }
+    next[at] = { ...next[at]!, grade: row.grade }
+    updated++
+  }
+  return { courses: next, updated, unmatched }
+}

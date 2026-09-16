@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { parseTranscript, type ParsedCourse } from '../../core/parser'
+import { parseGradeRows, parseTranscript, type GradeRow, type ParsedCourse } from '../../core/parser'
+import { updateGrades } from '../../core/courses'
 import { deptPrefixOf, deptPrefixesOf, isOwnDeptGenEd } from '../../core/classify'
 import { SYNTHETIC_TRANSCRIPT } from '../../core/fixtures/transcript'
 import type { AppState } from '../../core/storage'
@@ -18,11 +19,18 @@ export function CoursesView({ state, actions, goTo }: Props) {
   const [justImported, setJustImported] = useState<number | null>(null)
   const [filter, setFilter] = useState<Filter>('all')
   const [usingSample, setUsingSample] = useState(false)
+  const [gradeRows, setGradeRows] = useState<GradeRow[]>([])
+  const [gradesUpdated, setGradesUpdated] = useState<number | null>(null)
 
   const parse = (text: string) => {
-    setPreview(parseTranscript(text))
+    const courses = parseTranscript(text)
+    setPreview(courses)
+    setGradeRows(courses.length === 0 ? parseGradeRows(text) : [])
     setJustImported(null)
+    setGradesUpdated(null)
   }
+
+  const gradeMatch = gradeRows.length > 0 ? updateGrades(state.courses, gradeRows) : null
 
   const confirmImport = () => {
     if (!preview?.length) return
@@ -83,11 +91,37 @@ export function CoursesView({ state, actions, goTo }: Props) {
             想看分類效果，把學程的「識別碼前三碼」設成 900。
           </p>
         )}
-        {preview && preview.length === 0 && (
+        {preview && preview.length === 0 && gradeRows.length === 0 && gradesUpdated === null && (
           <p className="notice warn">
-            沒有解析出任何課程。手機上可以試試：瀏覽器選單切換成「電腦版網站」再全選複製，或改用電腦操作。
+            沒有解析出任何課程。請確認是 myNTU「歷年成績」頁整頁複製的內容。
           </p>
         )}
+        {gradeMatch && gradesUpdated === null && (
+          <div className="notice warn stack-xs">
+            <div>
+              這是<strong>手機版頁面</strong>，只有課名和成績，缺少課號、識別碼與學分，無法計算學分。
+              請在手機瀏覽器選單切換「電腦版網站」後再複製，或改用電腦。
+            </div>
+            {gradeMatch.updated > 0 && (
+              <div className="row wrap">
+                <span>其中 {gradeMatch.updated} 門之前匯入過，可以直接更新成績：</span>
+                <button
+                  className="btn primary small"
+                  onClick={() => {
+                    actions.updateGrades(gradeRows)
+                    setGradesUpdated(gradeMatch.updated)
+                    setGradeRows([])
+                    setPreview(null)
+                    setRaw('')
+                  }}
+                >
+                  更新 {gradeMatch.updated} 門成績
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+        {gradesUpdated !== null && <p className="notice ok-bg">已更新 {gradesUpdated} 門課的成績。</p>}
         {preview && preview.length > 0 && (
           <div className="stack-sm">
             <p>

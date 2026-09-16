@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import type { Category, Course, Program } from '../core/types'
-import type { ParsedCourse } from '../core/parser'
+import type { GradeRow, ParsedCourse } from '../core/parser'
 import {
   mergeImported, reclassifyAll, removeProgram, resetCategory, setCategory,
-  unwaiveRequired, waiveRequired,
+  unwaiveRequired, updateGrades, waiveRequired,
 } from '../core/courses'
 import type { RequiredCourse } from '../core/types'
 import { useAppState } from './useAppState'
@@ -28,6 +28,7 @@ export type Actions = {
   updateProgram(p: Program): void
   deleteProgram(id: string): void
   importCourses(parsed: ParsedCourse[]): void
+  updateGrades(rows: GradeRow[]): void
   addCourses(courses: Course[]): void
   deleteCourse(id: string): void
   setCourseCategory(courseId: string, programId: string, category: Category): void
@@ -59,6 +60,8 @@ export function App() {
       })),
     importCourses: (parsed) =>
       setState((s) => ({ ...s, courses: mergeImported(s.courses, parsed, s.programs) })),
+    updateGrades: (rows) =>
+      setState((s) => ({ ...s, courses: reclassifyAll(updateGrades(s.courses, rows).courses, s.programs) })),
     addCourses: (courses) =>
       setState((s) => ({ ...s, courses: reclassifyAll([...s.courses, ...courses], s.programs) })),
     deleteCourse: (id) =>

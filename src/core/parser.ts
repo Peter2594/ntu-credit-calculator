@@ -119,3 +119,29 @@ function readCourse(tokens: string[], at: number, semester: string) {
   }
   return null
 }
+
+export type GradeRow = { semester: string; name: string; grade: string; genEdDomain?: string }
+
+/**
+ * 手機版歷年成績頁只顯示學期、通識領域、課名、成績，沒有課號、識別碼、學分，
+ * 無法算學分與分類，但可以拿來更新已匯入課程的成績。
+ * 內容含課程識別碼時代表是完整格式，回傳空陣列。
+ */
+export function parseGradeRows(raw: string): GradeRow[] {
+  const text = raw.replace(/\r/g, '').replace(/[\u00a0\u3000]/g, ' ')
+  const records = text.split('❮').map((r) =>
+    r.split(/[\n\t]/).map((f) => f.trim().replace(/\s+/g, ' ')).filter(Boolean),
+  )
+  if (records.some((fields) => fields.some((f) => IDENTIFIER.test(f)))) return []
+
+  return records.flatMap((fields): GradeRow[] => {
+    const semester = fields.find((f) => SEMESTER.test(f))
+    let gradeAt = fields.length - 1
+    while (gradeAt >= 0 && !GRADE.test(fields[gradeAt]!)) gradeAt--
+    if (!semester || gradeAt < 1) return []
+    const name = fields[gradeAt - 1]!
+    if (SEMESTER.test(name) || GEN_ED_DOMAIN.test(name)) return []
+    const genEdDomain = fields.slice(0, gradeAt - 1).find((f) => GEN_ED_DOMAIN.test(f))
+    return [{ semester, name, grade: fields[gradeAt]!, ...(genEdDomain ? { genEdDomain } : {}) }]
+  })
+}
