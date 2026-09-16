@@ -79,9 +79,13 @@ export function evaluate(courses: Course[], program: Program): Evaluation {
     electiveInMajor + taken['一般選修'] + majorOverflow + foreignOverflow
   const elective = capped(electiveRaw, req.elective)
 
-  const totalCounted = major + elective + common
-  const totalTaken =
-    taken['系訂必修'] + taken['限本系選修'] + taken['一般選修'] + commonRaw
+  // 雙主修、輔系只看該系開的課；共同必修、通識、系外選修都在主修那邊採計
+  const isMain = program.kind === '主修'
+  const deptOnly = taken['系訂必修'] + taken['限本系選修']
+  const totalCounted = isMain ? major + elective + common : deptOnly
+  const totalTaken = isMain
+    ? taken['系訂必修'] + taken['限本系選修'] + taken['一般選修'] + commonRaw
+    : deptOnly
 
   return {
     taken,
@@ -104,4 +108,51 @@ export function evaluate(courses: Course[], program: Program): Evaluation {
       gap: gap(taken['體育'], req.pe),
     },
   }
+}
+
+const categoryOf = (course: Course, programId: string) =>
+  course.assignments.find((a) => a.programId === programId)?.category
+
+/**
+ * 決定哪些課算進輔系。依台大輔系辦法：輔系學分不計入本學系最低畢業學分，
+ * 本學系系訂必修也不得兼充輔系科目。依學期先後分配，湊滿輔系門檻即停，
+ * 多修的該系課程仍留給主修當選修。
+ */
+function allocateMinors(courses: Course[], programs: Program[]): Map<string, Set<string>> {
+  const main = programs.find((p) => p.kind === '主修')
+  const taken = new Set<string>()
+  const result = new Map<string, Set<string>>()
+
+  for (const minor of programs.filter((p) => p.kind === '輔系')) {
+    const target = minor.requirements.total ?? Infinity
+    const ids = new Set<string>()
+    let sum = 0
+    const eligible = courses
+      .filter((c) => !taken.has(c.id))
+      .filter((c) => ['系訂必修', '限本系選修'].includes(categoryOf(c, minor.id) ?? ''))
+      .filter((c) => !main || categoryOf(c, main.id) !== '系訂必修')
+      .sort((a, b) => a.semester.localeCompare(b.semester))
+
+    for (const c of eligible) {
+      if (sum >= target) break
+      ids.add(c.id)
+      taken.add(c.id)
+      sum += c.credits
+    }
+    result.set(minor.id, ids)
+  }
+  return result
+}
+
+/** 同時評估所有學程，處理學程之間的學分歸屬（輔系學分不重複計入主修）。 */
+export function evaluateAll(courses: Course[], programs: Program[]): Map<string, Evaluation> {
+  const minors = allocateMinors(courses, programs)
+  const toMinor = new Set([...minors.values()].flatMap((s) => [...s]))
+
+  return new Map(programs.map((p) => {
+    const own = p.kind === '輔系'
+      ? courses.filter((c) => minors.get(p.id)!.has(c.id))
+      : courses.filter((c) => !toMinor.has(c.id))
+    return [p.id, evaluate(own, p)]
+  }))
 }

@@ -293,6 +293,20 @@ fieldset { border: 0; margin: 0; padding: 0; }
 .delta.up { color: var(--ok); background: var(--accent-soft); }
 .delta.down { color: var(--danger); background: var(--clash); }
 
+/* 成績 */
+.gpa-figures { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.gpa-figure { background: var(--surface-2); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
+.gpa-main { display: flex; align-items: baseline; gap: 4px; font-variant-numeric: tabular-nums; }
+.gpa-main strong { font-size: 1.9rem; font-weight: 800; line-height: 1.15; }
+.gpa-main .of { color: var(--muted); }
+.gpa-sub { font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.gpa-sub b { color: var(--text); }
+.gpa-terms { display: flex; gap: 8px; align-items: flex-end; overflow-x: auto; padding-bottom: 2px; }
+.gpa-term { flex: 1 0 52px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.gpa-term b { color: var(--text); font-size: 0.8rem; }
+.gpa-term-bar { width: 100%; max-width: 34px; height: 64px; background: var(--surface-2); border-radius: 6px; display: flex; align-items: flex-end; overflow: hidden; }
+.gpa-term-bar div { width: 100%; background: var(--accent); border-radius: 6px 6px 0 0; }
+
 /* 課程清單 */
 .semester-title { font-size: 0.9rem; font-weight: 700; color: var(--muted); }
 .course-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
@@ -359,7 +373,7 @@ fieldset { border: 0; margin: 0; padding: 0; }
 }
 
 @media (max-width: 640px) {
-  .grid-2, .grid-3, .grid-picker { grid-template-columns: minmax(0, 1fr); }
+  .grid-2, .grid-3, .grid-picker, .gpa-figures { grid-template-columns: minmax(0, 1fr); }
   .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .content { padding-top: 20px; }
   .card { padding: 16px; }

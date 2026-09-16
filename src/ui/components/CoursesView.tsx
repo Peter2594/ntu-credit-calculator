@@ -6,6 +6,8 @@ import type { AppState } from '../../core/storage'
 import { CATEGORIES, type Category, type Course } from '../../core/types'
 import type { Actions, Tab } from '../App'
 import { categoryLabel, isPlanned } from '../constants'
+import { computeGpa } from '../../core/gpa'
+import { fmtGpa } from './GpaCard'
 
 type Props = { state: AppState; actions: Actions; goTo(tab: Tab): void }
 type Filter = 'all' | 'dept' | 'planned'
@@ -146,6 +148,9 @@ export function CoursesView({ state, actions, goTo }: Props) {
               <h3 className="semester-title">
                 {semester}
                 <span className="muted"> · {list.reduce((s, c) => s + c.credits, 0)} 學分</span>
+                {computeGpa(list).overall.ntu !== null && (
+                  <span className="muted"> · GPA {fmtGpa(computeGpa(list).overall.ntu)}</span>
+                )}
               </h3>
               <ul className="course-list">
                 {list.map((c) => (

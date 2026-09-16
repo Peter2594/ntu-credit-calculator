@@ -1,11 +1,12 @@
 import { useState, type FormEvent } from 'react'
-import { evaluate } from '../../core/engine'
+import { evaluateAll } from '../../core/engine'
 import { reclassifyAll, setCategory } from '../../core/courses'
 import type { AppState } from '../../core/storage'
 import { CATEGORIES, type Category, type Course } from '../../core/types'
 import type { Actions } from '../App'
 import { SEMESTER_PATTERN, categoryLabel, newId } from '../constants'
 import { ProgramProgress } from './Progress'
+import { CategoryField, withChoice, type CategoryChoice } from './CategoryField'
 
 type Props = { state: AppState; actions: Actions }
 
@@ -20,19 +21,22 @@ export function TrialView({ state, actions }: Props) {
   const [credits, setCredits] = useState('3')
   const [identifier, setIdentifier] = useState('')
   const [semester, setSemester] = useState('')
+  const [choice, setChoice] = useState<CategoryChoice>('')
 
   if (programs.length === 0) {
     return <p className="empty">先到「學程設定」新增學程，才能試算。</p>
   }
 
   const classified = reclassifyAll(trial, programs)
+  const baseline = evaluateAll(courses, programs)
+  const after = evaluateAll([...courses, ...classified], programs)
   const creditNum = Number(credits)
   const valid = name.trim() !== '' && Number.isFinite(creditNum) && creditNum >= 0
 
   const add = (e: FormEvent) => {
     e.preventDefault()
     if (!valid) return
-    setTrial((t) => [...t, {
+    setTrial((t) => [...t, withChoice({
       id: newId(),
       name: name.trim(),
       credits: creditNum,
@@ -40,7 +44,7 @@ export function TrialView({ state, actions }: Props) {
       ...(identifier.trim() ? { identifier: identifier.trim().toUpperCase() } : {}),
       assignments: [],
       overridden: false,
-    }])
+    }, choice, programs)])
     setName('')
     setIdentifier('')
   }
@@ -71,9 +75,10 @@ export function TrialView({ state, actions }: Props) {
             <input type="number" min={0} inputMode="numeric" value={credits} onChange={(e) => setCredits(e.target.value)} />
           </label>
           <label className="field">
-            <span className="field-label">識別碼（選填）</span>
-            <input value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="用來自動分類" />
+            <span className="field-label">識別碼</span>
+            <input value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="選填" />
           </label>
+          <CategoryField value={choice} onChange={setChoice} />
         </div>
         <div className="row">
           <button type="submit" className="btn primary" disabled={!valid}>加入試算</button>
@@ -142,8 +147,8 @@ export function TrialView({ state, actions }: Props) {
           </div>
           <ProgramProgress
             program={p}
-            baseline={evaluate(courses, p)}
-            result={evaluate([...courses, ...classified], p)}
+            baseline={baseline.get(p.id)!}
+            result={after.get(p.id)!}
           />
         </article>
       ))}

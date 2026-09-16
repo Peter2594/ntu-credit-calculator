@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { tally, evaluate } from './engine.js'
+import { tally, evaluate, evaluateAll } from './engine.js'
 import type { Course, Category, Program } from './types.js'
 
 const c = (category: Category, credits: number, programId = 'p1'): Course => ({
@@ -211,5 +211,65 @@ describe('抵免的學分差額', () => {
     const r = evaluate([], p)
     expect(r.counted.major).toBe(0)
     expect(r.gaps.major).toBe(50)
+  })
+})
+
+describe('雙主修與輔系只算該系課程', () => {
+  const minor: Program = { id: 'p1', kind: '輔系', name: '乙系', deptPrefix: '666', requirements: { total: 20 } }
+  const courses = [c('系訂必修', 6), c('限本系選修', 9), c('一般選修', 12), c('通識', 6), c('外文', 3)]
+
+  it('輔系總學分只含必修與系內課，不含系外、通識、共同', () => {
+    const r = evaluate(courses, minor)
+    expect(r.totalCounted).toBe(15)
+    expect(r.gaps.total).toBe(5)
+  })
+
+  it('雙主修同樣只算該系課程', () => {
+    const dm: Program = { ...minor, kind: '雙主修', requirements: { major: 10, total: 10 } }
+    const r = evaluate(courses, dm)
+    expect(r.totalCounted).toBe(15)
+    expect(r.gaps.major).toBe(4)
+  })
+})
+
+describe('evaluateAll：輔系學分不計入本系畢業學分', () => {
+  const main: Program = { id: 'm', kind: '主修', name: '甲系', deptPrefix: '900', requirements: { total: 128, elective: 30 } }
+  const minor: Program = { id: 'n', kind: '輔系', name: '乙系', deptPrefix: '666', requirements: { total: 6 } }
+  const dm: Program = { ...minor, id: 'd', kind: '雙主修', requirements: { total: 6 } }
+
+  const course = (id: string, semester: string, credits: number, cats: Record<string, Category>): Course => ({
+    id, name: id, credits, semester, grade: 'A', overridden: false,
+    assignments: Object.entries(cats).map(([programId, category]) => ({ programId, category })),
+  })
+
+  const courses = [
+    course('b1', '113-1', 3, { m: '一般選修', n: '限本系選修', d: '限本系選修' }),
+    course('b2', '113-2', 3, { m: '一般選修', n: '限本系選修', d: '限本系選修' }),
+    course('b3', '114-1', 3, { m: '一般選修', n: '限本系選修', d: '限本系選修' }),
+    // 本系必修，即使也是乙系的課，也不得兼充輔系
+    course('shared', '113-1', 3, { m: '系訂必修', n: '限本系選修', d: '限本系選修' }),
+  ]
+
+  it('依學期先後分給輔系，湊滿門檻為止', () => {
+    const r = evaluateAll(courses, [main, minor])
+    expect(r.get('n')!.totalCounted).toBe(6)
+    expect(r.get('n')!.gaps.total).toBe(0)
+  })
+
+  it('分給輔系的課從主修扣除，多出來的仍算主修選修', () => {
+    const r = evaluateAll(courses, [main, minor])
+    expect(r.get('m')!.counted.elective).toBe(3) // 只剩 b3
+    expect(r.get('m')!.counted.major).toBe(3)
+  })
+
+  it('本系系訂必修不會被分給輔系', () => {
+    const allocated = evaluateAll(courses, [main, minor]).get('n')!
+    expect(allocated.taken['限本系選修']).toBe(6) // b1 + b2，不含 shared
+  })
+
+  it('雙主修的課仍計入主修選修', () => {
+    const r = evaluateAll(courses, [main, dm])
+    expect(r.get('m')!.counted.elective).toBe(9)
+    expect(r.get('d')!.totalCounted).toBe(12)
   })
 })

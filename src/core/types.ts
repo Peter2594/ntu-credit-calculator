@@ -46,7 +46,7 @@ export type Program = {
    */
   waivers?: { key: string; courseId?: string }[]
   /** 門檻從官方資料帶入時記下來源，方便使用者核對。 */
-  source?: { year: string; deptCode: string }
+  source?: { year: string; deptCode: string; kind?: ProgramKind }
 }
 
 export type Slot = {

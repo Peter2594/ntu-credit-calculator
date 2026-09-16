@@ -4,6 +4,8 @@ import type { AppState } from '../../core/storage'
 import type { Course, Slot } from '../../core/types'
 import type { Actions } from '../App'
 import { DAYS, DAY_LABEL, PERIODS, SEMESTER_PATTERN, formatSlots, isPlanned, newId } from '../constants'
+import { CategoryField, withChoice, type CategoryChoice } from './CategoryField'
+import type { Program } from '../../core/types'
 
 type Props = { state: AppState; actions: Actions }
 
@@ -100,6 +102,7 @@ export function ScheduleView({ state, actions }: Props) {
       <AddCourseForm
         semester={semester}
         disabled={!SEMESTER_PATTERN.test(semester)}
+        programs={state.programs}
         onAdd={(c) => actions.addCourses([c])}
       />
 
@@ -130,11 +133,13 @@ export function ScheduleView({ state, actions }: Props) {
   )
 }
 
-function AddCourseForm({ semester, disabled, onAdd }: {
+function AddCourseForm({ semester, disabled, programs, onAdd }: {
   semester: string
   disabled: boolean
+  programs: Program[]
   onAdd(c: Course): void
 }) {
+  const [category, setCategory] = useState<CategoryChoice>('')
   const [name, setName] = useState('')
   const [credits, setCredits] = useState('3')
   const [identifier, setIdentifier] = useState('')
@@ -159,7 +164,7 @@ function AddCourseForm({ semester, disabled, onAdd }: {
     const usable = slots
       .filter((s) => s.periods.length > 0)
       .map((s) => (room.trim() ? { ...s, room: room.trim() } : s))
-    onAdd({
+    onAdd(withChoice({
       id: newId(),
       name: name.trim(),
       credits: creditNum,
@@ -168,7 +173,7 @@ function AddCourseForm({ semester, disabled, onAdd }: {
       assignments: [],
       overridden: false,
       slots: usable,
-    })
+    }, category, programs))
     setName('')
     setIdentifier('')
     setRoom('')
@@ -191,9 +196,10 @@ function AddCourseForm({ semester, disabled, onAdd }: {
           <span className="field-label">識別碼</span>
           <input placeholder="例：705 31300" value={identifier} onChange={(e) => setIdentifier(e.target.value)} />
         </label>
-        <label className="field span-2">
-          <span className="field-label">教室（選填）</span>
-          <input value={room} onChange={(e) => setRoom(e.target.value)} />
+        <CategoryField value={category} onChange={setCategory} />
+        <label className="field">
+          <span className="field-label">教室</span>
+          <input value={room} onChange={(e) => setRoom(e.target.value)} placeholder="選填" />
         </label>
       </div>
 

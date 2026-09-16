@@ -98,12 +98,15 @@ export function ProgramProgress({ program, result, baseline }: {
     ? req.elective - req.electiveInMajor
     : undefined
 
+  const isMain = program.kind === '主修'
   const gaps = [
     { label: '系訂必修', gap: result.gaps.major },
-    { label: '系內選修', gap: result.gaps.electiveInMajor },
-    { label: '選修', gap: result.gaps.elective },
-    { label: '共同＋通識', gap: result.gaps.common },
-    { label: '體育', gap: result.pe.gap },
+    ...(isMain ? [
+      { label: '系內選修', gap: result.gaps.electiveInMajor },
+      { label: '選修', gap: result.gaps.elective },
+      { label: '共同＋通識', gap: result.gaps.common },
+      { label: '體育', gap: result.pe.gap },
+    ] : []),
   ].filter((g) => g.gap > 0)
 
   return (
@@ -112,7 +115,7 @@ export function ProgramProgress({ program, result, baseline }: {
         <Ring value={result.totalCounted} total={req.total} />
         <div className="hero-body">
           <div className="hero-label">
-            畢業學分
+            {isMain ? '畢業學分' : `${program.kind}學分`}
             {lost > 0 && <Info text={`實修 ${result.totalTaken} 學分，其中 ${lost} 學分因超修上限不計入`} />}
           </div>
           <div className="hero-value">
@@ -122,7 +125,7 @@ export function ProgramProgress({ program, result, baseline }: {
           </div>
           {remaining !== undefined && (
             <div className={remaining === 0 ? 'hero-remaining ok' : 'hero-remaining'}>
-              {remaining === 0 ? '已達畢業學分' : `還差 ${remaining} 學分`}
+              {remaining === 0 ? '已達標' : `還差 ${remaining} 學分`}
             </div>
           )}
           {gaps.length > 0 && (
@@ -133,6 +136,21 @@ export function ProgramProgress({ program, result, baseline }: {
         </div>
       </div>
 
+      {!isMain ? (
+        <div className="tiles">
+          {req.major !== undefined && (
+            <StatTile tone="major" label="系訂必修" value={result.counted.major} required={req.major} delta={d((e) => e.counted.major)} />
+          )}
+          <StatTile
+            tone="in" label="選修課程"
+            value={result.counted.electiveInMajor}
+            delta={d((e) => e.counted.electiveInMajor)}
+            info={program.kind === '輔系'
+              ? '該系開的課；依學期先後分給輔系，湊滿門檻後其餘仍算主修選修'
+              : '該系開的非必修課，含指定選修'}
+          />
+        </div>
+      ) : (
       <div className="tiles">
         <StatTile tone="major" label="系訂必修" value={result.counted.major} required={req.major} delta={d((e) => e.counted.major)} />
         <StatTile tone="elective" label="選修合計" value={result.counted.elective} required={req.elective} delta={d((e) => e.counted.elective)} />
@@ -161,6 +179,7 @@ export function ProgramProgress({ program, result, baseline }: {
           info="必修但不計入畢業總學分"
         />
       </div>
+      )}
     </div>
   )
 }

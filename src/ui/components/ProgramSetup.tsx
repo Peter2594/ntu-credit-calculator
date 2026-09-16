@@ -151,8 +151,17 @@ function ProgramCard({ program, onChange, onDelete }: {
               />
             </label>
           </div>
-          <div className="grid-3">{MAIN_FIELDS.map(renderField)}</div>
-          <div className="grid-4">{DETAIL_FIELDS.map(renderField)}</div>
+          {program.kind === '主修' ? (
+            <>
+              <div className="grid-3">{MAIN_FIELDS.map(renderField)}</div>
+              <div className="grid-4">{DETAIL_FIELDS.map(renderField)}</div>
+            </>
+          ) : (
+            <div className="grid-3">
+              {renderField({ key: 'total', label: `${program.kind}學分`, hint: '只計算該系開的課（必修＋系內選修）' })}
+              {renderField({ key: 'major', label: '其中系訂必修' })}
+            </div>
+          )}
         </div>
       </details>
     </article>

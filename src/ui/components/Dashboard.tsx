@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { evaluate } from '../../core/engine'
+import { evaluateAll } from '../../core/engine'
 import { findConflicts } from '../../core/conflicts'
 import type { AppState } from '../../core/storage'
 import type { Actions, Tab } from '../App'
@@ -7,6 +7,7 @@ import { isPlanned } from '../constants'
 import { isOwnDeptGenEd } from '../../core/classify'
 import { ProgramProgress } from './Progress'
 import { RequiredList } from './RequiredList'
+import { GpaCard } from './GpaCard'
 
 type Props = { state: AppState; actions: Actions; goTo(tab: Tab): void }
 
@@ -36,6 +37,7 @@ export function Dashboard({ state, actions, goTo }: Props) {
 
   const counted = includePlanned ? courses : courses.filter((c) => !isPlanned(c))
   const conflicts = findConflicts(courses.filter(isPlanned))
+  const results = evaluateAll(counted, programs)
 
   return (
     <section className="stack">
@@ -82,11 +84,13 @@ export function Dashboard({ state, actions, goTo }: Props) {
                 {ownGenEd} 門本系開的通識課可能不採計通識，請確認 →
               </button>
             )}
-            <ProgramProgress program={p} result={evaluate(counted, p)} />
+            <ProgramProgress program={p} result={results.get(p.id)!} />
             <RequiredList program={p} courses={courses} actions={actions} />
           </article>
         )
       })}
+
+      <GpaCard state={state} />
     </section>
   )
 }
