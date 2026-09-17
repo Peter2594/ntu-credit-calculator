@@ -1,5 +1,5 @@
 import { CATEGORIES, type Category, type Course, type Program } from './types.js'
-import { requiredKey } from './courses.js'
+import { groupResults, requiredKey, type GroupResult } from './courses.js'
 
 export type Tally = Record<Category, number>
 
@@ -30,7 +30,11 @@ export type Evaluation = {
   gaps: {
     major: number; electiveInMajor: number
     elective: number; common: number; total: number
+    /** 學分學程最低門數或學分還沒達到的模組 */
+    groups: string[]
   }
+  /** 學分學程各模組的進度（沒有模組規定時為空） */
+  groups: GroupResult[]
   pe: { taken: number; required: number; gap: number }
 }
 
@@ -82,7 +86,10 @@ export function evaluate(courses: Course[], program: Program): Evaluation {
   // 雙主修、輔系只看該系開的課；共同必修、通識、系外選修都在主修那邊採計
   const isMain = program.kind === '主修'
   const deptOnly = taken['系訂必修'] + taken['限本系選修']
-  const totalCounted = isMain ? major + elective + common : deptOnly
+  // 學分學程的模組有「至多採計 N 學分／N 門」時，超出部分不計入學程學分
+  const groups = program.requiredMode === 'pick' ? groupResults(courses, program) : []
+  const groupExcess = groups.reduce((s, g) => s + (g.credits - g.countedCredits), 0)
+  const totalCounted = isMain ? major + elective + common : Math.max(0, deptOnly - groupExcess)
   const totalTaken = isMain
     ? taken['系訂必修'] + taken['限本系選修'] + taken['一般選修'] + commonRaw
     : deptOnly
@@ -101,7 +108,9 @@ export function evaluate(courses: Course[], program: Program): Evaluation {
       elective: gap(elective, req.elective),
       common: gap(common, req.common),
       total: gap(totalCounted, req.total),
+      groups: groups.filter((g) => g.unmet).map((g) => g.name),
     },
+    groups,
     pe: {
       taken: taken['體育'],
       required: req.pe ?? 0,

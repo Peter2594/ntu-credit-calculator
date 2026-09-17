@@ -20,10 +20,12 @@ type Props = {
   actions: Actions
   /** 任選模式（輔系）還差的學分，來自 evaluateAll */
   pickGap?: number
+  /** 學分學程還沒達標的模組 */
+  unmetGroups?: string[]
 }
 
 /** 系訂必修逐門對照，讓學生直接看到還差哪幾門，並能標記抵免或免修。 */
-export function RequiredList({ program, courses, actions, pickGap }: Props) {
+export function RequiredList({ program, courses, actions, pickGap, unmetGroups = [] }: Props) {
   const [editing, setEditing] = useState<string | null>(null)
   if (!program.requiredCourses?.length) {
     return program.requiredNote ? (
@@ -39,14 +41,18 @@ export function RequiredList({ program, courses, actions, pickGap }: Props) {
 
   if (program.requiredMode === 'pick') {
     const { items } = requiredProgress(courses, program)
-    const options = items.filter((i) => i.status === 'missing')
+    // 同一門課常以多個課號列出（中英文班、他系同名課），修過或已列出的課名不再重複顯示為可選
+    const takenNames = new Set(items.filter((i) => i.status !== 'missing').map((i) => i.required.name))
+    const options = uniqueByName(items.filter((i) => i.status === 'missing' && !takenNames.has(i.required.name)))
     return (
-      <details className="required-list" open={(pickGap ?? 0) > 0}>
+      <details className="required-list" open={(pickGap ?? 0) > 0 || unmetGroups.length > 0}>
         <summary>
           <span className="req-title">{program.kind}科目</span>
           {(pickGap ?? 0) > 0
             ? <strong className="gap">還差 {pickGap} 學分 · 可選 {options.length} 門</strong>
-            : <strong className="ok">學分已達標</strong>}
+            : unmetGroups.length > 0
+              ? <strong className="gap">{unmetGroups.length} 個模組未達標</strong>
+              : <strong className="ok">學分已達標</strong>}
           <Info text={program.kind === '學程'
             ? `${program.requiredNote ?? ''}（模組規定僅供參考，以學程辦公室審核為準）`
             : `從該系系訂必修中任選，湊滿學分即可（依教務處公告推定）${program.requiredNote ? `。公告原文：${program.requiredNote}` : ''}`} />
@@ -66,7 +72,10 @@ export function RequiredList({ program, courses, actions, pickGap }: Props) {
                 </div>
               )}
               <ul className="req-items">
-                {[...list.filter((i) => i.status !== 'missing'), ...list.filter((i) => i.status === 'missing')].map((i) => (
+                {[
+                  ...list.filter((i) => i.status !== 'missing'),
+                  ...uniqueByName(list.filter((i) => i.status === 'missing' && !takenNames.has(i.required.name))),
+                ].map((i) => (
                   <li key={requiredKey(i.required) + i.required.name} className={`req-item ${i.status === 'missing' ? 'option' : i.status}`}>
                     <span className={`req-status ${i.status === 'missing' ? 'option' : i.status}`}>
                       {i.status === 'missing' ? '可選' : STATUS_LABEL[i.status]}
@@ -176,6 +185,11 @@ function groupItems(items: RequiredItem[]): [string, RequiredItem[]][] {
     groups.set(key, [...(groups.get(key) ?? []), i])
   }
   return [...groups.entries()]
+}
+
+function uniqueByName(items: RequiredItem[]): RequiredItem[] {
+  const seen = new Set<string>()
+  return items.filter((i) => !seen.has(i.required.name) && seen.add(i.required.name))
 }
 
 type GroupRule = NonNullable<Program['requiredGroups']>[number]

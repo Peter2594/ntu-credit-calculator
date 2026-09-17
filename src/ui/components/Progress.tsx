@@ -94,6 +94,7 @@ export function ProgramProgress({ program, result, baseline }: {
   const d = (pick: (e: Evaluation) => number) => (baseline ? pick(result) - pick(baseline) : undefined)
   const lost = result.totalTaken - result.totalCounted
   const remaining = req.total !== undefined ? Math.max(0, req.total - result.totalCounted) : undefined
+  const unmetGroups = result.gaps.groups
   const outsideCap = req.elective !== undefined && req.electiveInMajor !== undefined
     ? req.elective - req.electiveInMajor
     : undefined
@@ -108,6 +109,7 @@ export function ProgramProgress({ program, result, baseline }: {
       { label: '體育', gap: result.pe.gap },
     ] : []),
   ].filter((g) => g.gap > 0)
+  const chips = [...gaps.map((g) => `${g.label} −${g.gap}`), ...unmetGroups.map((name) => `${name}未達標`)]
 
   return (
     <div className="stack">
@@ -124,13 +126,13 @@ export function ProgramProgress({ program, result, baseline }: {
             <Delta value={d((e) => e.totalCounted)} />
           </div>
           {remaining !== undefined && (
-            <div className={remaining === 0 ? 'hero-remaining ok' : 'hero-remaining'}>
-              {remaining === 0 ? '已達標' : `還差 ${remaining} 學分`}
+            <div className={remaining === 0 && unmetGroups.length === 0 ? 'hero-remaining ok' : 'hero-remaining'}>
+              {remaining > 0 ? `還差 ${remaining} 學分` : unmetGroups.length > 0 ? '學分夠了，模組還沒達標' : '已達標'}
             </div>
           )}
-          {gaps.length > 0 && (
+          {chips.length > 0 && (
             <div className="gap-chips">
-              {gaps.map((g) => <span key={g.label} className="gap-chip">{g.label} −{g.gap}</span>)}
+              {chips.map((text) => <span key={text} className="gap-chip">{text}</span>)}
             </div>
           )}
         </div>

@@ -72,7 +72,7 @@ export function Dashboard({ state, actions, goTo }: Props) {
             <div className="card-head">
               <h3>{p.name || '未命名學程'}</h3>
               <span className="chip">{p.kind}</span>
-              {p.source && <span className="chip">{p.source.year} 入學</span>}
+              {p.source && p.kind !== '學程' && <span className="chip">{p.source.year} 入學</span>}
             </div>
             {unconfirmed > 0 && (
               <button className="notice clickable" onClick={() => goTo('courses')}>
@@ -85,7 +85,7 @@ export function Dashboard({ state, actions, goTo }: Props) {
               </button>
             )}
             <ProgramProgress program={p} result={results.get(p.id)!} />
-            <RequiredList program={p} courses={courses} actions={actions} pickGap={results.get(p.id)?.gaps.total} />
+            <RequiredList program={p} courses={courses} actions={actions} pickGap={results.get(p.id)?.gaps.total} unmetGroups={results.get(p.id)?.gaps.groups} />
           </article>
         )
       })}

@@ -118,6 +118,21 @@ describe('requiredProgress', () => {
   it('手動算必修但不在清單上的課另外列出（多為抵免）', () => {
     expect(r.extras.map((c) => c.name)).toEqual(['替代課程'])
   })
+
+  it('一門課同時對到清單上多項時只算一項（例如中英文班同名、課名比對）', () => {
+    const program: Program = {
+      id: 'x', kind: '學程', name: '某學程', deptPrefix: '', requirements: { total: 15 }, requiredMode: 'pick',
+      requiredCourses: [
+        { code: '', identifier: '724 M0310', name: '全球品牌管理', credits: 3, group: '應用', scope: '不限本院(系)課程' },
+        { code: '', identifier: '724EM0310', name: '全球品牌管理', credits: 3, group: '應用', scope: '不限本院(系)課程' },
+        { code: '', identifier: '', name: '全球品牌管理', credits: 3, group: '應用', scope: '不限本院(系)課程' },
+      ],
+    }
+    const cs = reclassifyAll(mergeImported([], [
+      parsed({ code: 'IB7095', identifier: '724 M0310', name: '全球品牌管理' }),
+    ], [program]), [program])
+    expect(requiredProgress(cs, program).items.map((i) => i.status)).toEqual(['done', 'missing', 'missing'])
+  })
 })
 
 describe('抵免與免修', () => {

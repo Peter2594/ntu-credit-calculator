@@ -80,6 +80,8 @@ export function requiredProgress(courses: Course[], program: Program): RequiredP
   const byId = new Map(courses.map((c) => [c.id, c]))
   const waivers = new Map((program.waivers ?? []).map((w) => [w.key, w]))
   const used = new Set((program.waivers ?? []).flatMap((w) => (w.courseId ? [w.courseId] : [])))
+  // 一門課只能滿足清單上的一項：同名的中英文班、課名比對常讓同一門課對到好幾項，重複計算會高估模組學分
+  const consumed = new Set(used)
 
   const items = (program.requiredCourses ?? []).map((required): RequiredItem => {
     const waiver = waivers.get(requiredKey(required))
@@ -90,11 +92,14 @@ export function requiredProgress(courses: Course[], program: Program): RequiredP
         return { required, status: 'waived', ...(substitute ? { course: substitute } : {}) }
       }
     }
-    const matches = counted.filter((c) => matchesRequired(c, required))
+    const matches = counted.filter((c) => !consumed.has(c.id) && matchesRequired(c, required))
     const done = matches.find((c) => c.grade)
     const planned = matches.find((c) => !c.grade)
     const course = done ?? planned
-    if (course) used.add(course.id)
+    if (course) {
+      used.add(course.id)
+      consumed.add(course.id)
+    }
     return { required, status: done ? 'done' : planned ? 'planned' : 'missing', ...(course ? { course } : {}) }
   })
 
@@ -103,6 +108,36 @@ export function requiredProgress(courses: Course[], program: Program): RequiredP
     missingCredits: items.filter((i) => i.status === 'missing').reduce((s, i) => s + i.required.credits, 0),
     extras: counted.filter((c) => !used.has(c.id) && !(program.requiredCourses ?? []).some((r) => matchesRequired(c, r))),
   }
+}
+
+export type GroupResult = {
+  name: string
+  /** 修過（含已排課表、抵免）的學分與門數，未套上限 */
+  credits: number
+  count: number
+  /** 套用「至多 N 門／N 學分」後可計入的學分 */
+  countedCredits: number
+  /** 最低門數或學分沒達到 */
+  unmet: boolean
+}
+
+/** 學分學程各模組的進度。修過的課以成績單學分為準，清單學分可能是推估。 */
+export function groupResults(courses: Course[], program: Program): GroupResult[] {
+  const rules = program.requiredGroups ?? []
+  if (rules.length === 0) return []
+  const got = requiredProgress(courses, program).items.filter((i) => i.status !== 'missing')
+  const creditsOf = (i: RequiredItem) => i.course?.credits ?? i.required.credits
+  const sum = (list: RequiredItem[]) => list.reduce((s, i) => s + creditsOf(i), 0)
+
+  return rules.map((rule) => {
+    const list = got.filter((i) => i.required.group === rule.name)
+    const credits = sum(list)
+    const byCount = rule.maxCourses === undefined ? credits : sum(list.slice(0, rule.maxCourses))
+    const countedCredits = rule.maxCredits === undefined ? byCount : Math.min(byCount, rule.maxCredits)
+    const unmet = (rule.minCourses !== undefined && list.length < rule.minCourses) ||
+      (rule.minCredits !== undefined && credits < rule.minCredits)
+    return { name: rule.name, credits, count: list.length, countedCredits, unmet }
+  })
 }
 
 export const requiredKey = (r: RequiredCourse) => `${r.code}|${r.identifier}`

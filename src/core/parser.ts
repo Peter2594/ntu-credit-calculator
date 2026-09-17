@@ -5,9 +5,10 @@ export type ParsedCourse = Omit<Course, 'id' | 'assignments' | 'overridden'>
 const SEMESTER = /^\d{3}-[1-4]$/
 /**
  * 課程識別碼：三碼單位代碼（必含數字，如 705、H01、P37）＋五碼；
- * 無空格的寫法是一個字元接五位數字（705E22200），以免把 SPORT1001 這類課號誤認。
+ * 無空格的寫法是一個字元接五位數字（705E22200），英語授課則是 E 接含數字的五碼（943EU0300、B01E101B1）；
+ * 單位代碼必含數字，SPORT1001 這類課號才不會被誤認。
  */
-const IDENTIFIER = /^(?=[0-9A-Z]{0,2}\d)[0-9A-Z]{3}(?:\s[0-9A-Z]{5}|[0-9A-Z]\d{5})$/
+const IDENTIFIER = /^(?=[0-9A-Z]{0,2}\d)[0-9A-Z]{3}(?:\s[0-9A-Z]{5}|[0-9A-Z]\d{5}|E(?=[0-9A-Z]{0,4}\d)[0-9A-Z]{5})$/
 const UNIT_CODE = /^(?=[0-9A-Z]{0,2}\d)[0-9A-Z]{3}$/
 const IDENTIFIER_TAIL = /^[0-9A-Z]{5}$/
 const COURSE_CODE = /^[A-Za-z]{2,}\s*\d[\w]*$/

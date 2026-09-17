@@ -181,7 +181,7 @@ describe('evaluate 的上限與溢出', () => {
     ]
     const r = evaluate(courses, program)
     expect(r.gaps).toEqual({
-      major: 0, electiveInMajor: 0, elective: 0, common: 0, total: 0,
+      major: 0, electiveInMajor: 0, elective: 0, common: 0, total: 0, groups: [],
     })
     expect(r.totalCounted).toBe(128)
   })
@@ -318,5 +318,51 @@ describe('學分學程', () => {
     const r = evaluateAll(courses, [main, prog])
     expect(r.get('p')!.totalCounted).toBe(6)
     expect(r.get('m')!.counted.elective).toBe(9)
+  })
+})
+
+describe('學分學程的模組規定', () => {
+  const course = (id: string, identifier: string, credits: number): Course => ({
+    id, name: id, credits, semester: '114-1', grade: 'A', overridden: false, identifier, assignments: [],
+  })
+  const r = (identifier: string, credits: number, group: string) =>
+    ({ code: '', identifier, name: identifier, credits, scope: '限本系課程', group })
+  const prog: Program = {
+    id: 'q', kind: '學程', name: '編造量子學程', deptPrefix: '', requirements: { total: 15 }, requiredMode: 'pick',
+    requiredGroups: [
+      { name: '必修', minCourses: 1 },
+      { name: '選修', minCourses: 2 },
+      { name: '物理', maxCredits: 8 },
+      { name: '電資', maxCourses: 1 },
+    ],
+    requiredCourses: [
+      r('111 00001', 3, '必修'),
+      r('111 00002', 3, '選修'), r('111 00003', 3, '選修'),
+      r('222 00001', 3, '物理'), r('222 00002', 3, '物理'), r('222 00003', 4, '物理'),
+      r('333 00001', 3, '電資'), r('333 00002', 3, '電資'),
+    ],
+  }
+  const run = async (ids: [string, number][]) => {
+    const { reclassifyAll } = await import('./courses.js')
+    const courses = reclassifyAll(ids.map(([identifier, credits], i) => course(`c${i}`, identifier, credits)), [prog])
+    return evaluateAll(courses, [prog]).get('q')!
+  }
+
+  it('模組有學分或門數上限時，超出的部分不計入學程學分', async () => {
+    const e = await run([
+      ['111 00001', 3], ['222 00001', 3], ['222 00002', 3], ['222 00003', 4], ['333 00001', 3], ['333 00002', 3],
+    ])
+    expect(e.totalTaken).toBe(19)
+    expect(e.totalCounted).toBe(3 + 8 + 3)
+    expect(e.gaps.total).toBe(1)
+  })
+
+  it('總學分夠了但模組門檻沒達到時列出未達標的模組', async () => {
+    const e = await run([
+      ['111 00001', 3], ['222 00001', 3], ['222 00002', 3], ['333 00001', 3], ['111 00002', 3],
+    ])
+    expect(e.totalCounted).toBe(15)
+    expect(e.gaps.total).toBe(0)
+    expect(e.gaps.groups).toEqual(['選修'])
   })
 })
