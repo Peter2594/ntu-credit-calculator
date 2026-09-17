@@ -1,4 +1,4 @@
-import { applyClassification, deptPrefixOf, deptPrefixesOf, matchesRequired } from './classify.js'
+import { applyClassification, deptPrefixOf, deptPrefixesOf, requiredMatcher } from './classify.js'
 import type { Category, Course, Program, RequiredCourse } from './types.js'
 import type { ParsedCourse } from './parser.js'
 
@@ -72,8 +72,20 @@ export type RequiredProgress = {
   extras: Course[]
 }
 
+// 一次評估會對同一份課程與學程查好幾次（模組、跨模組、主系規定、清單顯示），結果不變就重用
+const progressCache = new WeakMap<Course[], WeakMap<Program, RequiredProgress>>()
+
 /** 逐門對照系訂必修清單。只有在該學程被歸為系訂必修的課才算數，停修、不及格不算。 */
 export function requiredProgress(courses: Course[], program: Program): RequiredProgress {
+  const cached = progressCache.get(courses)?.get(program)
+  if (cached) return cached
+  const result = computeProgress(courses, program)
+  if (!progressCache.has(courses)) progressCache.set(courses, new WeakMap())
+  progressCache.get(courses)!.set(program, result)
+  return result
+}
+
+function computeProgress(courses: Course[], program: Program): RequiredProgress {
   const counted = courses.filter((c) =>
     c.assignments.some((a) => a.programId === program.id && a.category === '系訂必修'),
   )
@@ -82,6 +94,8 @@ export function requiredProgress(courses: Course[], program: Program): RequiredP
   const used = new Set((program.waivers ?? []).flatMap((w) => (w.courseId ? [w.courseId] : [])))
   // 一門課只能滿足清單上的一項：同名的中英文班、課名比對常讓同一門課對到好幾項，重複計算會高估模組學分
   const consumed = new Set(used)
+  const match = requiredMatcher(counted)
+  const matchedAny = new Set<Course>()
 
   const items = (program.requiredCourses ?? []).map((required): RequiredItem => {
     const waiver = waivers.get(requiredKey(required))
@@ -92,7 +106,9 @@ export function requiredProgress(courses: Course[], program: Program): RequiredP
         return { required, status: 'waived', ...(substitute ? { course: substitute } : {}) }
       }
     }
-    const matches = counted.filter((c) => !consumed.has(c.id) && matchesRequired(c, required))
+    const all = match(required)
+    all.forEach((c) => matchedAny.add(c))
+    const matches = all.filter((c) => !consumed.has(c.id))
     const done = matches.find((c) => c.grade)
     const planned = matches.find((c) => !c.grade)
     const course = done ?? planned
@@ -102,12 +118,12 @@ export function requiredProgress(courses: Course[], program: Program): RequiredP
     }
     return { required, status: done ? 'done' : planned ? 'planned' : 'missing', ...(course ? { course } : {}) }
   })
-  rebalance(items, counted, program)
+  rebalance(items, match, program)
 
   return {
     items,
     missingCredits: items.filter((i) => i.status === 'missing').reduce((s, i) => s + i.required.credits, 0),
-    extras: counted.filter((c) => !used.has(c.id) && !(program.requiredCourses ?? []).some((r) => matchesRequired(c, r))),
+    extras: counted.filter((c) => !used.has(c.id) && !matchedAny.has(c)),
   }
 }
 
@@ -132,27 +148,39 @@ function overCap(rule: GroupRule | undefined, list: RequiredItem[]): boolean {
  * 另一個模組卻因此不足。把課移給未達標的模組，或從超過採計上限的模組移出，
  * 前提是原模組少了它仍然達標。
  */
-function rebalance(items: RequiredItem[], counted: Course[], program: Program) {
+function rebalance(items: RequiredItem[], match: (r: RequiredCourse) => Course[], program: Program) {
   const rules = new Map((program.requiredGroups ?? []).map((g) => [g.name, g]))
   if (rules.size === 0) return
-  const members = (group?: string) => items.filter((i) => i.required.group === group && i.status !== 'missing')
+
+  const findMove = () => {
+    const members = new Map<string, RequiredItem[]>()
+    const itemOf = new Map<string, number>()
+    items.forEach((i, index) => {
+      if (i.status === 'missing') return
+      const group = i.required.group ?? ''
+      members.set(group, [...(members.get(group) ?? []), i])
+      if (i.course && i.status !== 'waived') itemOf.set(i.course.id, index)
+    })
+    for (const [t, target] of items.entries()) {
+      const group = target.required.group
+      if (target.status !== 'missing' || !group) continue
+      const here = members.get(group) ?? []
+      const targetNeeds = !groupMet(rules.get(group), here)
+      for (const course of match(target.required)) {
+        const s = itemOf.get(course.id)
+        const source = s === undefined ? undefined : items[s]
+        if (s === undefined || !source || source.required.group === group) continue
+        const from = members.get(source.required.group ?? '') ?? []
+        const rule = rules.get(source.required.group ?? '')
+        const worthIt = targetNeeds || (overCap(rule, from) && !overCap(rules.get(group), [...here, source]))
+        if (worthIt && groupMet(rule, from.filter((i) => i !== source))) return { t, s, course }
+      }
+    }
+    return undefined
+  }
 
   for (let round = 0; round < items.length; round++) {
-    const move = items.flatMap((target, t) => {
-      const group = target.required.group
-      if (target.status !== 'missing' || !group) return []
-      const targetNeeds = !groupMet(rules.get(group), members(group))
-      return items.flatMap((source, s) => {
-        const course = source.course
-        if (source.status === 'waived' || !course || source.required.group === group) return []
-        if (!counted.includes(course) || !matchesRequired(course, target.required)) return []
-        const from = members(source.required.group)
-        const rule = rules.get(source.required.group ?? '')
-        const rest = from.filter((i) => i !== source)
-        const worthIt = targetNeeds || (overCap(rule, from) && !overCap(rules.get(group), [...members(group), source]))
-        return worthIt && groupMet(rule, rest) ? [{ t, s, course }] : []
-      })
-    })[0]
+    const move = findMove()
     if (!move) return
     items[move.s] = { required: items[move.s]!.required, status: 'missing' }
     items[move.t] = { required: items[move.t]!.required, status: move.course.grade ? 'done' : 'planned', course: move.course }
@@ -197,12 +225,12 @@ function coveredGroups(items: RequiredItem[], program: Program, groups: string[]
     const key = item.course?.id ?? `waived|${requiredKey(item.required)}`
     const options = taken.get(key) ?? new Set<string>()
     if (item.required.group) options.add(item.required.group)
-    if (item.course) {
-      for (const r of program.requiredCourses ?? []) {
-        if (r.group && matchesRequired(item.course, r)) options.add(r.group)
-      }
-    }
     taken.set(key, options)
+  }
+  const match = requiredMatcher(items.flatMap((i) => (i.status !== 'missing' && i.course ? [i.course] : [])))
+  for (const r of program.requiredCourses ?? []) {
+    if (!r.group || !groups.includes(r.group)) continue
+    for (const course of match(r)) taken.get(course.id)?.add(r.group)
   }
   const candidates = [...taken.values()].map((options) => [...options].filter((g) => groups.includes(g)))
   const owner = new Map<string, number>()

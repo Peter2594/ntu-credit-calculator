@@ -321,6 +321,8 @@ fieldset { border: 0; margin: 0; padding: 0; }
   padding: 11px 16px; flex-wrap: wrap; transition: background 0.12s;
 }
 .course:hover { background: color-mix(in srgb, var(--surface-2) 50%, transparent); }
+/* 課很多時，畫面外的課先不排版，切到課程頁才不會卡 */
+.course { content-visibility: auto; contain-intrinsic-size: auto 64px; }
 .course + .course { border-top: 1px solid var(--border); }
 .course.dim .course-name { color: var(--muted); text-decoration: line-through; }
 .course-main { min-width: 0; flex: 1 1 220px; }
@@ -362,6 +364,7 @@ fieldset { border: 0; margin: 0; padding: 0; }
 .req-waive { grid-column: 2 / -1; display: flex; gap: 6px; align-items: center; }
 .req-waive select { flex: 1; min-width: 0; padding: 6px 10px; font-size: 0.86rem; }
 .req-group + .req-group { margin-top: 10px; }
+.req-more { margin: 4px 8px 0; font-size: 0.82rem; }
 .req-group-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.86rem; padding: 4px 8px; }
 .req-note { font-size: 0.8rem; margin: 10px 0 0; color: var(--muted); }
 

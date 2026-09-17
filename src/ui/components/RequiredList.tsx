@@ -13,6 +13,8 @@ const STATUS_LABEL: Record<RequiredItem['status'], string> = {
 }
 
 const WAIVE_ONLY = '__waive__'
+/** 可選課很多的模組（上百門）先列幾門，其餘按了再展開，清單才不會長到拖慢頁面 */
+const OPTIONS_SHOWN = 6
 
 type Props = {
   program: Program
@@ -27,6 +29,7 @@ type Props = {
 /** 系訂必修逐門對照，讓學生直接看到還差哪幾門，並能標記抵免或免修。 */
 export function RequiredList({ program, courses, actions, pickGap, unmetGroups = [] }: Props) {
   const [editing, setEditing] = useState<string | null>(null)
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
   if (!program.requiredCourses?.length) {
     return program.requiredNote ? (
       <div className="required-list">
@@ -62,6 +65,9 @@ export function RequiredList({ program, courses, actions, pickGap, unmetGroups =
           const got = list.filter((i) => i.status === 'done' || i.status === 'planned')
           // 修過的課以成績單學分為準，清單學分可能是推估
           const credits = got.reduce((s, i) => s + (i.course?.credits ?? i.required.credits), 0)
+          const groupOptions = uniqueByName(list.filter((i) => i.status === 'missing' && !takenNames.has(i.required.name)))
+          const open = expanded.has(group) || groupOptions.length <= OPTIONS_SHOWN + 2
+          const hidden = open ? 0 : groupOptions.length - OPTIONS_SHOWN
           return (
             <div key={group || '-'} className="req-group">
               {group && (
@@ -74,7 +80,7 @@ export function RequiredList({ program, courses, actions, pickGap, unmetGroups =
               <ul className="req-items">
                 {[
                   ...list.filter((i) => i.status !== 'missing'),
-                  ...uniqueByName(list.filter((i) => i.status === 'missing' && !takenNames.has(i.required.name))),
+                  ...(open ? groupOptions : groupOptions.slice(0, OPTIONS_SHOWN)),
                 ].map((i) => (
                   <li key={requiredKey(i.required) + i.required.name} className={`req-item ${i.status === 'missing' ? 'option' : i.status}`}>
                     <span className={`req-status ${i.status === 'missing' ? 'option' : i.status}`}>
@@ -86,6 +92,11 @@ export function RequiredList({ program, courses, actions, pickGap, unmetGroups =
                   </li>
                 ))}
               </ul>
+              {hidden > 0 && (
+                <button className="link small req-more" onClick={() => setExpanded(new Set([...expanded, group]))}>
+                  再顯示 {hidden} 門可選課
+                </button>
+              )}
             </div>
           )
         })}

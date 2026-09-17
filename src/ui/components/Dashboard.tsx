@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { evaluateAll } from '../../core/engine'
 import { findConflicts } from '../../core/conflicts'
 import type { AppState } from '../../core/storage'
@@ -15,6 +15,8 @@ export function Dashboard({ state, actions, goTo }: Props) {
   const { programs, courses } = state
   const plannedCount = courses.filter(isPlanned).length
   const [includePlanned, setIncludePlanned] = useState(false)
+  const counted = useMemo(() => (includePlanned ? courses : courses.filter((c) => !isPlanned(c))), [courses, includePlanned])
+  const results = useMemo(() => evaluateAll(counted, programs), [counted, programs])
 
   if (programs.length === 0) {
     return (
@@ -35,9 +37,7 @@ export function Dashboard({ state, actions, goTo }: Props) {
     )
   }
 
-  const counted = includePlanned ? courses : courses.filter((c) => !isPlanned(c))
   const conflicts = findConflicts(courses.filter(isPlanned))
-  const results = evaluateAll(counted, programs)
 
   return (
     <section className="stack">

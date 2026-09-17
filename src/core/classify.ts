@@ -37,6 +37,33 @@ export function matchesRequired(course: ParsedCourse, r: RequiredCourse): boolea
     (!r.scope.includes('限本系') && r.name === course.name)
 }
 
+/**
+ * 同 matchesRequired，但先依課號、識別碼、課名建索引，給一整份清單逐項比對時用。
+ * 回傳的課依原本順序排列。
+ */
+export function requiredMatcher<T extends ParsedCourse>(courses: T[]): (r: RequiredCourse) => T[] {
+  const order = new Map(courses.map((c, i) => [c, i]))
+  const index = (key: (c: T) => string) => {
+    const map = new Map<string, T[]>()
+    for (const c of courses) {
+      const k = key(c)
+      if (k !== '') map.set(k, [...(map.get(k) ?? []), c])
+    }
+    return map
+  }
+  const byCode = index((c) => squash(c.code))
+  const byIdentifier = index((c) => squash(c.identifier))
+  const byName = index((c) => c.name)
+  return (r) => {
+    const found = new Set([
+      ...(byCode.get(squash(r.code)) ?? []),
+      ...(byIdentifier.get(squash(r.identifier)) ?? []),
+      ...(r.scope.includes('限本系') ? [] : byName.get(r.name) ?? []),
+    ])
+    return [...found].sort((a, b) => order.get(a)! - order.get(b)!)
+  }
+}
+
 export function isRequiredCourse(course: ParsedCourse, program: Program): boolean {
   return (program.requiredCourses ?? []).some((r) => matchesRequired(course, r))
 }
