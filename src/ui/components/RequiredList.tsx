@@ -54,7 +54,8 @@ export function RequiredList({ program, courses, actions, pickGap }: Props) {
         {groupItems(items).map(([group, list]) => {
           const rule = program.requiredGroups?.find((g) => g.name === group)
           const got = list.filter((i) => i.status === 'done' || i.status === 'planned')
-          const credits = got.reduce((s, i) => s + i.required.credits, 0)
+          // 修過的課以成績單學分為準，清單學分可能是推估
+          const credits = got.reduce((s, i) => s + (i.course?.credits ?? i.required.credits), 0)
           return (
             <div key={group || '-'} className="req-group">
               {group && (
@@ -71,7 +72,7 @@ export function RequiredList({ program, courses, actions, pickGap }: Props) {
                       {i.status === 'missing' ? '可選' : STATUS_LABEL[i.status]}
                     </span>
                     <span className="req-name">{i.required.name}</span>
-                    <span className="muted req-credits">{i.required.credits} 學分</span>
+                    <span className="muted req-credits">{i.course?.credits ?? i.required.credits} 學分</span>
                     <span className="req-action" />
                   </li>
                 ))}
