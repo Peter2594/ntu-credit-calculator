@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { parseRequirementPage, parseRequiredCourses } from './curri.js'
+import { parseCreditRules, parseRequirementPage, parseRequiredCourses } from './curri.js'
 
 // 台大必修課程查詢系統的公開頁面（資管系 115 學年度），不含個人資料
 const tc = readFileSync(new URL('./fixtures/curri-tc-7050-115.html', import.meta.url), 'utf8')
@@ -28,6 +28,16 @@ describe('parseRequirementPage', () => {
     ])
   })
 
+  it('讀出備註裡超修與本系通識的採計規定', () => {
+    expect(r.creditRules).toEqual({
+      genEdOverflowToElective: false,
+      foreignOverflowToElective: true,
+      ownGenEdToElective: false,
+      chineseOverflowToElective: false,
+      freshman: 'both',
+    })
+  })
+
   it('找不到表格時回傳 null 而非亂猜', () => {
     expect(parseRequirementPage('<html>系統維護中</html>')).toBeNull()
   })
@@ -53,5 +63,30 @@ describe('parseRequiredCourses', () => {
     // 頁面預設只列一年級；一年級上下學期合計 14 + 13
     const total = courses.filter((c) => !c.group).reduce((s, c) => s + c.credits, 0)
     expect(total).toBe(parseRequirementPage(tc)!.majorByGrade[0])
+  })
+})
+
+describe('parseCreditRules：各系寫法', () => {
+  const note = (freshman: string, own = '修習本系所開通識課程(A1~A8領域，無*者)，計入系內選修') =>
+    `(3)超修之通識課程(A1~A8領域，無*者)，計入選修學分(4)超修之外(英)文領域課程學分，不計入選修學分(5)${own}(7)修習${freshman}(8)超修之大學國文，計入選修學分`
+
+  it('計入與不計入、系內選修的寫法', () => {
+    expect(parseCreditRules(note('「新生專題」及「新生講座」課程，皆不計入選修學分'))).toEqual({
+      genEdOverflowToElective: true,
+      foreignOverflowToElective: false,
+      ownGenEdToElective: true,
+      chineseOverflowToElective: true,
+      freshman: 'none',
+    })
+  })
+
+  it('新生專題與新生講座的各種組合', () => {
+    expect(parseCreditRules(note('「新生專題」及「新生講座」課程，擇一計入選修學分')).freshman).toBe('one')
+    expect(parseCreditRules(note('「新生專題」課程，計入選修學分；修習「新生講座」課程，不計入選修學分')).freshman).toBe('seminar')
+    expect(parseCreditRules(note('「新生專題」課程，不計入選修學分；修習「新生講座」課程，計入選修學分')).freshman).toBe('lecture')
+  })
+
+  it('沒寫的規定留空，不猜', () => {
+    expect(parseCreditRules('其他說明')).toEqual({})
   })
 })

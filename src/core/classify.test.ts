@@ -191,3 +191,29 @@ describe('識別碼不是體育室或外文系開的共同必修', () => {
     expect(classify(course({ identifier: '900 50100', name: '商用英文寫作' }), program)).toBe('限本系選修')
   })
 })
+
+describe('classify：依各系規定處理本系通識與新生課程', () => {
+  const own = course({ identifier: '900 10100', genEdDomain: 'A5' })
+
+  it('本系開的通識依系上規定計入系內選修或不計入', () => {
+    expect(classify(own, { ...program, creditRules: { ownGenEdToElective: true } })).toBe('限本系選修')
+    expect(classify(own, { ...program, creditRules: { ownGenEdToElective: false } })).toBe('不計入')
+  })
+
+  it('系上規定明確時不再提醒確認；沒有規定時維持先算通識並提醒', () => {
+    expect(isOwnDeptGenEd(own, { ...program, creditRules: { ownGenEdToElective: false } })).toBe(false)
+    expect(classify(own, program)).toBe('通識')
+    expect(isOwnDeptGenEd(own, program)).toBe(true)
+  })
+
+  it('新生專題、新生講座依系上規定不計入', () => {
+    const seminar = course({ identifier: 'H01 99990', name: '新生專題：編造' })
+    const lecture = course({ identifier: 'H01 99991', name: '新生講座：編造' })
+    const none = { ...program, creditRules: { freshman: 'none' as const } }
+    const onlySeminar = { ...program, creditRules: { freshman: 'seminar' as const } }
+    expect(classify(seminar, none)).toBe('不計入')
+    expect(classify(lecture, onlySeminar)).toBe('不計入')
+    expect(classify(seminar, onlySeminar)).toBe('一般選修')
+    expect(classify(seminar, program)).toBe('一般選修')
+  })
+})

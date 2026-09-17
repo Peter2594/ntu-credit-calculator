@@ -122,6 +122,7 @@ async function fetchYear(year: string) {
       deptPrefix: dept.data.trim().slice(0, 3),
       requirements: page.requirements,
       chinesePlans: page.chinesePlans,
+      creditRules: page.creditRules,
       requiredCourses,
       ...(minor ? { minor } : {}),
       ...(doubleMajor ? { doubleMajor } : {}),

@@ -94,7 +94,11 @@ export function ProgramProgress({ program, result, baseline }: {
   const d = (pick: (e: Evaluation) => number) => (baseline ? pick(result) - pick(baseline) : undefined)
   const lost = result.totalTaken - result.totalCounted
   const remaining = req.total !== undefined ? Math.max(0, req.total - result.totalCounted) : undefined
-  const unmetGroups = result.gaps.groups
+  const genEdGap = result.gaps.genEdDomains
+  const unmetGroups = [
+    ...result.gaps.groups,
+    ...(genEdGap > 0 ? [`通識指定領域（還差 ${genEdGap} 個）`] : []),
+  ]
   const outsideCap = req.elective !== undefined && req.electiveInMajor !== undefined
     ? req.elective - req.electiveInMajor
     : undefined
@@ -127,7 +131,9 @@ export function ProgramProgress({ program, result, baseline }: {
           </div>
           {remaining !== undefined && (
             <div className={remaining === 0 && unmetGroups.length === 0 ? 'hero-remaining ok' : 'hero-remaining'}>
-              {remaining > 0 ? `還差 ${remaining} 學分` : unmetGroups.length > 0 ? '學分夠了，模組還沒達標' : '已達標'}
+              {remaining > 0
+                ? `還差 ${remaining} 學分`
+                : unmetGroups.length > 0 ? (isMain ? '學分夠了，還有規定沒達到' : '學分夠了，模組還沒達標') : '已達標'}
             </div>
           )}
           {chips.length > 0 && (
@@ -172,7 +178,11 @@ export function ProgramProgress({ program, result, baseline }: {
           tone="common" label="共同＋通識"
           value={result.counted.common} required={req.common}
           delta={d((e) => e.counted.common)}
-          info="國文、外文、通識合計。國文最多 6、通識最多 15、兩者合計最多 18"
+          info={[
+            '國文、外文、通識合計。國文最多 6、通識最多 15、兩者合計最多 18',
+            result.genEd && `通識須修系上指定領域 ${result.genEd.designated.join('、')} 中的 ${result.genEd.need} 個（大一國文 6 學分者 2 個），目前已修 ${result.genEd.covered.length ? result.genEd.covered.join('、') : '0 個'}。國際學生不受指定領域限制`,
+            '基本能力課程可充抵通識至多 6 學分，本工具無法從成績單辨認，請在課程頁手動改為通識',
+          ].filter(Boolean).join('。')}
         />
         <StatTile
           tone="pe" label="體育"

@@ -1,4 +1,5 @@
 import { CATEGORIES, type Category, type Course, type Program } from './types.js'
+import { FRESHMAN } from './classify.js'
 import { groupResults, requiredKey, unmetGroupRules, unmetOutsideRules, type GroupResult } from './courses.js'
 
 export type Tally = Record<Category, number>
@@ -27,7 +28,11 @@ export type Evaluation = {
   }
   totalTaken: number
   totalCounted: number
+  /** 主修的通識指定領域：指定哪些、已修到哪些、需要幾個（沒有資料時不判斷） */
+  genEd?: { designated: string[]; covered: string[]; need: number }
   gaps: {
+    /** 通識指定領域還差幾個 */
+    genEdDomains: number
     major: number; electiveInMajor: number
     elective: number; common: number; total: number
     /** 學分學程最低門數或學分還沒達到的模組 */
@@ -69,19 +74,34 @@ export function evaluate(courses: Course[], program: Program, others: Program[] 
   const major = capped(majorTaken, req.major)
   const majorOverflow = overflow(majorTaken, req.major) + surplus
 
-  // 規則 1、2：國文與通識超修的部分丟棄
-  // 規則 3：外文超修的部分計入選修（與前兩者相反）
+  // 超修的國文、通識、外文是否計入選修，各系備註寫法不同；沒寫明時國文、通識丟棄，外文計入選修
+  const rules = program.creditRules ?? {}
   const chinese = capped(taken['國文'], req.chinese)
   const genEd = capped(taken['通識'], req.genEd)
   const foreign = capped(taken['外文'], req.foreign)
-  const foreignOverflow = overflow(taken['外文'], req.foreign)
+  const foreignOverflow = rules.foreignOverflowToElective === false ? 0 : overflow(taken['外文'], req.foreign)
   const commonRaw = taken['國文'] + taken['外文'] + taken['通識']
-  const common = capped(capped(chinese + genEd, req.chineseGenEd) + foreign, req.common)
+  const chineseGenEd = capped(chinese + genEd, req.chineseGenEd)
+  const common = capped(chineseGenEd + foreign, req.common)
+  // 國文與通識合計超過上限的部分：學生可自選「國文 6＋通識 12」或「國文 3＋通識 15」，算成對自己有利的那一類超修
+  const pairExcess = chinese + genEd - chineseGenEd
+  const commonOverflow =
+    (rules.chineseOverflowToElective ? overflow(taken['國文'], req.chinese) : 0) +
+    (rules.genEdOverflowToElective ? overflow(taken['通識'], req.genEd) : 0) +
+    (rules.chineseOverflowToElective || rules.genEdOverflowToElective ? pairExcess : 0)
 
-  // 規則 5：限本系選修是下限，超修仍計入選修合計
+  // 新生專題、新生講座擇一計入：只留學分最多的一門
+  const freshmanCredits = courses
+    .filter((c) => FRESHMAN.test(c.name) && c.assignments.some((a) => a.programId === program.id && a.category === '一般選修'))
+    .map((c) => c.credits)
+  const freshmanExtra = rules.freshman === 'one' && freshmanCredits.length > 1
+    ? freshmanCredits.reduce((s, x) => s + x, 0) - Math.max(...freshmanCredits)
+    : 0
+
+  // 限本系選修是下限，超修仍計入選修合計
   const electiveInMajor = taken['限本系選修']
   const electiveRaw =
-    electiveInMajor + taken['一般選修'] + majorOverflow + foreignOverflow
+    electiveInMajor + taken['一般選修'] + majorOverflow + foreignOverflow + commonOverflow - freshmanExtra
   const elective = capped(electiveRaw, req.elective)
 
   // 雙主修、輔系只看該系開的課；共同必修、通識、系外選修都在主修那邊採計
@@ -95,8 +115,19 @@ export function evaluate(courses: Course[], program: Program, others: Program[] 
     ? taken['系訂必修'] + taken['限本系選修'] + taken['一般選修'] + commonRaw
     : deptOnly
 
+  // 通識指定領域：大一國文修滿 6 學分者為 2 個，否則 3 個；跨領域課程得擇一計入，星號課也算該領域
+  const designated = isMain ? rules.genEdDomains : undefined
+  const genEdResult = designated && (() => {
+    const covered = new Set(courses
+      .filter((c) => c.genEdDomain && c.assignments.some((a) => a.programId === program.id && a.category === '通識'))
+      .map((c) => c.genEdDomain!.replace('*', ''))
+      .filter((d) => designated.includes(d)))
+    return { designated, covered: designated.filter((d) => covered.has(d)), need: chinese >= 6 ? 2 : 3 }
+  })()
+
   return {
     taken,
+    ...(genEdResult ? { genEd: genEdResult } : {}),
     counted: {
       major, electiveInMajor, elective, common,
       electiveOutside: Math.max(0, elective - Math.min(electiveInMajor, elective)),
@@ -104,6 +135,7 @@ export function evaluate(courses: Course[], program: Program, others: Program[] 
     totalTaken,
     totalCounted,
     gaps: {
+      genEdDomains: genEdResult ? Math.max(0, genEdResult.need - genEdResult.covered.length) : 0,
       major: gap(major, req.major),
       electiveInMajor: gap(electiveInMajor, req.electiveInMajor),
       elective: gap(elective, req.elective),

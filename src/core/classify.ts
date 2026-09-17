@@ -10,6 +10,7 @@ const WITHDRAWN = '停修'
 // 共同必修有時掛在其他單位的識別碼下（共教中心開的健康體適能、各系自開的大一英文班），只能靠課名認
 const PE_NAME = /健康體適能|專項運動/
 const FOREIGN_NAME = /^(英文\s*[(（]|英文[一二]|大一英文|大一外文)/
+export const FRESHMAN = /新生(專題|講座)/
 /** 不及格沒有拿到學分。 */
 const FAILED = new Set(['F', 'X', '不通過'])
 
@@ -69,11 +70,13 @@ export function isRequiredCourse(course: ParsedCourse, program: Program): boolea
 }
 
 /**
- * 本系開的一般通識課（無星號）。依規定「若為畢業學系所開授，仍不得採計為通識學分」，
- * 但各系實務不一，工具先算通識、由介面提醒使用者確認。有星號的規定明確，classify 直接處理。
+ * 本系開的一般通識課（無星號），而且系上沒寫明怎麼採計。依通識課程注意事項「畢業學系所開授之課程，
+ * 不得採計為通識課程學分」；系上備註寫明計入或不計入選修時 classify 直接處理，
+ * 沒寫時工具先算通識、由介面提醒使用者確認。
  */
 export function isOwnDeptGenEd(course: ParsedCourse, program: Program): boolean {
-  return !!course.genEdDomain && !course.genEdDomain.endsWith('*') &&
+  return program.creditRules?.ownGenEdToElective === undefined &&
+    !!course.genEdDomain && !course.genEdDomain.endsWith('*') &&
     deptPrefixesOf(program).includes(deptPrefixOf(course.identifier))
 }
 
@@ -85,9 +88,21 @@ export function classify(course: ParsedCourse, program: Program): Category {
   if (course.grade === WITHDRAWN) return '不計入'
   if (course.grade && FAILED.has(course.grade)) return '不計入'
   if (isRequiredCourse(course, program)) return '系訂必修'
+  const rules = program.creditRules ?? {}
   // 有星號的是「經認可為通識的專業課」，本系開授者不得採計通識，但可計入系內選修
   if (course.genEdDomain?.endsWith('*') && ownDept) return '限本系選修'
+  // 本系開的一般通識不得採計通識；系上寫明是否計入選修
+  if (course.genEdDomain && ownDept && rules.ownGenEdToElective !== undefined) {
+    return rules.ownGenEdToElective ? '限本系選修' : '不計入'
+  }
   if (course.genEdDomain) return '通識'
+  // 新生專題、新生講座是否納入畢業學分由各系決定；擇一計入在 engine 處理
+  const freshman = FRESHMAN.exec(course.name)?.[1]
+  if (freshman && rules.freshman) {
+    const counts = rules.freshman === 'both' || rules.freshman === 'one' ||
+      (freshman === '專題' ? rules.freshman === 'seminar' : rules.freshman === 'lecture')
+    if (!counts) return '不計入'
+  }
   if (prefix === '101' || code.startsWith('CHIN')) return '國文'
   if (prefix === '102' || code.startsWith('FL') || FOREIGN_NAME.test(course.name)) return '外文'
   if (prefix === '002' || code.startsWith('PE') || PE_NAME.test(course.name)) return '體育'

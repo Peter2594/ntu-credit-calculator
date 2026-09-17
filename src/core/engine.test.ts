@@ -181,7 +181,7 @@ describe('evaluate 的上限與溢出', () => {
     ]
     const r = evaluate(courses, program)
     expect(r.gaps).toEqual({
-      major: 0, electiveInMajor: 0, elective: 0, common: 0, total: 0, groups: [],
+      major: 0, electiveInMajor: 0, elective: 0, common: 0, total: 0, groups: [], genEdDomains: 0,
     })
     expect(r.totalCounted).toBe(128)
   })
@@ -523,5 +523,59 @@ describe('輔系的課與學分學程', () => {
     expect(results.get('n')!.totalCounted).toBe(3)
     expect(results.get('t')!.totalCounted).toBe(3)
     expect(results.get('m')!.totalCounted).toBe(0)
+  })
+})
+
+describe('各系對超修、新生課程與通識指定領域的規定', () => {
+  const base: Program = {
+    id: 'p1', kind: '主修', name: '編造學系', deptPrefix: '900',
+    requirements: { chinese: 6, genEd: 15, chineseGenEd: 18, foreign: 6 },
+  }
+  const withRules = (creditRules: Program['creditRules']): Program => ({ ...base, creditRules })
+  const named = (category: Category, credits: number, name: string, genEdDomain?: string): Course => ({
+    id: Math.random().toString(36).slice(2), name, credits, semester: '114-1', grade: 'A',
+    assignments: [{ programId: 'p1', category }], overridden: false, ...(genEdDomain ? { genEdDomain } : {}),
+  })
+
+  it('超修通識計入選修的系', () => {
+    const r = evaluate([c('國文', 3), c('通識', 18), c('一般選修', 10)], withRules({ genEdOverflowToElective: true }))
+    expect(r.counted.elective).toBe(13)
+  })
+
+  it('超修國文計入選修的系', () => {
+    const r = evaluate([c('國文', 9), c('通識', 12), c('一般選修', 10)], withRules({ chineseOverflowToElective: true }))
+    expect(r.counted.elective).toBe(13)
+  })
+
+  it('國文＋通識合計超過 18 時，學生可選對自己有利的方案，超出的部分算計入選修的那一類', () => {
+    const r = evaluate([c('國文', 6), c('通識', 15), c('一般選修', 10)], withRules({ genEdOverflowToElective: true }))
+    expect(r.counted.common).toBe(18)
+    expect(r.counted.elective).toBe(13)
+  })
+
+  it('超修外文不計入選修的系', () => {
+    const r = evaluate([c('外文', 9), c('一般選修', 10)], withRules({ foreignOverflowToElective: false }))
+    expect(r.counted.elective).toBe(10)
+  })
+
+  it('新生專題、新生講座擇一計入選修', () => {
+    const courses = [named('一般選修', 2, '新生專題：編造一'), named('一般選修', 2, '新生講座：編造二'), c('一般選修', 10)]
+    expect(evaluate(courses, withRules({ freshman: 'one' })).counted.elective).toBe(12)
+    expect(evaluate(courses, withRules({ freshman: 'both' })).counted.elective).toBe(14)
+  })
+
+  it('通識指定領域：國文 3 學分要 3 個領域，國文 6 學分要 2 個', () => {
+    const genEd = [named('通識', 3, '甲', 'A1'), named('通識', 3, '乙', 'A1'), named('通識', 3, '丙', 'A2*'), named('通識', 3, '丁', 'A5')]
+    const rules = withRules({ genEdDomains: ['A1', 'A2', 'A3'] })
+    const three = evaluate([...genEd, c('國文', 3)], rules)
+    expect(three.genEd).toEqual({ designated: ['A1', 'A2', 'A3'], covered: ['A1', 'A2'], need: 3 })
+    expect(three.gaps.genEdDomains).toBe(1)
+    expect(evaluate([...genEd, c('國文', 6)], rules).gaps.genEdDomains).toBe(0)
+  })
+
+  it('沒有指定領域資料時不判斷', () => {
+    const r = evaluate([c('通識', 3)], base)
+    expect(r.genEd).toBeUndefined()
+    expect(r.gaps.genEdDomains).toBe(0)
   })
 })

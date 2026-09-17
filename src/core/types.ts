@@ -22,6 +22,25 @@ export type Requirements = {
 
 export type ProgramKind = '主修' | '雙主修' | '輔系' | '學程'
 
+/**
+ * 各系在必修課程查詢系統備註寫明的採計規定。沒寫的欄位留空，計算時沿用保守的預設
+ * （通識、國文超修不計入，外文超修計入選修）。
+ */
+export type CreditRules = {
+  /** 超修之通識課程（無星號）計入選修 */
+  genEdOverflowToElective?: boolean
+  /** 超修之外（英）文領域課程計入選修 */
+  foreignOverflowToElective?: boolean
+  /** 超修之大學國文計入選修 */
+  chineseOverflowToElective?: boolean
+  /** 本系所開的通識課程（無星號）不能算通識，是否計入選修 */
+  ownGenEdToElective?: boolean
+  /** 新生專題、新生講座：皆計入、皆不計入、擇一計入、只計專題、只計講座 */
+  freshman?: 'both' | 'none' | 'one' | 'seminar' | 'lecture'
+  /** 共同教育中心公告的院系指定通識領域 */
+  genEdDomains?: string[]
+}
+
 /** 系訂必修科目表的一列，來自台大必修課程查詢系統。 */
 export type RequiredCourse = {
   code: string          // 課號，如 IM1003
@@ -65,6 +84,8 @@ export type Program = {
    * 有 courseId 表示用那門課抵；沒有則為免修。
    */
   waivers?: { key: string; courseId?: string }[]
+  /** 主修學系的超修、本系通識、新生課程與指定通識領域規定 */
+  creditRules?: CreditRules
   /** 學分學程後來分成多個方案（組別），已選的學程被自動歸到預設方案、使用者還沒確認 */
   planUnconfirmed?: boolean
   /** 門檻從官方資料帶入時記下來源，方便使用者核對。 */

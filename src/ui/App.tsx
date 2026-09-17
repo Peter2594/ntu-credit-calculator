@@ -13,6 +13,7 @@ import { ScheduleView } from './components/ScheduleView'
 import { TrialView } from './components/TrialView'
 import { ProgramSetup } from './components/ProgramSetup'
 import { loadPrograms, refreshCreditPrograms } from './components/CreditProgramPicker'
+import { loadYear, refreshMainRules, type OfficialYear } from './officialData'
 
 export type Tab = 'dashboard' | 'courses' | 'schedule' | 'trial' | 'programs'
 
@@ -56,6 +57,20 @@ export function App() {
       )
       .catch(() => {})
   }, [hasCreditProgram, setState])
+
+  // 主修補上系上的超修、本系通識、新生課程規定與指定通識領域
+  const mainYears = [...new Set(state.programs.flatMap((p) => (p.kind === '主修' && p.source ? [p.source.year] : [])))].sort().join(',')
+  useEffect(() => {
+    if (!mainYears) return
+    Promise.all(mainYears.split(',').map((y) => loadYear(y).then((d): [string, OfficialYear] => [y, d])))
+      .then((entries) =>
+        setState((s) => {
+          const programs = refreshMainRules(s.programs, new Map(entries))
+          return programs ? { programs, courses: reclassifyAll(s.courses, programs) } : s
+        }),
+      )
+      .catch(() => {})
+  }, [mainYears, setState])
 
   const actions: Actions = {
     addProgram: (p) =>

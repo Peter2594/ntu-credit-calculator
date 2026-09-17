@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Program, ProgramKind, Requirements } from '../../core/types'
 import { withGraduatePrefix } from '../../core/classify'
-import { loadYear, loadYears, officialPageUrl, type OfficialDept, type OfficialYear } from '../officialData'
+import { creditRulesFor, loadYear, loadYears, officialPageUrl, type OfficialDept, type OfficialYear } from '../officialData'
 import type { ChinesePlan } from '../../core/curri'
 import { minorPool, type RulePage } from '../../core/regrules'
 import { Info } from './Progress'
@@ -19,7 +19,7 @@ function chineseGenEdCaps(plans: ChinesePlan[]) {
 /** 台大輔系辦法的最低學分；該系沒公告最低學分時使用。 */
 export const MINOR_MIN_CREDITS = 20
 
-type Derived = Pick<Program, 'requirements' | 'requiredCourses' | 'requiredMode' | 'requiredNote'>
+type Derived = Pick<Program, 'requirements' | 'requiredCourses' | 'requiredMode' | 'requiredNote' | 'creditRules'>
 
 /**
  * 依類型套用門檻。雙主修須修畢加修學系的系訂必修，共同必修、通識在主修採計；
@@ -30,12 +30,13 @@ function requirementsFor(kind: ProgramKind, d: OfficialDept): Derived {
     return {
       requirements: { ...d.requirements, ...chineseGenEdCaps(d.chinesePlans) },
       requiredCourses: d.requiredCourses, requiredMode: 'all', requiredNote: undefined,
+      creditRules: creditRulesFor(d),
     }
   }
   if (kind === '雙主修') {
     const major = d.requirements.major
     const requirements: Requirements = major === undefined ? {} : { major, total: major }
-    return { requirements, requiredCourses: d.requiredCourses, requiredMode: 'all', requiredNote: undefined }
+    return { requirements, requiredCourses: d.requiredCourses, requiredMode: 'all', requiredNote: undefined, creditRules: undefined }
   }
   const pool = minorPool(d.minor, d.requiredCourses, withGraduatePrefix(d.deptPrefix).split(','))
   const note = [d.minor?.required, d.minor?.electives].filter((t) => t && t !== '無').join('\n')
@@ -45,6 +46,7 @@ function requirementsFor(kind: ProgramKind, d: OfficialDept): Derived {
     requiredMode: pool.length > 0 ? 'pick' : undefined,
     // 沒有公告也存空字串，表示已經套用過，避免重複觸發補範圍
     requiredNote: note,
+    creditRules: undefined,
   }
 }
 

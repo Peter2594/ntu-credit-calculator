@@ -1,4 +1,4 @@
-import type { RequiredCourse, Requirements } from './types.js'
+import type { CreditRules, RequiredCourse, Requirements } from './types.js'
 
 /**
  * 解析台大必修課程查詢系統（curri.aca.ntu.edu.tw）的頁面。
@@ -38,6 +38,41 @@ export type RequirementPage = {
   chinesePlans: ChinesePlan[]
   /** 各年級（上下學期合計）的系訂必修學分，0 表示該年級不用抓必修科目表。 */
   majorByGrade: number[]
+  creditRules: CreditRules
+}
+
+/** 括號內可能也有逗號，如「(A1~A8領域，無*者)」 */
+const PAREN = String.raw`(?:[(（][^)）]*[)）])?`
+
+/**
+ * 備註第四點的採計規定，各系用同一套句型逐條寫明「計入／不計入選修學分」。
+ * 抓不到的條目留空，不猜。
+ */
+export function parseCreditRules(text: string): CreditRules {
+  const flat = text.replace(/\s+/g, '')
+  const counts = (pattern: string) => {
+    const m = flat.match(new RegExp(pattern + String.raw`[，,](不)?計入(?:系內)?選修`))
+    return m ? !m[1] : undefined
+  }
+  const rules: CreditRules = {}
+  const genEd = counts(`超修之通識課程${PAREN}`)
+  const foreign = counts(String.raw`超修之外[(（]?英[)）]?文領域課程學分`)
+  const own = counts(`修習本系所開通識課程${PAREN}`)
+  const chinese = counts('超修之大學國文')
+  if (genEd !== undefined) rules.genEdOverflowToElective = genEd
+  if (foreign !== undefined) rules.foreignOverflowToElective = foreign
+  if (own !== undefined) rules.ownGenEdToElective = own
+  if (chinese !== undefined) rules.chineseOverflowToElective = chinese
+
+  const together = flat.match(/「新生專題」及「新生講座」課程[，,](皆計入|皆不計入|擇一計入)選修/)
+  const separate = flat.match(/「新生專題」課程[，,](不)?計入選修學分[；;]修習「新生講座」課程[，,](不)?計入選修/)
+  if (together) rules.freshman = ({ 皆計入: 'both', 皆不計入: 'none', 擇一計入: 'one' } as const)[together[1] as '皆計入']
+  else if (separate) {
+    const seminar = !separate[1]
+    const lecture = !separate[2]
+    rules.freshman = seminar && lecture ? 'both' : seminar ? 'seminar' : lecture ? 'lecture' : 'none'
+  }
+  return rules
 }
 
 const GRADES = ['一', '二', '三', '四', '五', '六', '七']
@@ -79,7 +114,7 @@ export function parseRequirementPage(html: string): RequirementPage | null {
     return row ? Number(row[1]) + Number(row[2]) : 0
   })
 
-  return { requirements, chinesePlans, majorByGrade }
+  return { requirements, chinesePlans, majorByGrade, creditRules: parseCreditRules(flat) }
 }
 
 const COURSE_ROW =
