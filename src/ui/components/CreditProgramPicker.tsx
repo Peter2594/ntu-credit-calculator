@@ -9,6 +9,7 @@ type CreditProgram = {
   rules: string
   groups?: NonNullable<Program['requiredGroups']>
   groupRules?: NonNullable<Program['groupRules']>
+  outsideRules?: NonNullable<Program['outsideRules']>
   courses: { identifier?: string; name: string; credits: number; group?: string; matchName?: boolean }[]
 }
 
@@ -54,12 +55,13 @@ function derive(p: CreditProgram, program: Program): Program {
     requiredNote: p.rules,
     requiredGroups: p.groups,
     groupRules: p.groupRules,
+    outsideRules: p.outsideRules,
     source: { year: '學程', deptCode: p.code, kind: '學程' },
   }
 }
 
 const derivedFields = (p: Program) =>
-  JSON.stringify([p.name, p.requirements, p.requiredCourses, p.requiredNote, p.requiredGroups, p.groupRules])
+  JSON.stringify([p.name, p.requirements, p.requiredCourses, p.requiredNote, p.requiredGroups, p.groupRules, p.outsideRules])
 
 /**
  * 學程資料是選的當下複製進瀏覽器的；資料更新後，已選過的學程換成新的清單與門檻。

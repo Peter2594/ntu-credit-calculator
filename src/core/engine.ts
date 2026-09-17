@@ -1,5 +1,5 @@
 import { CATEGORIES, type Category, type Course, type Program } from './types.js'
-import { groupResults, requiredKey, unmetGroupRules, type GroupResult } from './courses.js'
+import { groupResults, requiredKey, unmetGroupRules, unmetOutsideRules, type GroupResult } from './courses.js'
 
 export type Tally = Record<Category, number>
 
@@ -56,7 +56,8 @@ function waiverSurplus(courses: Course[], program: Program): number {
   }, 0)
 }
 
-export function evaluate(courses: Course[], program: Program): Evaluation {
+/** others：同時設定的其他學系，學分學程判斷「不屬於主系必修」時要用 */
+export function evaluate(courses: Course[], program: Program, others: Program[] = []): Evaluation {
   const taken = tally(courses, program.id)
   const req = program.requirements
 
@@ -108,7 +109,11 @@ export function evaluate(courses: Course[], program: Program): Evaluation {
       elective: gap(elective, req.elective),
       common: gap(common, req.common),
       total: gap(totalCounted, req.total),
-      groups: [...groups.filter((g) => g.unmet).map((g) => g.name), ...unmetGroupRules(program, groups)],
+      groups: [
+        ...groups.filter((g) => g.unmet).map((g) => g.name),
+        ...unmetGroupRules(program, groups),
+        ...unmetOutsideRules(courses, program, others),
+      ],
     },
     groups,
     pe: {
@@ -164,6 +169,6 @@ export function evaluateAll(courses: Course[], programs: Program[]): Map<string,
     const own = p.kind === '輔系'
       ? courses.filter((c) => minors.get(p.id)!.has(c.id))
       : courses.filter((c) => !toMinor.has(c.id))
-    return [p.id, evaluate(own, p)]
+    return [p.id, evaluate(own, p, programs.filter((x) => x.id !== p.id))]
   }))
 }

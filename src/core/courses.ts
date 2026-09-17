@@ -1,4 +1,4 @@
-import { applyClassification, matchesRequired } from './classify.js'
+import { applyClassification, deptPrefixOf, deptPrefixesOf, matchesRequired } from './classify.js'
 import type { Category, Course, Program, RequiredCourse } from './types.js'
 import type { ParsedCourse } from './parser.js'
 
@@ -147,8 +147,37 @@ export function unmetGroupRules(program: Program, groups: GroupResult[]): string
     const involved = rule.groups.map((name) => byName.get(name)).filter((g) => g !== undefined)
     const touched = involved.filter((g) => g.count > 0).length
     const courses = involved.reduce((s, g) => s + g.count, 0)
+    const credits = involved.reduce((s, g) => s + g.countedCredits, 0)
     return (rule.minGroups !== undefined && touched < rule.minGroups) ||
-      (rule.minCourses !== undefined && courses < rule.minCourses)
+      (rule.minCourses !== undefined && courses < rule.minCourses) ||
+      (rule.minCredits !== undefined && credits < rule.minCredits)
+  }).map((rule) => rule.label)
+}
+
+/**
+ * 「至少 N 學分不屬於主系、加修學系及輔系之必修」這類規定還沒達到的項目。
+ * 輔系清單是可選範圍而非必修，只有逐門列必修（all）的才算。
+ * 使用者沒設定相關學系時無從判斷，不列為缺口。
+ */
+export function unmetOutsideRules(courses: Course[], program: Program, others: Program[]): string[] {
+  const rules = program.outsideRules ?? []
+  if (rules.length === 0) return []
+  const taken = requiredProgress(courses, program).items.flatMap((i) =>
+    i.status !== 'missing' && i.course ? [i.course] : [])
+
+  return rules.filter((rule) => {
+    const depts = others.filter((p) =>
+      rule.mainOnly ? p.kind === '主修' : p.kind === '主修' || p.kind === '雙主修' || p.kind === '輔系')
+    if (depts.length === 0) return false
+    const inside = (course: Course) => rule.basis === '開設'
+      ? depts.some((p) => deptPrefixesOf(p).includes(deptPrefixOf(course.identifier)))
+      : depts.some((p) => p.requiredMode !== 'pick' &&
+          course.assignments.some((a) => a.programId === p.id && a.category === '系訂必修'))
+    const outside = taken.filter((course) => !inside(course))
+    const outsideCredits = outside.reduce((s, course) => s + course.credits, 0)
+    return (rule.minOutsideCredits !== undefined && outsideCredits < rule.minOutsideCredits) ||
+      (rule.minOutsideCourses !== undefined && outside.length < rule.minOutsideCourses) ||
+      (rule.maxInsideCourses !== undefined && taken.length - outside.length > rule.maxInsideCourses)
   }).map((rule) => rule.label)
 }
 

@@ -399,3 +399,64 @@ describe('學分學程的跨模組規定', () => {
     expect(e.gaps.groups).toEqual([])
   })
 })
+
+describe('學分學程的「不屬於主系必修」與跨模組合計學分', () => {
+  const course = (identifier: string): Course => ({
+    id: identifier, name: identifier, credits: 3, semester: '114-1', grade: 'A', overridden: false, identifier, assignments: [],
+  })
+  const r = (identifier: string, group?: string) =>
+    ({ code: '', identifier, name: identifier, credits: 3, scope: '限本系課程', ...(group ? { group } : {}) })
+  const main: Program = {
+    id: 'm', kind: '主修', name: '編造學系', deptPrefix: '900', requirements: {}, requiredMode: 'all',
+    requiredCourses: [r('900 00001')],
+  }
+  const minor: Program = {
+    id: 'n', kind: '輔系', name: '編造輔系', deptPrefix: '800', requirements: { total: 3 }, requiredMode: 'pick',
+    requiredCourses: [r('800 00001'), r('100 00001')],
+  }
+  const base: Program = {
+    id: 't', kind: '學程', name: '編造學程', deptPrefix: '', requirements: { total: 6 }, requiredMode: 'pick',
+    requiredCourses: [r('900 00001'), r('900 00002'), r('100 00001'), r('100 00002')],
+  }
+  const run = async (prog: Program, ids: string[], others: Program[] = [main]) => {
+    const { reclassifyAll } = await import('./courses.js')
+    const programs = [...others, prog]
+    return evaluateAll(reclassifyAll(ids.map(course), programs), programs).get('t')!
+  }
+
+  const notRequired: Program = {
+    ...base, outsideRules: [{ label: '至少 6 學分不屬於主系必修', basis: '必修', minOutsideCredits: 6 }],
+  }
+
+  it('主系必修不算進「系外」學分，本系開的非必修課算', async () => {
+    expect((await run(notRequired, ['900 00001', '900 00002'])).gaps.groups).toEqual(['至少 6 學分不屬於主系必修'])
+    expect((await run(notRequired, ['900 00001', '900 00002', '100 00001'])).gaps.groups).toEqual([])
+  })
+
+  it('輔系的可選範圍不是必修', async () => {
+    expect((await run(notRequired, ['800 00001', '100 00001', '100 00002'], [main, minor])).gaps.groups).toEqual([])
+  })
+
+  it('沒有設定主修時無從判斷，不列缺口', async () => {
+    expect((await run(notRequired, ['900 00001'], [])).gaps.groups).toEqual([])
+  })
+
+  it('主系所開設的課有門數上限', async () => {
+    const prog: Program = {
+      ...base, outsideRules: [{ label: '主系所開設的課至多 1 門', basis: '開設', mainOnly: true, maxInsideCourses: 1 }],
+    }
+    expect((await run(prog, ['900 00001', '900 00002'])).gaps.groups).toEqual(['主系所開設的課至多 1 門'])
+    expect((await run(prog, ['900 00001', '100 00001'])).gaps.groups).toEqual([])
+  })
+
+  it('跨模組合計學分下限', async () => {
+    const prog: Program = {
+      ...base,
+      requiredCourses: [r('100 00001', '甲'), r('100 00002', '乙'), r('100 00003', '丙')],
+      requiredGroups: [{ name: '甲' }, { name: '乙' }, { name: '丙' }],
+      groupRules: [{ label: '甲乙合計至少 6 學分', groups: ['甲', '乙'], minCredits: 6 }],
+    }
+    expect((await run(prog, ['100 00001', '100 00003'])).gaps.groups).toEqual(['甲乙合計至少 6 學分'])
+    expect((await run(prog, ['100 00001', '100 00002'])).gaps.groups).toEqual([])
+  })
+})

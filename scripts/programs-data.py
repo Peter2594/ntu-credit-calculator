@@ -19,8 +19,8 @@ def prog(code, name, total, rules, groups=None, courses=None):
     PROGRAMS.append(entry)
 
 
-def cross(code, label, groups, min_groups=None, min_courses=None):
-    """跨模組規定：groups 中至少修到 min_groups 個模組，或合計至少 min_courses 門"""
+def cross(code, label, groups, min_groups=None, min_courses=None, min_credits=None):
+    """跨模組規定：groups 中至少修到 min_groups 個模組，或合計至少 min_courses 門、min_credits 學分"""
     entry = next(p for p in PROGRAMS if p["code"] == code)
     known = {g["name"] for g in entry.get("groups", [])}
     assert set(groups) <= known, (code, set(groups) - known)
@@ -29,7 +29,20 @@ def cross(code, label, groups, min_groups=None, min_courses=None):
         rule["minGroups"] = min_groups
     if min_courses is not None:
         rule["minCourses"] = min_courses
+    if min_credits is not None:
+        rule["minCredits"] = min_credits
     entry.setdefault("groupRules", []).append(rule)
+
+
+def outside(code, label, basis, main_only=False, min_credits=None, min_courses=None, max_inside=None):
+    """學程課程與主系的關係。basis：「必修」看主系、雙主修、輔系的系訂必修；「開設」看這些學系開的課"""
+    entry = next(p for p in PROGRAMS if p["code"] == code)
+    rule = {"label": label, "basis": basis}
+    for key, value in (("mainOnly", main_only or None), ("minOutsideCredits", min_credits),
+                       ("minOutsideCourses", min_courses), ("maxInsideCourses", max_inside)):
+        if value is not None:
+            rule[key] = value
+    entry.setdefault("outsideRules", []).append(rule)
 
 
 def ids(group, rows):
@@ -59,7 +72,7 @@ prog("P550", "商業資料分析學分學程", 15,
      + either("應用模組", [("724 U0580", "金融計算", 3), ("724 U4610", "大數據行銷", 3), ("725 U3660", "製造數據科學", 3), ("725 U3580", "大數據與商業分析", 3), ("P55 U0080", "商業資料分析統整課程", 3), ("722 U9050", "機器學習與資料分析在會計領域之應用", 3), ("722 M1010", "企業價值管理與數據分析", 3), ("722 M1600", "商業智慧與數據分析企業實作", 3)]))
 
 prog("P560", "智慧醫療學分學程", 15,
-     "15 學分：核心課程 6 學分（基礎核心依類組二選一、進階核心二選一）＋資訊系統與安全、影像、數據三領域各至少一門共 9 學分；至少 6 學分不屬於所屬類組必選修。",
+     "15 學分：核心課程 6 學分（基礎核心依類組二選一、進階核心二選一）＋資訊系統與安全、影像、數據三領域各至少一門共 9 學分；至少 6 學分不屬於所屬類組必選修（類組必選修本工具不判斷）。",
      [{"name": "核心課程", "minCredits": 6}, {"name": "資訊系統與安全領域", "minCourses": 1}, {"name": "影像領域", "minCourses": 1}, {"name": "數據領域", "minCourses": 1}],
      ids("核心課程", [("P56 U4010", "醫學概論", 3), ("P56EU9030", "智慧醫療程式設計", 3), ("P56 U9050", "智慧醫療程式設計 (01)、(02)", 3), ("P56 U9040", "醫學電資整合創意專題(一)", 3), ("P56 U9060", "醫學電資整合創意專題(二)", 3)])
      + ids("資訊系統與安全領域", [("401 29400", "人工智慧與醫療科技在高齡長照的應用", 2), ("420 U3010", "生物資訊導論", 1), ("921 U2660", "網路攻防實習", 3), ("921 U2690", "軟體測試與資安檢測", 3), ("922 M0550", "計算機安全", 3), ("922 U0370", "生物資訊學", 3), ("922 U3130", "密碼學與資訊安全", 3), ("922 U3620", "多媒體安全", 3), ("922 U4630", "機器學習安全特論", 3), ("922EU4140", "虛擬機器", 3)])
@@ -412,6 +425,16 @@ cross("P530", "至少修 3 個領域", ["生態與保育領域", "演化與遺�
 cross("P380", "至少修 3 個領域", ["美術", "建築", "音樂", "戲劇"], min_groups=3)
 cross("P460", "至少 2 個選修領域各修一門", ["人口與健康", "性別、工作與家庭", "保險與福利", "遷移與空間"], min_groups=2)
 cross("P640", "兩治理模組合計至少 5 門", ["永續環境治理模組", "永續社會治理模組"], min_courses=5)
+cross("P400", "核心必修合計至少 10 學分", ["核心：流行病學", "核心：生物統計學", "核心：微生物學及免疫學"], min_credits=10)
+cross("P400V", "核心必修合計至少 10 學分", ["核心：蟲媒防治", "核心：流行病學與生物統計學", "核心：微生物學及免疫學", "核心：傳染病防治實務"], min_credits=10)
+
+# ---------------- 與主系的關係 ----------------
+
+for code, n in (("P070", 9), ("P130", 7), ("P140", 9), ("P180", 9), ("P290", 7), ("P310", 9), ("P340", 7), ("P530", 9), ("P570", 5)):
+    outside(code, f"至少 {n} 學分不屬於主系、雙主修、輔系必修", "必修", min_credits=n)
+outside("P550", "至少 2 門不屬於主系、雙主修、輔系必修", "必修", min_courses=2)
+outside("P620", "至少 2 門 6 學分不是主系、雙主修、輔系開的課", "開設", min_courses=2, min_credits=6)
+outside("P380", "主系所開的課至多 2 門", "開設", main_only=True, max_inside=2)
 
 PROGRAMS.sort(key=lambda p: p["code"])
 out = Path(__file__).resolve().parent.parent / "public" / "data" / "programs.json"

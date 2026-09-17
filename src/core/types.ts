@@ -44,8 +44,20 @@ export type Program = {
   requiredMode?: 'all' | 'pick'
   /** 學分學程的模組要求（各模組至少／至多幾門、幾學分），只供顯示與提醒 */
   requiredGroups?: { name: string; minCourses?: number; maxCourses?: number; minCredits?: number; maxCredits?: number }[]
-  /** 跨模組規定：至少修到幾個模組，或幾個模組合計至少幾門 */
-  groupRules?: { label: string; groups: string[]; minGroups?: number; minCourses?: number }[]
+  /** 跨模組規定：至少修到幾個模組，或幾個模組合計至少幾門、幾學分 */
+  groupRules?: { label: string; groups: string[]; minGroups?: number; minCourses?: number; minCredits?: number }[]
+  /**
+   * 學程課程與使用者主系的關係：basis 為「必修」時看主系、雙主修、輔系的系訂必修，
+   * 「開設」時看這些學系開的課（mainOnly 只看主系）。
+   */
+  outsideRules?: {
+    label: string
+    basis: '必修' | '開設'
+    mainOnly?: boolean
+    minOutsideCredits?: number
+    minOutsideCourses?: number
+    maxInsideCourses?: number
+  }[]
   /** 該系公告的科目說明原文，沒有課程清單時顯示給使用者 */
   requiredNote?: string
   /**
