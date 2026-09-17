@@ -102,11 +102,60 @@ export function requiredProgress(courses: Course[], program: Program): RequiredP
     }
     return { required, status: done ? 'done' : planned ? 'planned' : 'missing', ...(course ? { course } : {}) }
   })
+  rebalance(items, counted, program)
 
   return {
     items,
     missingCredits: items.filter((i) => i.status === 'missing').reduce((s, i) => s + i.required.credits, 0),
     extras: counted.filter((c) => !used.has(c.id) && !(program.requiredCourses ?? []).some((r) => matchesRequired(c, r))),
+  }
+}
+
+type GroupRule = NonNullable<Program['requiredGroups']>[number]
+
+function groupMet(rule: GroupRule | undefined, list: RequiredItem[]): boolean {
+  if (!rule) return true
+  const credits = list.reduce((s, i) => s + (i.course?.credits ?? i.required.credits), 0)
+  return (rule.minCourses === undefined || list.length >= rule.minCourses) &&
+    (rule.minCredits === undefined || credits >= rule.minCredits)
+}
+
+function overCap(rule: GroupRule | undefined, list: RequiredItem[]): boolean {
+  if (!rule) return false
+  const credits = list.reduce((s, i) => s + (i.course?.credits ?? i.required.credits), 0)
+  return (rule.maxCourses !== undefined && list.length > rule.maxCourses) ||
+    (rule.maxCredits !== undefined && credits > rule.maxCredits)
+}
+
+/**
+ * 逐項配對是先到先得：同一門課列在好幾個模組時，可能被已經達標的模組拿走，
+ * 另一個模組卻因此不足。把課移給未達標的模組，或從超過採計上限的模組移出，
+ * 前提是原模組少了它仍然達標。
+ */
+function rebalance(items: RequiredItem[], counted: Course[], program: Program) {
+  const rules = new Map((program.requiredGroups ?? []).map((g) => [g.name, g]))
+  if (rules.size === 0) return
+  const members = (group?: string) => items.filter((i) => i.required.group === group && i.status !== 'missing')
+
+  for (let round = 0; round < items.length; round++) {
+    const move = items.flatMap((target, t) => {
+      const group = target.required.group
+      if (target.status !== 'missing' || !group) return []
+      const targetNeeds = !groupMet(rules.get(group), members(group))
+      return items.flatMap((source, s) => {
+        const course = source.course
+        if (source.status === 'waived' || !course || source.required.group === group) return []
+        if (!counted.includes(course) || !matchesRequired(course, target.required)) return []
+        const from = members(source.required.group)
+        const rule = rules.get(source.required.group ?? '')
+        const rest = from.filter((i) => i !== source)
+        const worthIt = targetNeeds || (overCap(rule, from) && !overCap(rules.get(group), [...members(group), source]))
+        return worthIt && groupMet(rule, rest) ? [{ t, s, course }] : []
+      })
+    })[0]
+    if (!move) return
+    items[move.s] = { required: items[move.s]!.required, status: 'missing' }
+    items[move.t] = { required: items[move.t]!.required, status: move.course.grade ? 'done' : 'planned', course: move.course }
   }
 }
 
@@ -140,12 +189,47 @@ export function groupResults(courses: Course[], program: Program): GroupResult[]
   })
 }
 
+/** 修過的課最多能涵蓋幾個模組：一門課只算一個模組，跨模組的課要挑對（二分圖最大配對）。 */
+function coveredGroups(items: RequiredItem[], program: Program, groups: string[]): number {
+  const taken = new Map<string, Set<string>>()
+  for (const item of items) {
+    if (item.status === 'missing') continue
+    const key = item.course?.id ?? `waived|${requiredKey(item.required)}`
+    const options = taken.get(key) ?? new Set<string>()
+    if (item.required.group) options.add(item.required.group)
+    if (item.course) {
+      for (const r of program.requiredCourses ?? []) {
+        if (r.group && matchesRequired(item.course, r)) options.add(r.group)
+      }
+    }
+    taken.set(key, options)
+  }
+  const candidates = [...taken.values()].map((options) => [...options].filter((g) => groups.includes(g)))
+  const owner = new Map<string, number>()
+  const assign = (course: number, seen: Set<string>): boolean =>
+    candidates[course]!.some((group) => {
+      if (seen.has(group)) return false
+      seen.add(group)
+      const current = owner.get(group)
+      if (current === undefined || assign(current, seen)) {
+        owner.set(group, course)
+        return true
+      }
+      return false
+    })
+  candidates.forEach((_, course) => assign(course, new Set()))
+  return owner.size
+}
+
 /** 跨模組規定還沒達到的項目，回傳規定的說明文字。 */
-export function unmetGroupRules(program: Program, groups: GroupResult[]): string[] {
+export function unmetGroupRules(courses: Course[], program: Program, groups: GroupResult[]): string[] {
+  const rules = program.groupRules ?? []
+  if (rules.length === 0) return []
   const byName = new Map(groups.map((g) => [g.name, g]))
-  return (program.groupRules ?? []).filter((rule) => {
+  const items = requiredProgress(courses, program).items
+  return rules.filter((rule) => {
     const involved = rule.groups.map((name) => byName.get(name)).filter((g) => g !== undefined)
-    const touched = involved.filter((g) => g.count > 0).length
+    const touched = rule.minGroups === undefined ? 0 : coveredGroups(items, program, rule.groups)
     const courses = involved.reduce((s, g) => s + g.count, 0)
     const credits = involved.reduce((s, g) => s + g.countedCredits, 0)
     return (rule.minGroups !== undefined && touched < rule.minGroups) ||

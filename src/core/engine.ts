@@ -111,7 +111,7 @@ export function evaluate(courses: Course[], program: Program, others: Program[] 
       total: gap(totalCounted, req.total),
       groups: [
         ...groups.filter((g) => g.unmet).map((g) => g.name),
-        ...unmetGroupRules(program, groups),
+        ...unmetGroupRules(courses, program, groups),
         ...unmetOutsideRules(courses, program, others),
       ],
     },

@@ -460,3 +460,52 @@ describe('學分學程的「不屬於主系必修」與跨模組合計學分', (
     expect((await run(prog, ['100 00001', '100 00002'])).gaps.groups).toEqual([])
   })
 })
+
+describe('學分學程：同一門課列在多個模組時的分配', () => {
+  const course = (identifier: string): Course => ({
+    id: identifier, name: identifier, credits: 3, semester: '114-1', grade: 'A', overridden: false, identifier, assignments: [],
+  })
+  const r = (identifier: string, group: string) =>
+    ({ code: '', identifier, name: identifier, credits: 3, scope: '限本系課程', group })
+  const run = async (prog: Program, ids: string[]) => {
+    const { reclassifyAll } = await import('./courses.js')
+    return evaluateAll(reclassifyAll(ids.map(course), [prog]), [prog]).get('t')!
+  }
+  const base = { id: 't', kind: '學程' as const, name: '編造學程', deptPrefix: '', requirements: { total: 3 }, requiredMode: 'pick' as const }
+
+  const coreAndDomain: Program = {
+    ...base,
+    requiredGroups: [{ name: '核心', minCourses: 1 }, { name: '領域', minCourses: 1 }],
+    requiredCourses: [r('100 00001', '核心'), r('100 00002', '核心'), r('100 00002', '領域')],
+  }
+
+  it('核心已經夠了，多修的核心課改算到還沒達標的領域', async () => {
+    expect((await run(coreAndDomain, ['100 00001', '100 00002'])).gaps.groups).toEqual([])
+  })
+
+  it('一門課不能同時滿足核心和領域', async () => {
+    expect((await run(coreAndDomain, ['100 00002'])).gaps.groups).toEqual(['領域'])
+  })
+
+  it('模組超過採計上限的課改算到其他列有它的模組', async () => {
+    const prog: Program = {
+      ...base, requirements: { total: 6 },
+      requiredGroups: [{ name: '必修', minCredits: 3, maxCredits: 3 }, { name: '選修' }],
+      requiredCourses: [r('100 00001', '必修'), r('100 00002', '必修'), r('100 00002', '選修')],
+    }
+    const e = await run(prog, ['100 00001', '100 00002'])
+    expect(e.totalCounted).toBe(6)
+    expect(e.gaps.total).toBe(0)
+  })
+
+  it('跨領域的課算到能讓涵蓋領域最多的那一個', async () => {
+    const prog: Program = {
+      ...base,
+      requiredGroups: [{ name: '甲' }, { name: '乙' }],
+      groupRules: [{ label: '至少修 2 個領域', groups: ['甲', '乙'], minGroups: 2 }],
+      requiredCourses: [r('100 00001', '甲'), r('100 00002', '甲'), r('100 00001', '乙')],
+    }
+    expect((await run(prog, ['100 00001', '100 00002'])).gaps.groups).toEqual([])
+    expect((await run(prog, ['100 00001'])).gaps.groups).toEqual(['至少修 2 個領域'])
+  })
+})
