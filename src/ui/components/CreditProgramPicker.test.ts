@@ -31,4 +31,19 @@ describe('refreshCreditPrograms', () => {
     const [p] = refreshCreditPrograms([saved], [{ ...data[0]!, total: null }])!
     expect(p!.requirements).toEqual({ total: 12 })
   })
+
+  it('學程分成多個方案後被歸到預設方案時，標記請使用者確認', () => {
+    const plans = [
+      { ...data[0]!, name: '編造學程（甲方案）' },
+      { ...data[0]!, code: 'P999B', name: '編造學程（乙方案）' },
+    ]
+    const [p] = refreshCreditPrograms([saved], plans)!
+    expect(p).toMatchObject({ name: '編造學程（甲方案）', planUnconfirmed: true })
+  })
+
+  it('只有一個方案、或名稱沒變時不標記', () => {
+    expect(refreshCreditPrograms([saved], data)![0]!.planUnconfirmed).toBeUndefined()
+    const renamed = [{ ...data[0]!, name: '編造學程（新名稱）' }]
+    expect(refreshCreditPrograms([saved], renamed)![0]!.planUnconfirmed).toBeUndefined()
+  })
 })

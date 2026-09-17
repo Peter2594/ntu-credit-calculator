@@ -13,20 +13,28 @@ type CreditProgram = {
   courses: { identifier?: string; name: string; credits: number; group?: string; matchName?: boolean }[]
 }
 
-let cache: Promise<CreditProgram[]> | null = null
-export function loadPrograms(): Promise<CreditProgram[]> {
+type CreditProgramData = { updated: string; programs: CreditProgram[] }
+
+let cache: Promise<CreditProgramData> | null = null
+function loadData(): Promise<CreditProgramData> {
   cache ??= fetch(`${import.meta.env.BASE_URL}data/programs.json`)
     .then((r) => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`)
-      return r.json() as Promise<{ programs: CreditProgram[] }>
+      return r.json() as Promise<CreditProgramData>
     })
-    .then((d) => d.programs)
     .catch((err) => {
       cache = null
       throw err
     })
   return cache
 }
+
+export function loadPrograms(): Promise<CreditProgram[]> {
+  return loadData().then((d) => d.programs)
+}
+
+/** 同一學程的不同方案共用前四碼（P590、P590L） */
+const planFamily = (code: string) => code.slice(0, 4)
 
 /**
  * 有識別碼的課只以識別碼比對（同名課很多，避免誤判）；
@@ -75,7 +83,8 @@ export function refreshCreditPrograms(programs: Program[], data: CreditProgram[]
     const fresh = derive(p, program)
     if (derivedFields(fresh) === derivedFields(program)) return program
     changed = true
-    return fresh
+    const hasPlans = data.some((x) => x.code !== p.code && planFamily(x.code) === planFamily(p.code))
+    return hasPlans && fresh.name !== program.name ? { ...fresh, planUnconfirmed: true } : fresh
   })
   return changed ? next : null
 }
@@ -85,10 +94,16 @@ type Props = { program: Program; onChange(p: Program): void }
 /** 學分學程下拉選單：帶入總學分、規定摘要與課程清單。 */
 export function CreditProgramPicker({ program, onChange }: Props) {
   const [programs, setPrograms] = useState<CreditProgram[] | null>(null)
+  const [updated, setUpdated] = useState('')
   const [error, setError] = useState(false)
 
   useEffect(() => {
-    loadPrograms().then(setPrograms).catch(() => setError(true))
+    loadData()
+      .then((d) => {
+        setPrograms(d.programs)
+        setUpdated(d.updated)
+      })
+      .catch(() => setError(true))
   }, [])
 
   if (error) return <p className="notice warn">學程資料載入失敗，請稍後再試。</p>
@@ -96,7 +111,7 @@ export function CreditProgramPicker({ program, onChange }: Props) {
   const selected = programs?.find((p) => p.code === program.source?.deptCode && program.source?.kind === '學程')
 
   const apply = (p: CreditProgram) => {
-    onChange(derive(p, { ...program, requirements: {} }))
+    onChange(derive(p, { ...program, requirements: {}, planUnconfirmed: undefined }))
   }
 
   return (
@@ -120,6 +135,17 @@ export function CreditProgramPicker({ program, onChange }: Props) {
         </select>
       </label>
 
+      {selected && program.planUnconfirmed && (
+        <div className="notice warn stack-xs">
+          <div>這個學程後來分成幾個方案或組別，目前先套用「{selected.name}」。請確認是你修讀的方案，不是的話在上方重新選擇。</div>
+          <div>
+            <button className="btn primary small" onClick={() => onChange({ ...program, planUnconfirmed: undefined })}>
+              沒錯，是這個方案
+            </button>
+          </div>
+        </div>
+      )}
+
       {selected && (
         <div className="source-summary">
           <div className="source-stats">
@@ -128,6 +154,7 @@ export function CreditProgramPicker({ program, onChange }: Props) {
             <Info text="學程學分是否計入主修畢業學分由主系認定，這裡不會從主修扣除" />
           </div>
           <p className="rule-text">{selected.rules}</p>
+          {updated && <p className="muted small">課程清單整理於 {updated}，每學期開課會變動，以學程公告為準。</p>}
           {selected.courses.length === 0 && (
             <div className="warn-text small">這個學程的課程清單還沒整理，目前只能看規定與總學分。</div>
           )}

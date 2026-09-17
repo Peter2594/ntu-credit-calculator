@@ -74,6 +74,11 @@ export function Dashboard({ state, actions, goTo }: Props) {
               <span className="chip">{p.kind}</span>
               {p.source && p.kind !== '學程' && <span className="chip">{p.source.year} 入學</span>}
             </div>
+            {p.planUnconfirmed && (
+              <button className="notice warn clickable" onClick={() => goTo('programs')}>
+                這個學程分成幾個方案，目前先套用「{p.name}」，請到學程設定確認 →
+              </button>
+            )}
             {unconfirmed > 0 && (
               <button className="notice clickable" onClick={() => goTo('courses')}>
                 {unconfirmed} 門本系課暫列系內選修，其中的必修請到「課程」改掉 →

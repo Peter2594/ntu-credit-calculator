@@ -65,6 +65,8 @@ export type Program = {
    * 有 courseId 表示用那門課抵；沒有則為免修。
    */
   waivers?: { key: string; courseId?: string }[]
+  /** 學分學程後來分成多個方案（組別），已選的學程被自動歸到預設方案、使用者還沒確認 */
+  planUnconfirmed?: boolean
   /** 門檻從官方資料帶入時記下來源，方便使用者核對。 */
   source?: { year: string; deptCode: string; kind?: ProgramKind }
 }

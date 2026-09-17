@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { startTransition, useEffect, useMemo, useState } from 'react'
 import { parseGradeRows, parseTranscript, type GradeRow, type ParsedCourse } from '../../core/parser'
 import { updateGrades } from '../../core/courses'
 import { deptPrefixOf, deptPrefixesOf, isOwnDeptGenEd } from '../../core/classify'
@@ -13,6 +13,9 @@ import { fmtGpa } from './GpaCard'
 type Props = { state: AppState; actions: Actions; goTo(tab: Tab): void }
 type Filter = 'all' | 'dept' | 'planned'
 
+/** 課很多時先畫前面幾門，其餘在背景接著畫（可被操作打斷），切到這頁才不會卡住 */
+const FIRST_PAINT = 40
+
 export function CoursesView({ state, actions, goTo }: Props) {
   const [raw, setRaw] = useState('')
   const [preview, setPreview] = useState<ParsedCourse[] | null>(null)
@@ -21,6 +24,10 @@ export function CoursesView({ state, actions, goTo }: Props) {
   const [usingSample, setUsingSample] = useState(false)
   const [gradeRows, setGradeRows] = useState<GradeRow[]>([])
   const [gradesUpdated, setGradesUpdated] = useState<number | null>(null)
+  const [limit, setLimit] = useState(FIRST_PAINT)
+  useEffect(() => {
+    startTransition(() => setLimit(Infinity))
+  }, [])
 
   const parse = (text: string) => {
     const courses = parseTranscript(text)
@@ -53,6 +60,14 @@ export function CoursesView({ state, actions, goTo }: Props) {
     for (const c of visible) groups.set(c.semester, [...(groups.get(c.semester) ?? []), c])
     return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b))
   }, [visible])
+  const shown = useMemo(() => {
+    let budget = limit
+    return bySemester.map(([semester, list]): [string, Course[], number] => {
+      const part = list.slice(0, Math.max(0, budget))
+      budget -= list.length
+      return [semester, part, list.length]
+    }).filter(([, part]) => part.length > 0)
+  }, [bySemester, limit])
 
   return (
     <section className="stack">
@@ -177,14 +192,15 @@ export function CoursesView({ state, actions, goTo }: Props) {
 
           {visible.length === 0 && <p className="muted">沒有符合的課程。</p>}
 
-          {bySemester.map(([semester, list]) => (
+          {shown.map(([semester, list]) => {
+            const all = bySemester.find(([s]) => s === semester)![1]
+            const gpa = computeGpa(all).overall.ntu
+            return (
             <div key={semester} className="stack-sm">
               <h3 className="semester-title">
                 {semester}
-                <span className="muted"> · {list.reduce((s, c) => s + c.credits, 0)} 學分</span>
-                {computeGpa(list).overall.ntu !== null && (
-                  <span className="muted"> · GPA {fmtGpa(computeGpa(list).overall.ntu)}</span>
-                )}
+                <span className="muted"> · {all.reduce((s, c) => s + c.credits, 0)} 學分</span>
+                {gpa !== null && <span className="muted"> · GPA {fmtGpa(gpa)}</span>}
               </h3>
               <ul className="course-list">
                 {list.map((c) => (
@@ -192,7 +208,8 @@ export function CoursesView({ state, actions, goTo }: Props) {
                 ))}
               </ul>
             </div>
-          ))}
+            )
+          })}
         </>
       )}
     </section>

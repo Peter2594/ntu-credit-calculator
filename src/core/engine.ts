@@ -166,9 +166,10 @@ export function evaluateAll(courses: Course[], programs: Program[]): Map<string,
   const toMinor = new Set([...minors.values()].flatMap((s) => [...s]))
 
   return new Map(programs.map((p) => {
+    // 輔系學分不計入本學系；學分學程則沒有這條限制（跨院系所學分學程設置準則），比例限制由各學程的 outsideRules 判斷
     const own = p.kind === '輔系'
       ? courses.filter((c) => minors.get(p.id)!.has(c.id))
-      : courses.filter((c) => !toMinor.has(c.id))
+      : p.kind === '學程' ? courses : courses.filter((c) => !toMinor.has(c.id))
     return [p.id, evaluate(own, p, programs.filter((x) => x.id !== p.id))]
   }))
 }

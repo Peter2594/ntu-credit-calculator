@@ -684,6 +684,15 @@ p = entry("P520")
 regroup(p, [g for g in p["groups"] if g["name"] != "選修"] + [{"name": PET, "maxCourses": 1}, {"name": FARM, "maxCourses": 1}, {"name": "選修"}],
         keep_group(by_list({PET: ["629 U2490", "寵物營養學", "伴侶動物學"], FARM: ["606 64160", "經濟動物行為與福祉"]})))
 
+# 臺灣研究：課程資訊標明跨兩領域的課，兩個領域都列
+p = entry("P180")
+p["rules"] = p["rules"].replace("跨兩領域的課程列在第一個領域。", "跨兩領域的課（臺灣永續環境政策實務、防疫政策案例研析）兩個領域都列，會算到最有利的領域。")
+p["rules"] += "110-1 前已核定修習者可擇一適用舊制（十一領域跨 3 領域、20 學分），本工具以新制計算。"
+assert "最有利" in p["rules"]
+TAIWAN_CROSS = [c for c in p["courses"] if c["identifier"] in ("343 U0250", "849 U0570")]
+assert len(TAIWAN_CROSS) == 2 and all(c["group"] == "社經與法政" for c in TAIWAN_CROSS)
+p["courses"] += [{**c, "group": "科學與科技"} for c in TAIWAN_CROSS]
+
 # 識別碼「641 EM1470」這類寫法轉成成績單上的「641EM1470」
 for p in PROGRAMS:
     for c in p["courses"]:

@@ -509,3 +509,19 @@ describe('學分學程：同一門課列在多個模組時的分配', () => {
     expect((await run(prog, ['100 00001'])).gaps.groups).toEqual(['至少修 2 個領域'])
   })
 })
+
+describe('輔系的課與學分學程', () => {
+  it('分給輔系的課仍計入學分學程（跨院系所學分學程設置準則沒有禁止，比例限制由各學程規定判斷）', async () => {
+    const { reclassifyAll } = await import('./courses.js')
+    const r = (identifier: string) => ({ code: '', identifier, name: identifier, credits: 3, scope: '限本系課程' })
+    const main: Program = { id: 'm', kind: '主修', name: '編造學系', deptPrefix: '900', requirements: {}, requiredMode: 'all', requiredCourses: [] }
+    const minor: Program = { id: 'n', kind: '輔系', name: '編造輔系', deptPrefix: '800', requirements: { total: 3 }, requiredMode: 'pick', requiredCourses: [r('800 00001')] }
+    const prog: Program = { id: 't', kind: '學程', name: '編造學程', deptPrefix: '', requirements: { total: 3 }, requiredMode: 'pick', requiredCourses: [r('800 00001')] }
+    const programs = [main, minor, prog]
+    const course: Course = { id: 'c', name: 'x', credits: 3, semester: '114-1', grade: 'A', identifier: '800 00001', assignments: [], overridden: false }
+    const results = evaluateAll(reclassifyAll([course], programs), programs)
+    expect(results.get('n')!.totalCounted).toBe(3)
+    expect(results.get('t')!.totalCounted).toBe(3)
+    expect(results.get('m')!.totalCounted).toBe(0)
+  })
+})
