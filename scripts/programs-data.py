@@ -19,6 +19,19 @@ def prog(code, name, total, rules, groups=None, courses=None):
     PROGRAMS.append(entry)
 
 
+def cross(code, label, groups, min_groups=None, min_courses=None):
+    """跨模組規定：groups 中至少修到 min_groups 個模組，或合計至少 min_courses 門"""
+    entry = next(p for p in PROGRAMS if p["code"] == code)
+    known = {g["name"] for g in entry.get("groups", [])}
+    assert set(groups) <= known, (code, set(groups) - known)
+    rule = {"label": label, "groups": groups}
+    if min_groups is not None:
+        rule["minGroups"] = min_groups
+    if min_courses is not None:
+        rule["minCourses"] = min_courses
+    entry.setdefault("groupRules", []).append(rule)
+
+
 def ids(group, rows):
     """(識別碼, 課名, 學分)"""
     return [{"identifier": i, "name": n, "credits": c, "group": group} for i, n, c in rows]
@@ -116,7 +129,7 @@ prog("P630", "生命教育學分學程", 15,
      + ids("選修", [("104 18700", "莊子哲學", 3), ("145 10460", "臺灣文學與宗教選讀", 3), ("227 U1760", "身心中軸覺察與正念：實作與文獻討論", 3), ("227 U3120", "身心中軸覺察與正念：生活實踐與助人", 3), ("227 U3450", "身心中軸覺察：從身到心的自我安頓與提升", 3), ("405 53000", "心理健康促進與自殺防治", 3), ("600 U0580", "創新創業實踐", 3), ("H01 03900", "休閒與生命教育", 3), ("H01 10800", "職場倫理與職場精神", 3), ("H02 20090", "新生講座-活出精彩", 2), ("P01 U0070", "輔導原理與實務", 2), ("P36 U3000", "生命的軟弱韌性", 2), ("P63 10010", "全人健康", 1), ("P63 10040", "人生的境", 1), ("P63 10050", "我的生涯我探索", 1), ("P63 10070", "正念與自我慈悲", 2), ("P63 10080", "我的生涯我探索", 2), ("P63 10090", "快樂幸福學", 2), ("Z00 U0230", "設計你的人生", 3)]))
 
 prog("P640", "環境社會治理學分學程", 20,
-     "至少 20 學分。跨領域模組入門課程、統整課程各至少 1 門；永續環境治理與永續社會治理擇一主修、一副修，兩模組合計至少 5 門，單一模組不超過 4 門（合計門數本工具不判斷）。未查到課程識別碼的課以課名比對；公共管理、人力資源管理等同名課只認學程列出的開課單位。",
+     "至少 20 學分。跨領域模組入門課程、統整課程各至少 1 門；永續環境治理與永續社會治理擇一主修、一副修，兩模組合計至少 5 門，單一模組不超過 4 門。未查到課程識別碼的課以課名比對；公共管理、人力資源管理等同名課只認學程列出的開課單位。",
      [{"name": "跨領域：入門課程", "minCourses": 1}, {"name": "跨領域：統整課程", "minCourses": 1}, {"name": "永續環境治理模組", "maxCourses": 4}, {"name": "永續社會治理模組", "maxCourses": 4}],
      names("跨領域：入門課程", [("永續治理與影響力", 3), ("氣候變遷對策：地球急轉彎", 2)])
      + ids("跨領域：統整課程", [("700 10030", "ESG實踐管理顧問", 2)])
@@ -391,6 +404,14 @@ REST = [
 ]
 for code, name, total, rules in REST:
     prog(code, name, total, rules)
+
+# ---------------- 跨模組規定 ----------------
+
+cross("P180", "至少修 2 個領域", ["藝術與人文", "社經與法政", "科學與科技"], min_groups=2)
+cross("P530", "至少修 3 個領域", ["生態與保育領域", "演化與遺傳領域", "物種多樣性與研究技能領域", "人文、社會與經濟領域", "區域研究方法、政策與法規領域", "永續環境與產業應用領域"], min_groups=3)
+cross("P380", "至少修 3 個領域", ["美術", "建築", "音樂", "戲劇"], min_groups=3)
+cross("P460", "至少 2 個選修領域各修一門", ["人口與健康", "性別、工作與家庭", "保險與福利", "遷移與空間"], min_groups=2)
+cross("P640", "兩治理模組合計至少 5 門", ["永續環境治理模組", "永續社會治理模組"], min_courses=5)
 
 PROGRAMS.sort(key=lambda p: p["code"])
 out = Path(__file__).resolve().parent.parent / "public" / "data" / "programs.json"

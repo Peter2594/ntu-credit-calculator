@@ -1,5 +1,5 @@
 import { CATEGORIES, type Category, type Course, type Program } from './types.js'
-import { groupResults, requiredKey, type GroupResult } from './courses.js'
+import { groupResults, requiredKey, unmetGroupRules, type GroupResult } from './courses.js'
 
 export type Tally = Record<Category, number>
 
@@ -108,7 +108,7 @@ export function evaluate(courses: Course[], program: Program): Evaluation {
       elective: gap(elective, req.elective),
       common: gap(common, req.common),
       total: gap(totalCounted, req.total),
-      groups: groups.filter((g) => g.unmet).map((g) => g.name),
+      groups: [...groups.filter((g) => g.unmet).map((g) => g.name), ...unmetGroupRules(program, groups)],
     },
     groups,
     pe: {

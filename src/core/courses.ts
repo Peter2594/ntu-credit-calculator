@@ -140,6 +140,18 @@ export function groupResults(courses: Course[], program: Program): GroupResult[]
   })
 }
 
+/** 跨模組規定還沒達到的項目，回傳規定的說明文字。 */
+export function unmetGroupRules(program: Program, groups: GroupResult[]): string[] {
+  const byName = new Map(groups.map((g) => [g.name, g]))
+  return (program.groupRules ?? []).filter((rule) => {
+    const involved = rule.groups.map((name) => byName.get(name)).filter((g) => g !== undefined)
+    const touched = involved.filter((g) => g.count > 0).length
+    const courses = involved.reduce((s, g) => s + g.count, 0)
+    return (rule.minGroups !== undefined && touched < rule.minGroups) ||
+      (rule.minCourses !== undefined && courses < rule.minCourses)
+  }).map((rule) => rule.label)
+}
+
 export const requiredKey = (r: RequiredCourse) => `${r.code}|${r.identifier}`
 
 /**

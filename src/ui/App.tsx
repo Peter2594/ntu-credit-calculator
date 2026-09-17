@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Category, Course, Program } from '../core/types'
 import type { GradeRow, ParsedCourse } from '../core/parser'
 import {
@@ -12,6 +12,7 @@ import { CoursesView } from './components/CoursesView'
 import { ScheduleView } from './components/ScheduleView'
 import { TrialView } from './components/TrialView'
 import { ProgramSetup } from './components/ProgramSetup'
+import { loadPrograms, refreshCreditPrograms } from './components/CreditProgramPicker'
 
 export type Tab = 'dashboard' | 'courses' | 'schedule' | 'trial' | 'programs'
 
@@ -41,6 +42,20 @@ export type Actions = {
 export function App() {
   const { state, setState, saveFailed } = useAppState()
   const [tab, setTab] = useState<Tab>(state.programs.length === 0 ? 'programs' : 'dashboard')
+
+  // 已選的學分學程換成最新的課程清單與門檻
+  const hasCreditProgram = state.programs.some((p) => p.source?.kind === '學程')
+  useEffect(() => {
+    if (!hasCreditProgram) return
+    loadPrograms()
+      .then((data) =>
+        setState((s) => {
+          const programs = refreshCreditPrograms(s.programs, data)
+          return programs ? { programs, courses: reclassifyAll(s.courses, programs) } : s
+        }),
+      )
+      .catch(() => {})
+  }, [hasCreditProgram, setState])
 
   const actions: Actions = {
     addProgram: (p) =>

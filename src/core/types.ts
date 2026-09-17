@@ -44,6 +44,8 @@ export type Program = {
   requiredMode?: 'all' | 'pick'
   /** 學分學程的模組要求（各模組至少／至多幾門、幾學分），只供顯示與提醒 */
   requiredGroups?: { name: string; minCourses?: number; maxCourses?: number; minCredits?: number; maxCredits?: number }[]
+  /** 跨模組規定：至少修到幾個模組，或幾個模組合計至少幾門 */
+  groupRules?: { label: string; groups: string[]; minGroups?: number; minCourses?: number }[]
   /** 該系公告的科目說明原文，沒有課程清單時顯示給使用者 */
   requiredNote?: string
   /**

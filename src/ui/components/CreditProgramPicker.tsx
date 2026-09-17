@@ -8,11 +8,12 @@ type CreditProgram = {
   total: number | null
   rules: string
   groups?: NonNullable<Program['requiredGroups']>
+  groupRules?: NonNullable<Program['groupRules']>
   courses: { identifier?: string; name: string; credits: number; group?: string; matchName?: boolean }[]
 }
 
 let cache: Promise<CreditProgram[]> | null = null
-function loadPrograms(): Promise<CreditProgram[]> {
+export function loadPrograms(): Promise<CreditProgram[]> {
   cache ??= fetch(`${import.meta.env.BASE_URL}data/programs.json`)
     .then((r) => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`)
@@ -41,6 +42,42 @@ function toRequired(c: CreditProgram['courses'][number]): RequiredCourse {
   }
 }
 
+/** 從學程資料帶入的欄位。抵免紀錄、規定未寫明時使用者自填的總學分不在其中。 */
+function derive(p: CreditProgram, program: Program): Program {
+  return {
+    ...program,
+    name: p.name,
+    deptPrefix: '',
+    requirements: p.total === null ? program.requirements : { total: p.total },
+    requiredCourses: p.courses.map(toRequired),
+    requiredMode: 'pick',
+    requiredNote: p.rules,
+    requiredGroups: p.groups,
+    groupRules: p.groupRules,
+    source: { year: '學程', deptCode: p.code, kind: '學程' },
+  }
+}
+
+const derivedFields = (p: Program) =>
+  JSON.stringify([p.name, p.requirements, p.requiredCourses, p.requiredNote, p.requiredGroups, p.groupRules])
+
+/**
+ * 學程資料是選的當下複製進瀏覽器的；資料更新後，已選過的學程換成新的清單與門檻。
+ * 沒有任何變動時回傳 null。
+ */
+export function refreshCreditPrograms(programs: Program[], data: CreditProgram[]): Program[] | null {
+  let changed = false
+  const next = programs.map((program) => {
+    const p = program.source?.kind === '學程' ? data.find((x) => x.code === program.source?.deptCode) : undefined
+    if (!p) return program
+    const fresh = derive(p, program)
+    if (derivedFields(fresh) === derivedFields(program)) return program
+    changed = true
+    return fresh
+  })
+  return changed ? next : null
+}
+
 type Props = { program: Program; onChange(p: Program): void }
 
 /** 學分學程下拉選單：帶入總學分、規定摘要與課程清單。 */
@@ -57,17 +94,7 @@ export function CreditProgramPicker({ program, onChange }: Props) {
   const selected = programs?.find((p) => p.code === program.source?.deptCode && program.source?.kind === '學程')
 
   const apply = (p: CreditProgram) => {
-    onChange({
-      ...program,
-      name: p.name,
-      deptPrefix: '',
-      requirements: p.total === null ? {} : { total: p.total },
-      requiredCourses: p.courses.map(toRequired),
-      requiredMode: 'pick',
-      requiredNote: p.rules,
-      ...(p.groups ? { requiredGroups: p.groups } : { requiredGroups: undefined }),
-      source: { year: '學程', deptCode: p.code, kind: '學程' },
-    })
+    onChange(derive(p, { ...program, requirements: {} }))
   }
 
   return (

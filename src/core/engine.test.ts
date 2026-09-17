@@ -366,3 +366,36 @@ describe('學分學程的模組規定', () => {
     expect(e.gaps.groups).toEqual(['選修'])
   })
 })
+
+describe('學分學程的跨模組規定', () => {
+  const course = (id: string, identifier: string): Course => ({
+    id, name: id, credits: 3, semester: '114-1', grade: 'A', overridden: false, identifier, assignments: [],
+  })
+  const r = (identifier: string, group: string) =>
+    ({ code: '', identifier, name: identifier, credits: 3, scope: '限本系課程', group })
+  const prog: Program = {
+    id: 't', kind: '學程', name: '編造研究學程', deptPrefix: '', requirements: { total: 6 }, requiredMode: 'pick',
+    requiredGroups: [{ name: '甲' }, { name: '乙' }, { name: '丙' }],
+    groupRules: [
+      { label: '至少修 2 個領域', groups: ['甲', '乙', '丙'], minGroups: 2 },
+      { label: '乙丙合計至少 2 門', groups: ['乙', '丙'], minCourses: 2 },
+    ],
+    requiredCourses: [r('100 00001', '甲'), r('100 00002', '甲'), r('200 00001', '乙'), r('300 00001', '丙')],
+  }
+  const run = async (ids: string[]) => {
+    const { reclassifyAll } = await import('./courses.js')
+    const courses = reclassifyAll(ids.map((identifier, i) => course(`k${i}`, identifier)), [prog])
+    return evaluateAll(courses, [prog]).get('t')!
+  }
+
+  it('學分夠但只修一個領域、合計門數不足時列出未達的規定', async () => {
+    const e = await run(['100 00001', '100 00002'])
+    expect(e.gaps.total).toBe(0)
+    expect(e.gaps.groups).toEqual(['至少修 2 個領域', '乙丙合計至少 2 門'])
+  })
+
+  it('跨領域與合計門數都達到時沒有缺口', async () => {
+    const e = await run(['100 00001', '200 00001', '300 00001'])
+    expect(e.gaps.groups).toEqual([])
+  })
+})
