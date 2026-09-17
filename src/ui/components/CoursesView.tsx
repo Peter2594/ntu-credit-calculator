@@ -109,7 +109,8 @@ export function CoursesView({ state, actions, goTo }: Props) {
         )}
         {preview && preview.length === 0 && gradeRows.length === 0 && gradesUpdated === null && (
           <p className="notice warn">
-            沒有解析出任何課程。請確認是 myNTU「歷年成績」頁整頁複製的內容。
+            沒有解析出任何課程。工具要靠「課程識別碼」（例如 705 10300）判斷開課單位，只有課號無法分類。
+            教務處的成績紀錄 PDF 沒有這一欄，請改用 myNTU「歷年成績」頁整頁複製（手機請先切換成電腦版網站）。
           </p>
         )}
         {gradeMatch && gradesUpdated === null && (
