@@ -37,6 +37,10 @@ export type CreditRules = {
   ownGenEdToElective?: boolean
   /** 新生專題、新生講座：皆計入、皆不計入、擇一計入、只計專題、只計講座 */
   freshman?: 'both' | 'none' | 'one' | 'seminar' | 'lecture'
+  /** 全年課程只修半年及格者是否計入畢業學分（大一國文不在此限） */
+  halfYearCounts?: boolean
+  /** 這些領域的通識超修不採計為選修（如戲劇系 A1–A3） */
+  genEdOverflowExcludedDomains?: string[]
   /** 共同教育中心公告的院系指定通識領域 */
   genEdDomains?: string[]
 }

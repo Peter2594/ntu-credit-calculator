@@ -1,4 +1,4 @@
-import { applyClassification, deptPrefixOf, deptPrefixesOf, requiredMatcher } from './classify.js'
+import { applyClassification, deptPrefixOf, deptPrefixesOf, requiredMatcher, type ClassifyContext } from './classify.js'
 import type { Category, Course, Program, RequiredCourse } from './types.js'
 import type { ParsedCourse } from './parser.js'
 
@@ -7,8 +7,33 @@ export function courseKey(c: ParsedCourse): string {
   return [c.semester, c.code ?? '', c.identifier ?? '', c.name].join('|')
 }
 
-function classifyAll(course: Course, programs: Program[]): Course {
-  return programs.reduce((acc, p) => applyClassification(acc, p), course)
+function classifyAll(course: Course, programs: Program[], context: ClassifyContext = {}): Course {
+  return programs.reduce((acc, p) => applyClassification(acc, p, context), course)
+}
+
+const passed = (grade?: string) => !!grade && !['停修', 'F', 'X', '不通過'].includes(grade)
+const UPPER = /(?:[(（]上[)）]|上)$/
+const LOWER = /(?:[(（]下[)）]|下)$/
+
+/**
+ * 全年課只修了上學期：課名以「上」結尾且及格、之後的學期已經有成績，卻沒有修過（或排進課表）對應的「下」。
+ * 還沒到下學期時不判斷；大一國文不在此限。
+ */
+export function halfYearOnly<T extends ParsedCourse>(courses: T[]): Set<T> {
+  const result = new Set<T>()
+  for (const c of courses) {
+    const name = c.name.trim()
+    if (!UPPER.test(name) || !passed(c.grade)) continue
+    if (deptPrefixOf(c.identifier) === '101' || (c.code ?? '').startsWith('CHIN')) continue
+    const base = name.replace(UPPER, '')
+    const continued = courses.some((x) => {
+      const other = x.name.trim()
+      return x.semester > c.semester && LOWER.test(other) && other.replace(LOWER, '') === base && (!x.grade || passed(x.grade))
+    })
+    const movedOn = courses.some((x) => x.semester > c.semester && !!x.grade)
+    if (!continued && movedOn) result.add(c)
+  }
+  return result
 }
 
 /**
@@ -28,17 +53,19 @@ export function mergeImported(
     const at = index.get(id)
     if (at !== undefined) {
       const old = result[at]!
-      result[at] = classifyAll({ ...old, ...p, id, assignments: old.assignments, overridden: old.overridden }, programs)
+      result[at] = { ...old, ...p, id, assignments: old.assignments, overridden: old.overridden }
     } else {
       index.set(id, result.length)
-      result.push(classifyAll({ ...p, id, assignments: [], overridden: false }, programs))
+      result.push({ ...p, id, assignments: [], overridden: false })
     }
   }
-  return result
+  // 全年課只修半年要看整份成績單才知道，匯入後整份重新歸類（手動覆寫的課保留）
+  return reclassifyAll(result, programs)
 }
 
 export function reclassifyAll(courses: Course[], programs: Program[]): Course[] {
-  return courses.map((c) => classifyAll(c, programs))
+  const half = halfYearOnly(courses)
+  return courses.map((c) => classifyAll(c, programs, { halfYear: half.has(c) }))
 }
 
 /** 使用者手動指定分類。抵免屬系辦裁量，覆寫後自動規則不再改它。 */
@@ -47,8 +74,8 @@ export function setCategory(course: Course, programId: string, category: Categor
   return { ...course, overridden: true, assignments: [...others, { programId, category }] }
 }
 
-export function resetCategory(course: Course, programs: Program[]): Course {
-  return classifyAll({ ...course, overridden: false, assignments: [] }, programs)
+export function resetCategory(course: Course, programs: Program[], all: Course[] = [course]): Course {
+  return classifyAll({ ...course, overridden: false, assignments: [] }, programs, { halfYear: halfYearOnly(all).has(course) })
 }
 
 export function removeProgram(courses: Course[], programId: string): Course[] {

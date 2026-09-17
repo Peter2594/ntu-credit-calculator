@@ -1,5 +1,5 @@
 import { CATEGORIES, type Category, type Course, type Program } from './types.js'
-import { FRESHMAN } from './classify.js'
+import { freshmanKind, isCommCourse } from './classify.js'
 import { groupResults, requiredKey, unmetGroupRules, unmetOutsideRules, type GroupResult } from './courses.js'
 
 export type Tally = Record<Category, number>
@@ -43,6 +43,9 @@ export type Evaluation = {
   pe: { taken: number; required: number; gap: number }
 }
 
+/** 溝通表達與職涯發展課程充抵通識的上限 */
+const COMM_CAP = 6
+
 const capped = (value: number, limit?: number) =>
   limit === undefined ? value : Math.min(value, limit)
 const overflow = (value: number, limit?: number) =>
@@ -76,8 +79,13 @@ export function evaluate(courses: Course[], program: Program, others: Program[] 
 
   // 超修的國文、通識、外文是否計入選修，各系備註寫法不同；沒寫明時國文、通識丟棄，外文計入選修
   const rules = program.creditRules ?? {}
+  const genEdCourses = courses.filter((c) => c.assignments.some((a) => a.programId === program.id && a.category === '通識'))
+  // 溝通表達與職涯發展課程（原基本能力課程）至多充抵通識 6 學分，超出的計入選修
+  const commCredits = genEdCourses.filter((c) => !c.genEdDomain && isCommCourse(c)).reduce((s, c) => s + c.credits, 0)
+  const commExcess = Math.max(0, commCredits - COMM_CAP)
+  const genEdTaken = taken['通識'] - commExcess
   const chinese = capped(taken['國文'], req.chinese)
-  const genEd = capped(taken['通識'], req.genEd)
+  const genEd = capped(genEdTaken, req.genEd)
   const foreign = capped(taken['外文'], req.foreign)
   const foreignOverflow = rules.foreignOverflowToElective === false ? 0 : overflow(taken['外文'], req.foreign)
   const commonRaw = taken['國文'] + taken['外文'] + taken['通識']
@@ -85,14 +93,22 @@ export function evaluate(courses: Course[], program: Program, others: Program[] 
   const common = capped(chineseGenEd + foreign, req.common)
   // 國文與通識合計超過上限的部分：學生可自選「國文 6＋通識 12」或「國文 3＋通識 15」，算成對自己有利的那一類超修
   const pairExcess = chinese + genEd - chineseGenEd
-  const commonOverflow =
-    (rules.chineseOverflowToElective ? overflow(taken['國文'], req.chinese) : 0) +
-    (rules.genEdOverflowToElective ? overflow(taken['通識'], req.genEd) : 0) +
-    (rules.chineseOverflowToElective || rules.genEdOverflowToElective ? pairExcess : 0)
+  const chineseToElective = rules.chineseOverflowToElective ? overflow(taken['國文'], req.chinese) + pairExcess : 0
+  // 系上排除的領域（如戲劇系 A1–A3）超修不採計為選修，最多只能從其他領域的通識學分溢出
+  const excludedCredits = genEdCourses
+    .filter((c) => c.genEdDomain && rules.genEdOverflowExcludedDomains?.includes(c.genEdDomain.replace('*', '')))
+    .reduce((s, c) => s + c.credits, 0)
+  const genEdToElective = rules.genEdOverflowToElective
+    ? Math.min(
+      overflow(genEdTaken, req.genEd) + (rules.chineseOverflowToElective ? 0 : pairExcess),
+      Math.max(0, genEdTaken - excludedCredits),
+    )
+    : 0
+  const commonOverflow = chineseToElective + genEdToElective + commExcess
 
   // 新生專題、新生講座擇一計入：只留學分最多的一門
   const freshmanCredits = courses
-    .filter((c) => FRESHMAN.test(c.name) && c.assignments.some((a) => a.programId === program.id && a.category === '一般選修'))
+    .filter((c) => freshmanKind(c) && c.assignments.some((a) => a.programId === program.id && a.category === '一般選修'))
     .map((c) => c.credits)
   const freshmanExtra = rules.freshman === 'one' && freshmanCredits.length > 1
     ? freshmanCredits.reduce((s, x) => s + x, 0) - Math.max(...freshmanCredits)

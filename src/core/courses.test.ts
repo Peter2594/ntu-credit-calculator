@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   courseKey, mergeImported, reclassifyAll, setCategory, requiredProgress, requiredKey, waiveRequired, unwaiveRequired,
-  resetCategory, removeProgram, updateGrades,
+  resetCategory, removeProgram, updateGrades, halfYearOnly,
 } from './courses.js'
 import type { Course, Program } from './types.js'
 import type { ParsedCourse } from './parser.js'
@@ -198,5 +198,30 @@ describe('updateGrades：用手機版內容更新已匯入課程的成績', () =
     expect(r.courses.map((c) => c.grade)).toEqual(['A', 'B+'])
     expect(r.updated).toBe(2)
     expect(r.unmatched).toEqual(['沒匯入過的課'])
+  })
+})
+
+describe('halfYearOnly：全年課只修了上學期', () => {
+  const p = (name: string, semester: string, grade?: string, identifier = '900 00001') =>
+    ({ name, semester, credits: 3, identifier, ...(grade ? { grade } : {}) })
+
+  it('下學期已有成績卻沒修「下」才算只修半年', () => {
+    const upper = p('編造學上', '113-1', 'A')
+    const later = p('其他課', '113-2', 'B', '900 00002')
+    expect(halfYearOnly([upper, later]).has(upper)).toBe(true)
+  })
+
+  it('有修「下」（含排在課表還沒成績）、還沒到下學期、或是大一國文時不算', () => {
+    const upper = p('編造學上', '113-1', 'A')
+    expect(halfYearOnly([upper, p('編造學下', '113-2', 'A')]).size).toBe(0)
+    expect(halfYearOnly([upper, p('編造學下', '113-2')]).size).toBe(0)
+    expect(halfYearOnly([upper]).size).toBe(0)
+    const chinese = p('大一國文上', '113-1', 'A', '101 00001')
+    expect(halfYearOnly([chinese, p('其他課', '113-2', 'B', '900 00002')]).size).toBe(0)
+  })
+
+  it('下學期停修或不及格，上學期仍只算半年', () => {
+    const upper = p('編造學上', '113-1', 'A')
+    expect(halfYearOnly([upper, p('編造學下', '113-2', '停修')]).has(upper)).toBe(true)
   })
 })

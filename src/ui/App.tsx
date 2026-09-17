@@ -104,7 +104,7 @@ export function App() {
     resetCourse: (courseId) =>
       setState((s) => ({
         ...s,
-        courses: s.courses.map((c) => (c.id === courseId ? resetCategory(c, s.programs) : c)),
+        courses: s.courses.map((c) => (c.id === courseId ? resetCategory(c, s.programs, s.courses) : c)),
       })),
     clearAll: () => setState({ programs: [], courses: [] }),
     waive: (programId, required, courseId) =>

@@ -207,13 +207,31 @@ describe('classify：依各系規定處理本系通識與新生課程', () => {
   })
 
   it('新生專題、新生講座依系上規定不計入', () => {
-    const seminar = course({ identifier: 'H01 99990', name: '新生專題：編造' })
-    const lecture = course({ identifier: 'H01 99991', name: '新生講座：編造' })
+    const seminar = course({ identifier: 'H02 10100', name: '新生專題' })
+    const lecture = course({ identifier: 'H02 20090', name: '新生講座-活出精彩' })
     const none = { ...program, creditRules: { freshman: 'none' as const } }
     const onlySeminar = { ...program, creditRules: { freshman: 'seminar' as const } }
     expect(classify(seminar, none)).toBe('不計入')
     expect(classify(lecture, onlySeminar)).toBe('不計入')
     expect(classify(seminar, onlySeminar)).toBe('一般選修')
     expect(classify(seminar, program)).toBe('一般選修')
+  })
+})
+
+describe('classify：溝通表達課程、系上自開的新生專題、全年課只修半年', () => {
+  it('溝通表達與職涯發展課程（原基本能力課程）算通識，本系開的算系內選修', () => {
+    expect(classify(course({ identifier: 'Q01 U0510', name: '框架外的思考:五分鐘英文講台' }), program)).toBe('通識')
+    expect(classify(course({ identifier: 'Q01 U0510', name: '框架外的思考:五分鐘英文講台' }), { ...program, deptPrefix: 'Q01' })).toBe('限本系選修')
+  })
+
+  it('系上自己開、課名含「新生專題」的課不當成共同教育中心的新生專題', () => {
+    const own = course({ identifier: '900 10090', name: '編造系新生專題' })
+    expect(classify(own, { ...program, creditRules: { freshman: 'none' } })).toBe('限本系選修')
+  })
+
+  it('全年課只修半年，系上規定不計入時歸為不計入', () => {
+    const half = course({ identifier: '900 20010', name: '編造學上', grade: 'A' })
+    expect(classify(half, { ...program, creditRules: { halfYearCounts: false } }, { halfYear: true })).toBe('不計入')
+    expect(classify(half, { ...program, creditRules: { halfYearCounts: true } }, { halfYear: true })).toBe('限本系選修')
   })
 })

@@ -34,6 +34,7 @@ describe('parseRequirementPage', () => {
       foreignOverflowToElective: true,
       ownGenEdToElective: false,
       chineseOverflowToElective: false,
+      halfYearCounts: true,
       freshman: 'both',
     })
   })
@@ -84,6 +85,13 @@ describe('parseCreditRules：各系寫法', () => {
     expect(parseCreditRules(note('「新生專題」及「新生講座」課程，擇一計入選修學分')).freshman).toBe('one')
     expect(parseCreditRules(note('「新生專題」課程，計入選修學分；修習「新生講座」課程，不計入選修學分')).freshman).toBe('seminar')
     expect(parseCreditRules(note('「新生專題」課程，不計入選修學分；修習「新生講座」課程，計入選修學分')).freshman).toBe('lecture')
+  })
+
+  it('全年課程只修半年、特定領域通識不採計為選修', () => {
+    expect(parseCreditRules('(2)全年課程僅修半年及格者，不計入畢業學分(大一國文不在此限)').halfYearCounts).toBe(false)
+    expect(parseCreditRules('(2)全年課程僅修半年及格者，計入畢業學分').halfYearCounts).toBe(true)
+    expect(parseCreditRules('二、屬A1(文學與藝術領域)。A2(歷史思維領域)、A3(世界文明領域)之通識課程不採計為選修學分。')
+      .genEdOverflowExcludedDomains).toEqual(['A1', 'A2', 'A3'])
   })
 
   it('沒寫的規定留空，不猜', () => {

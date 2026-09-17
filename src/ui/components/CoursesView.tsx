@@ -1,7 +1,7 @@
 import { startTransition, useEffect, useMemo, useState } from 'react'
 import { parseGradeRows, parseTranscript, type GradeRow, type ParsedCourse } from '../../core/parser'
-import { updateGrades } from '../../core/courses'
-import { deptPrefixOf, deptPrefixesOf, isOwnDeptGenEd } from '../../core/classify'
+import { halfYearOnly, updateGrades } from '../../core/courses'
+import { deptPrefixOf, deptPrefixesOf, isCommCourse, isOwnDeptGenEd } from '../../core/classify'
 import { SYNTHETIC_TRANSCRIPT } from '../../core/fixtures/transcript'
 import type { AppState } from '../../core/storage'
 import { CATEGORIES, type Category, type Course } from '../../core/types'
@@ -60,6 +60,7 @@ export function CoursesView({ state, actions, goTo }: Props) {
     for (const c of visible) groups.set(c.semester, [...(groups.get(c.semester) ?? []), c])
     return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b))
   }, [visible])
+  const halfYear = useMemo(() => halfYearOnly(state.courses), [state.courses])
   const shown = useMemo(() => {
     let budget = limit
     return bySemester.map(([semester, list]): [string, Course[], number] => {
@@ -204,7 +205,7 @@ export function CoursesView({ state, actions, goTo }: Props) {
               </h3>
               <ul className="course-list">
                 {list.map((c) => (
-                  <CourseItem key={c.id} course={c} state={state} actions={actions} />
+                  <CourseItem key={c.id} course={c} state={state} actions={actions} halfYear={halfYear.has(c)} />
                 ))}
               </ul>
             </div>
@@ -216,7 +217,8 @@ export function CoursesView({ state, actions, goTo }: Props) {
   )
 }
 
-function CourseItem({ course, state, actions }: { course: Course; state: AppState; actions: Actions }) {
+function CourseItem({ course, state, actions, halfYear }: { course: Course; state: AppState; actions: Actions; halfYear: boolean }) {
+  const main = state.programs.find((p) => p.kind === '主修')
   const failedOrWithdrawn = course.grade && ['停修', 'F', 'X', '不通過'].includes(course.grade)
 
   return (
@@ -227,6 +229,12 @@ function CourseItem({ course, state, actions }: { course: Course; state: AppStat
           {course.overridden && <span className="chip accent">手動</span>}
           {!course.overridden && state.programs.some((p) => isOwnDeptGenEd(course, p)) && (
             <span className="chip warn" title="依規定，畢業學系開授的課可能不採計通識">本系通識，請確認</span>
+          )}
+          {halfYear && main?.creditRules?.halfYearCounts === false && (
+            <span className="chip warn" title="系上規定全年課程只修半年及格者不計入畢業學分；若其實是半年課，請手動改分類">全年課只修上學期</span>
+          )}
+          {isCommCourse(course) && !course.genEdDomain && (
+            <span className="chip" title="原基本能力課程，可充抵通識至多 6 學分，超出的計入選修">溝通表達課程</span>
           )}
         </div>
         <div className="course-meta muted">

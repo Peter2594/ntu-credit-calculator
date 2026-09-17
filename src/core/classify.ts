@@ -1,5 +1,6 @@
 import type { Category, Course, Program, RequiredCourse } from './types.js'
 import type { ParsedCourse } from './parser.js'
+import { COMM_COURSES, FRESHMAN_COURSES } from './generalCourses.js'
 
 /** 識別碼前三碼即開課單位代碼，格式不一但位置固定。 */
 export function deptPrefixOf(identifier?: string): string {
@@ -10,7 +11,25 @@ const WITHDRAWN = '停修'
 // 共同必修有時掛在其他單位的識別碼下（共教中心開的健康體適能、各系自開的大一英文班），只能靠課名認
 const PE_NAME = /健康體適能|專項運動/
 const FOREIGN_NAME = /^(英文\s*[(（]|英文[一二]|大一英文|大一外文)/
-export const FRESHMAN = /新生(專題|講座)/
+const COMM = new Set(COMM_COURSES.map(([id]) => id))
+const FRESHMAN_IDS = new Set(FRESHMAN_COURSES.map(([id]) => id))
+const squashId = (s?: string) => (s ?? '').replace(/\s+/g, '').toUpperCase()
+
+/** 溝通表達與職涯發展課程（原基本能力課程），依課程網歷年開課清單辨認 */
+export function isCommCourse(course: ParsedCourse): boolean {
+  return COMM.has(squashId(course.identifier))
+}
+
+/**
+ * 共同教育中心的新生專題、新生講座。系上自己開、課名含「新生專題」的課（如「資管新生專題」）不算，
+ * 所以只認清單上的識別碼，或課名以「新生專題」「新生講座」開頭的課。
+ */
+export function freshmanKind(course: ParsedCourse): 'seminar' | 'lecture' | undefined {
+  const listed = FRESHMAN_IDS.has(squashId(course.identifier))
+  const named = /^新生(專題|講座)/.test(course.name)
+  if (!listed && !named) return undefined
+  return course.name.includes('講座') ? 'lecture' : 'seminar'
+}
 /** 不及格沒有拿到學分。 */
 const FAILED = new Set(['F', 'X', '不通過'])
 
@@ -80,15 +99,19 @@ export function isOwnDeptGenEd(course: ParsedCourse, program: Program): boolean 
     deptPrefixesOf(program).includes(deptPrefixOf(course.identifier))
 }
 
-export function classify(course: ParsedCourse, program: Program): Category {
+/** 需要看整份成績單才知道的資訊，由 reclassifyAll 提供 */
+export type ClassifyContext = { halfYear?: boolean }
+
+export function classify(course: ParsedCourse, program: Program, context: ClassifyContext = {}): Category {
   const prefix = deptPrefixOf(course.identifier)
   const code = course.code ?? ''
   const ownDept = deptPrefixesOf(program).includes(prefix)
 
   if (course.grade === WITHDRAWN) return '不計入'
   if (course.grade && FAILED.has(course.grade)) return '不計入'
-  if (isRequiredCourse(course, program)) return '系訂必修'
   const rules = program.creditRules ?? {}
+  if (context.halfYear && rules.halfYearCounts === false) return '不計入'
+  if (isRequiredCourse(course, program)) return '系訂必修'
   // 有星號的是「經認可為通識的專業課」，本系開授者不得採計通識，但可計入系內選修
   if (course.genEdDomain?.endsWith('*') && ownDept) return '限本系選修'
   // 本系開的一般通識不得採計通識；系上寫明是否計入選修
@@ -97,10 +120,9 @@ export function classify(course: ParsedCourse, program: Program): Category {
   }
   if (course.genEdDomain) return '通識'
   // 新生專題、新生講座是否納入畢業學分由各系決定；擇一計入在 engine 處理
-  const freshman = FRESHMAN.exec(course.name)?.[1]
+  const freshman = freshmanKind(course)
   if (freshman && rules.freshman) {
-    const counts = rules.freshman === 'both' || rules.freshman === 'one' ||
-      (freshman === '專題' ? rules.freshman === 'seminar' : rules.freshman === 'lecture')
+    const counts = rules.freshman === 'both' || rules.freshman === 'one' || rules.freshman === freshman
     if (!counts) return '不計入'
   }
   if (prefix === '101' || code.startsWith('CHIN')) return '國文'
@@ -109,6 +131,8 @@ export function classify(course: ParsedCourse, program: Program): Category {
   // 服務學習自 114 學年度起不計入畢業總學分。115 起入學者可計選修至多 2 學分，
   // 但那取決於入學年度，工具不猜 —— 由使用者手動覆寫。
   if (code.startsWith('StuAct') || course.name.includes('服務學習')) return '不計入'
+  // 溝通表達與職涯發展課程可充抵通識（上限在 engine）；畢業學系開授者不得採計，改算系內選修
+  if (isCommCourse(course) && !ownDept) return '通識'
   // 成績單沒有必選修欄位。猜錯必修會讓使用者誤以為已達標，
   // 代價高於猜錯選修，因此保守預設為選修，由使用者勾選必修。
   if (ownDept) return '限本系選修'
@@ -119,13 +143,13 @@ export function classify(course: ParsedCourse, program: Program): Category {
  * 為某一學程填上歸類。已覆寫（overridden）的課保留使用者的判斷，
  * 因為抵免屬系辦裁量，自動規則永遠猜不到。
  */
-export function applyClassification(course: Course, program: Program): Course {
+export function applyClassification(course: Course, program: Program, context: ClassifyContext = {}): Course {
   const existing = course.assignments.find((a) => a.programId === program.id)
   if (existing && course.overridden) return course
 
   const others = course.assignments.filter((a) => a.programId !== program.id)
   return {
     ...course,
-    assignments: [...others, { programId: program.id, category: classify(course, program) }],
+    assignments: [...others, { programId: program.id, category: classify(course, program, context) }],
   }
 }

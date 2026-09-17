@@ -64,6 +64,11 @@ export function parseCreditRules(text: string): CreditRules {
   if (own !== undefined) rules.ownGenEdToElective = own
   if (chinese !== undefined) rules.chineseOverflowToElective = chinese
 
+  const half = flat.match(/全年課程僅修半年及格者[，,](不)?計入畢業學分/)
+  if (half) rules.halfYearCounts = !half[1]
+  const excluded = flat.match(/屬((?:A\d[(（][^)）]*[)）][、。，,]?)+)之通識課程不採計為選修/)
+  if (excluded) rules.genEdOverflowExcludedDomains = excluded[1]!.match(/A\d/g)!
+
   const together = flat.match(/「新生專題」及「新生講座」課程[，,](皆計入|皆不計入|擇一計入)選修/)
   const separate = flat.match(/「新生專題」課程[，,](不)?計入選修學分[；;]修習「新生講座」課程[，,](不)?計入選修/)
   if (together) rules.freshman = ({ 皆計入: 'both', 皆不計入: 'none', 擇一計入: 'one' } as const)[together[1] as '皆計入']

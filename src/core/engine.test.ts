@@ -579,3 +579,29 @@ describe('各系對超修、新生課程與通識指定領域的規定', () => {
     expect(r.gaps.genEdDomains).toBe(0)
   })
 })
+
+describe('溝通表達課程充抵通識與特定領域通識不採計為選修', () => {
+  const base: Program = {
+    id: 'p1', kind: '主修', name: '編造學系', deptPrefix: '900',
+    requirements: { chinese: 6, genEd: 15, chineseGenEd: 18, foreign: 6 },
+  }
+  const gen = (credits: number, domain?: string, identifier = 'H01 00001'): Course => ({
+    id: Math.random().toString(36).slice(2), name: '編造', credits, semester: '114-1', grade: 'A', identifier,
+    assignments: [{ programId: 'p1', category: '通識' }], overridden: false, ...(domain ? { genEdDomain: domain } : {}),
+  })
+
+  it('溝通表達課程至多充抵通識 6 學分，其餘計入選修', () => {
+    const comm = [gen(3, undefined, 'Q01 U0510'), gen(3, undefined, 'Q01 U0520'), gen(3, undefined, 'Q01 U0530')]
+    const r = evaluate([...comm, gen(6, 'A1'), c('國文', 3)], base)
+    expect(r.counted.common).toBe(3 + 12)
+    expect(r.counted.elective).toBe(3)
+  })
+
+  it('指定領域的通識超修不採計為選修（戲劇系）', () => {
+    const rules = { genEdOverflowToElective: true, genEdOverflowExcludedDomains: ['A1', 'A2', 'A3'] }
+    const p = { ...base, creditRules: rules }
+    expect(evaluate([gen(9, 'A1'), gen(9, 'A5'), c('國文', 3)], p).counted.elective).toBe(3)
+    expect(evaluate([gen(16, 'A1'), gen(2, 'A5'), c('國文', 3)], p).counted.elective).toBe(2)
+    expect(evaluate([gen(18, 'A1'), c('國文', 3)], p).counted.elective).toBe(0)
+  })
+})
