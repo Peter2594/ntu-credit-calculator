@@ -93,10 +93,14 @@ export function ProgramProgress({ program, result, baseline }: {
   const req = program.requirements
   const d = (pick: (e: Evaluation) => number) => (baseline ? pick(result) - pick(baseline) : undefined)
   const lost = result.totalTaken - result.totalCounted
-  const remaining = req.total !== undefined ? Math.max(0, req.total - result.totalCounted) : undefined
+  // 以學程科目數為門檻的學程（半導體學程）顯示科目數，不顯示學分
+  const subjects = result.subjects
+  const remaining = subjects
+    ? Math.max(0, subjects.target - subjects.count)
+    : req.total !== undefined ? Math.max(0, req.total - result.totalCounted) : undefined
   const genEdGap = result.gaps.genEdDomains
   const unmetGroups = [
-    ...result.gaps.groups,
+    ...result.gaps.groups.filter((g) => !(subjects && g.startsWith('學程科目'))),
     ...(genEdGap > 0 ? [`通識指定領域（還差 ${genEdGap} 個）`] : []),
   ]
   const outsideCap = req.elective !== undefined && req.electiveInMajor !== undefined
@@ -118,21 +122,23 @@ export function ProgramProgress({ program, result, baseline }: {
   return (
     <div className="stack">
       <div className="hero">
-        <Ring value={result.totalCounted} total={req.total} />
+        <Ring value={subjects ? subjects.count : result.totalCounted} total={subjects ? subjects.target : req.total} />
         <div className="hero-body">
           <div className="hero-label">
-            {isMain ? '畢業學分' : `${program.kind}學分`}
+            {isMain ? '畢業學分' : subjects ? '學程科目' : `${program.kind}學分`}
             {lost > 0 && <Info text={`實修 ${result.totalTaken} 學分，其中 ${lost} 學分因超修上限不計入`} />}
           </div>
           <div className="hero-value">
-            <strong>{result.totalCounted}</strong>
-            {req.total !== undefined && <span className="of">/ {req.total}</span>}
-            <Delta value={d((e) => e.totalCounted)} />
+            <strong>{subjects ? subjects.count : result.totalCounted}</strong>
+            {subjects
+              ? <span className="of">/ {subjects.target} 科</span>
+              : req.total !== undefined && <span className="of">/ {req.total}</span>}
+            <Delta value={d((e) => e.subjects?.count ?? e.totalCounted)} />
           </div>
           {remaining !== undefined && (
             <div className={remaining === 0 && unmetGroups.length === 0 ? 'hero-remaining ok' : 'hero-remaining'}>
               {remaining > 0
-                ? `還差 ${remaining} 學分`
+                ? `還差 ${remaining} ${subjects ? '科' : '學分'}`
                 : unmetGroups.length > 0 ? (isMain ? '學分夠了，還有規定沒達到' : '學分夠了，模組還沒達標') : '已達標'}
             </div>
           )}

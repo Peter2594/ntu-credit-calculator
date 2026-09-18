@@ -245,7 +245,7 @@ export function groupResults(courses: Course[], program: Program): GroupResult[]
 }
 
 /** 修過的課最多能涵蓋幾個模組：一門課只算一個模組，跨模組的課要挑對（二分圖最大配對）。 */
-function coveredGroups(items: RequiredItem[], program: Program, groups: string[]): number {
+export function coveredGroups(items: RequiredItem[], program: Program, groups: string[]): number {
   const taken = new Map<string, Set<string>>()
   for (const item of items) {
     if (item.status === 'missing') continue

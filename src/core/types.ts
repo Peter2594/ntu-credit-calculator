@@ -88,6 +88,8 @@ export type Program = {
    * 有 courseId 表示用那門課抵；沒有則為免修。
    */
   waivers?: { key: string; courseId?: string }[]
+  /** 以「學程科目」數量為門檻的學程（如半導體學程修畢 11 個科目），每個模組是一個科目、只採計 1 門課 */
+  courseTarget?: number
   /** 主修學系的超修、本系通識、新生課程與指定通識領域規定 */
   creditRules?: CreditRules
   /** 學分學程後來分成多個方案（組別），已選的學程被自動歸到預設方案、使用者還沒確認 */

@@ -636,3 +636,39 @@ describe('通識指定領域：跨領域課程擇一計入', () => {
     expect(r.genEd?.covered).toEqual(['A1', 'A5', 'A8'])
   })
 })
+
+describe('以學程科目數為門檻的學程（半導體學程）', () => {
+  // 每個學程科目列出多門可採認的課，以課號比對；一個科目只採計 1 門課
+  const r = (code: string, group: string) => ({ code, identifier: '', name: code, credits: 3, scope: '限本系課程', group })
+  const prog: Program = {
+    id: 't', kind: '學程', name: '編造學程', deptPrefix: '', requirements: {}, requiredMode: 'pick',
+    courseTarget: 3,
+    requiredGroups: [{ name: '必修：甲' }, { name: '必修：乙' }, { name: '選修：丙' }],
+    groupRules: [{ label: '必修科目至少 2 科', groups: ['必修：甲', '必修：乙'], minGroups: 2 }],
+    requiredCourses: [r('AA1001', '必修：甲'), r('AA1002', '必修：甲'), r('BB1001', '必修：乙'), r('BB1001', '選修：丙'), r('CC1001', '選修：丙')],
+  }
+  const course = (code: string): Course => ({
+    id: code, name: code, code, credits: 3, semester: '114-1', grade: 'A', assignments: [], overridden: false,
+  })
+  const run = async (codes: string[]) => {
+    const { reclassifyAll } = await import('./courses.js')
+    return evaluateAll(reclassifyAll(codes.map(course), [prog]), [prog]).get('t')!
+  }
+
+  it('同一個學程科目修兩門只算一科', async () => {
+    const e = await run(['AA1001', 'AA1002', 'CC1001'])
+    expect(e.subjects).toEqual({ count: 2, target: 3 })
+    expect(e.gaps.groups).toContain('學程科目（還差 1 科）')
+  })
+
+  it('一門課列在兩個科目時只算其中一科', async () => {
+    const e = await run(['AA1001', 'BB1001'])
+    expect(e.subjects?.count).toBe(2)
+  })
+
+  it('科目數與必修科目數都達到時沒有缺口', async () => {
+    const e = await run(['AA1001', 'BB1001', 'CC1001'])
+    expect(e.subjects).toEqual({ count: 3, target: 3 })
+    expect(e.gaps.groups).toEqual([])
+  })
+})

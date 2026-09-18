@@ -10,7 +10,10 @@ type CreditProgram = {
   groups?: NonNullable<Program['requiredGroups']>
   groupRules?: NonNullable<Program['groupRules']>
   outsideRules?: NonNullable<Program['outsideRules']>
-  courses: { identifier?: string; name: string; credits: number; group?: string; matchName?: boolean }[]
+  /** 以學程科目數為門檻時的科目數（如半導體學程 11） */
+  subjects?: number
+  /** 有些學程的科目對照表只列課號（如半導體學程），以課號比對 */
+  courses: { identifier?: string; code?: string; name: string; credits: number; group?: string; matchName?: boolean }[]
 }
 
 type CreditProgramData = { updated: string; programs: CreditProgram[] }
@@ -37,17 +40,17 @@ export function loadPrograms(): Promise<CreditProgram[]> {
 const planFamily = (code: string) => code.slice(0, 4)
 
 /**
- * 有識別碼的課只以識別碼比對（同名課很多，避免誤判）；
+ * 有識別碼或課號的課只以它們比對（同名課很多，避免誤判）；
  * 清單只有課名、或標明課名具辨識度（matchName）時才以課名比對。
  */
 function toRequired(c: CreditProgram['courses'][number]): RequiredCourse {
   return {
-    code: '',
+    code: c.code ?? '',
     identifier: c.identifier ?? '',
     name: c.name,
     credits: c.credits,
     ...(c.group ? { group: c.group } : {}),
-    scope: c.identifier && !c.matchName ? '限本系課程' : '不限本院(系)課程',
+    scope: (c.identifier || c.code) && !c.matchName ? '限本系課程' : '不限本院(系)課程',
   }
 }
 
@@ -64,12 +67,13 @@ function derive(p: CreditProgram, program: Program): Program {
     requiredGroups: p.groups,
     groupRules: p.groupRules,
     outsideRules: p.outsideRules,
+    courseTarget: p.subjects,
     source: { year: '學程', deptCode: p.code, kind: '學程' },
   }
 }
 
 const derivedFields = (p: Program) =>
-  JSON.stringify([p.name, p.requirements, p.requiredCourses, p.requiredNote, p.requiredGroups, p.groupRules, p.outsideRules])
+  JSON.stringify([p.name, p.requirements, p.requiredCourses, p.requiredNote, p.requiredGroups, p.groupRules, p.outsideRules, p.courseTarget])
 
 /**
  * 學程資料是選的當下複製進瀏覽器的；資料更新後，已選過的學程換成新的清單與門檻。
@@ -149,7 +153,9 @@ export function CreditProgramPicker({ program, onChange }: Props) {
       {selected && (
         <div className="source-summary">
           <div className="source-stats">
-            <span><b>{selected.total ?? '—'}</b>應修學分</span>
+            {selected.subjects !== undefined
+              ? <span><b>{selected.subjects}</b>應修科目</span>
+              : <span><b>{selected.total ?? '—'}</b>應修學分</span>}
             <span><b>{selected.courses.length || '—'}</b>清單課程</span>
             <Info text="學程學分是否計入主修畢業學分由主系認定，這裡不會從主修扣除" />
           </div>
@@ -158,7 +164,7 @@ export function CreditProgramPicker({ program, onChange }: Props) {
           {selected.courses.length === 0 && (
             <div className="warn-text small">這個學程的課程清單還沒整理，目前只能看規定與總學分。</div>
           )}
-          {selected.total === null && (
+          {selected.total === null && selected.subjects === undefined && (
             <label className="field">
               <span className="field-label">應修學分（規定未寫明，請自行填）</span>
               <input

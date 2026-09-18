@@ -1,7 +1,7 @@
 import { CATEGORIES, type Category, type Course, type Program } from './types.js'
 import { freshmanKind, isCommCourse } from './classify.js'
 import { coveredDomains, domainsOf } from './genEd.js'
-import { groupResults, requiredKey, unmetGroupRules, unmetOutsideRules, type GroupResult } from './courses.js'
+import { coveredGroups, groupResults, requiredKey, requiredProgress, unmetGroupRules, unmetOutsideRules, type GroupResult } from './courses.js'
 
 export type Tally = Record<Category, number>
 
@@ -29,6 +29,8 @@ export type Evaluation = {
   }
   totalTaken: number
   totalCounted: number
+  /** 以學程科目數為門檻的學程：已修到幾個科目（一門課只算一科、一個科目只算一門） */
+  subjects?: { count: number; target: number }
   /** 主修的通識指定領域：指定哪些、已修到哪些、需要幾個（沒有資料時不判斷） */
   genEd?: { designated: string[]; covered: string[]; need: number }
   gaps: {
@@ -141,9 +143,16 @@ export function evaluate(courses: Course[], program: Program, others: Program[] 
     need: chinese >= 6 ? 2 : 3,
   }
 
+  const subjects = program.courseTarget === undefined ? undefined : {
+    count: coveredGroups(requiredProgress(courses, program).items, program, (program.requiredGroups ?? []).map((g) => g.name)),
+    target: program.courseTarget,
+  }
+  const subjectGap = subjects ? Math.max(0, subjects.target - subjects.count) : 0
+
   return {
     taken,
     ...(genEdResult ? { genEd: genEdResult } : {}),
+    ...(subjects ? { subjects } : {}),
     counted: {
       major, electiveInMajor, elective, common,
       electiveOutside: Math.max(0, elective - Math.min(electiveInMajor, elective)),
@@ -158,6 +167,7 @@ export function evaluate(courses: Course[], program: Program, others: Program[] 
       common: gap(common, req.common),
       total: gap(totalCounted, req.total),
       groups: [
+        ...(subjectGap > 0 ? [`學程科目（還差 ${subjectGap} 科）`] : []),
         ...groups.filter((g) => g.unmet).map((g) => g.name),
         ...unmetGroupRules(courses, program, groups),
         ...unmetOutsideRules(courses, program, others),

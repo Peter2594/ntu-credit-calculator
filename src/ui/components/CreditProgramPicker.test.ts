@@ -46,4 +46,11 @@ describe('refreshCreditPrograms', () => {
     const renamed = [{ ...data[0]!, name: '編造學程（新名稱）' }]
     expect(refreshCreditPrograms([saved], renamed)![0]!.planUnconfirmed).toBeUndefined()
   })
+
+  it('只有課號的課程以課號比對，並帶入學程科目數門檻', () => {
+    const bySubject = [{ ...data[0]!, total: null, subjects: 11, courses: [{ code: 'EE2022', name: '電子學(一)', credits: 4, group: '甲' }] }]
+    const [p] = refreshCreditPrograms([saved], bySubject)!
+    expect(p!.requiredCourses![0]).toMatchObject({ code: 'EE2022', identifier: '', scope: '限本系課程' })
+    expect(p!.courseTarget).toBe(11)
+  })
 })
