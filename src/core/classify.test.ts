@@ -235,3 +235,10 @@ describe('classify：溝通表達課程、系上自開的新生專題、全年�
     expect(classify(half, { ...program, creditRules: { halfYearCounts: true } }, { halfYear: true })).toBe('限本系選修')
   })
 })
+
+describe('classify：體育課不會被當成通識', () => {
+  it('專項體育的班次（如 A1）被讀成通識領域時，仍歸為體育', () => {
+    expect(classify(course({ code: 'PE2001', identifier: 'H02 10200', genEdDomain: 'A1', name: '專項體育：羽球' }), program)).toBe('體育')
+    expect(classify(course({ identifier: 'H02 10200', genEdDomain: 'A2', name: '專項體育：籃球' }), program)).toBe('體育')
+  })
+})
