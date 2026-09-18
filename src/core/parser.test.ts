@@ -168,3 +168,24 @@ describe('parseGradeRows：手機版頁面只有學期、領域、課名、成�
     expect(parseGradeRows(SYNTHETIC_TRANSCRIPT)).toEqual([])
   })
 })
+
+describe('parseTranscript：瀏覽器複製時夾帶的特殊字元與課號寫法', () => {
+  const row = (identifier: string, code = 'MAJ1001') =>
+    ['113-1', code, identifier, '3', '編造課', 'A', '❮'].join('\n')
+
+  it('識別碼中間是零寬空白、窄空白、en space 時也認得', () => {
+    for (const sep of ['\u200b', '\u2002', '\u2009', '\u202f', '\u00a0 ']) {
+      const [c] = parseTranscript(row(`900${sep}10100`))
+      expect(c?.identifier?.replace(/\s+/g, ' ')).toBe('900 10100')
+    }
+  })
+
+  it('課號含 & 也讀得到（如 MD&PH5011）', () => {
+    expect(parseTranscript(row('405 51400', 'MD&PH5011'))[0]?.code).toBe('MD&PH5011')
+  })
+
+  it('跨領域通識的寫法（A58* 表示 A5、A8）', () => {
+    const text = ['114-1', 'GE1001', '207 10100', '12', 'A58*', '3', '編造通識', 'A+', '❮'].join('\n')
+    expect(parseTranscript(text)[0]).toMatchObject({ genEdDomain: 'A58*', credits: 3 })
+  })
+})

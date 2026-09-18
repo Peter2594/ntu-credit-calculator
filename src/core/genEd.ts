@@ -53,3 +53,30 @@ const TABLE = new Map(BY_DEPT.flatMap(([codes, domains]) => codes.map((code) => 
 export function designatedDomains(deptCode: string): string[] | undefined {
   return TABLE.get(deptCode.slice(0, 4))
 }
+
+/** 成績單的通識領域欄：跨領域課程寫成 A58*（A5 與 A8），星號表示經認可為通識的專業課 */
+export function domainsOf(genEdDomain: string): string[] {
+  return [...genEdDomain.replace('*', '').replace(/^A/, '')].map((d) => `A${d}`)
+}
+
+/**
+ * 修過的通識最多能涵蓋哪些指定領域。跨領域課程得擇一計入（通識注意事項第 2 點），
+ * 一門課只算一個領域，所以用二分圖最大配對挑。回傳依指定領域的順序排列。
+ */
+export function coveredDomains(courseDomains: string[][], designated: string[]): string[] {
+  const options = courseDomains.map((ds) => ds.filter((d) => designated.includes(d)))
+  const owner = new Map<string, number>()
+  const assign = (course: number, seen: Set<string>): boolean =>
+    options[course]!.some((d) => {
+      if (seen.has(d)) return false
+      seen.add(d)
+      const current = owner.get(d)
+      if (current === undefined || assign(current, seen)) {
+        owner.set(d, course)
+        return true
+      }
+      return false
+    })
+  options.forEach((_, i) => assign(i, new Set()))
+  return designated.filter((d) => owner.has(d))
+}

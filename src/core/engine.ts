@@ -1,5 +1,6 @@
 import { CATEGORIES, type Category, type Course, type Program } from './types.js'
 import { freshmanKind, isCommCourse } from './classify.js'
+import { coveredDomains, domainsOf } from './genEd.js'
 import { groupResults, requiredKey, unmetGroupRules, unmetOutsideRules, type GroupResult } from './courses.js'
 
 export type Tally = Record<Category, number>
@@ -95,8 +96,9 @@ export function evaluate(courses: Course[], program: Program, others: Program[] 
   const pairExcess = chinese + genEd - chineseGenEd
   const chineseToElective = rules.chineseOverflowToElective ? overflow(taken['國文'], req.chinese) + pairExcess : 0
   // 系上排除的領域（如戲劇系 A1–A3）超修不採計為選修，最多只能從其他領域的通識學分溢出
+  // 跨領域課程可擇一計入，只有所有領域都被排除時才算排除
   const excludedCredits = genEdCourses
-    .filter((c) => c.genEdDomain && rules.genEdOverflowExcludedDomains?.includes(c.genEdDomain.replace('*', '')))
+    .filter((c) => c.genEdDomain && domainsOf(c.genEdDomain).every((d) => rules.genEdOverflowExcludedDomains?.includes(d)))
     .reduce((s, c) => s + c.credits, 0)
   const genEdToElective = rules.genEdOverflowToElective
     ? Math.min(
@@ -133,13 +135,11 @@ export function evaluate(courses: Course[], program: Program, others: Program[] 
 
   // 通識指定領域：大一國文修滿 6 學分者為 2 個，否則 3 個；跨領域課程得擇一計入，星號課也算該領域
   const designated = isMain ? rules.genEdDomains : undefined
-  const genEdResult = designated && (() => {
-    const covered = new Set(courses
-      .filter((c) => c.genEdDomain && c.assignments.some((a) => a.programId === program.id && a.category === '通識'))
-      .map((c) => c.genEdDomain!.replace('*', ''))
-      .filter((d) => designated.includes(d)))
-    return { designated, covered: designated.filter((d) => covered.has(d)), need: chinese >= 6 ? 2 : 3 }
-  })()
+  const genEdResult = designated && {
+    designated,
+    covered: coveredDomains(genEdCourses.flatMap((c) => (c.genEdDomain ? [domainsOf(c.genEdDomain)] : [])), designated),
+    need: chinese >= 6 ? 2 : 3,
+  }
 
   return {
     taken,

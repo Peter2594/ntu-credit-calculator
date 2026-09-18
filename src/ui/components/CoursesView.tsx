@@ -24,6 +24,7 @@ export function CoursesView({ state, actions, goTo }: Props) {
   const [usingSample, setUsingSample] = useState(false)
   const [gradeRows, setGradeRows] = useState<GradeRow[]>([])
   const [gradesUpdated, setGradesUpdated] = useState<number | null>(null)
+  const [desktopUnreadable, setDesktopUnreadable] = useState(false)
   const [limit, setLimit] = useState(FIRST_PAINT)
   useEffect(() => {
     startTransition(() => setLimit(Infinity))
@@ -32,7 +33,10 @@ export function CoursesView({ state, actions, goTo }: Props) {
   const parse = (text: string) => {
     const courses = parseTranscript(text)
     setPreview(courses)
-    setGradeRows(courses.length === 0 ? parseGradeRows(text) : [])
+    // 有「課程識別碼」欄位標題表示是電腦版頁面，讀不到課是格式問題，不是手機版
+    const desktop = text.includes('課程識別碼')
+    setGradeRows(courses.length === 0 && !desktop ? parseGradeRows(text) : [])
+    setDesktopUnreadable(courses.length === 0 && desktop)
     setJustImported(null)
     setGradesUpdated(null)
   }
@@ -109,8 +113,13 @@ export function CoursesView({ state, actions, goTo }: Props) {
         )}
         {preview && preview.length === 0 && gradeRows.length === 0 && gradesUpdated === null && (
           <p className="notice warn">
-            沒有解析出任何課程。工具要靠「課程識別碼」（例如 705 10300）判斷開課單位，只有課號無法分類。
-            教務處的成績紀錄 PDF 沒有這一欄，請改用 myNTU「歷年成績」頁整頁複製（手機請先切換成電腦版網站）。
+            {desktopUnreadable ? (
+              <>看起來是電腦版的歷年成績，但讀不到任何一門課的課程識別碼。請確認是用 Ctrl+A 整頁全選後複製；
+              若還是不行，請回報你使用的瀏覽器，方便修正。</>
+            ) : (
+              <>沒有解析出任何課程。工具要靠「課程識別碼」（例如 705 10300）判斷開課單位，只有課號無法分類。
+              教務處的成績紀錄 PDF 沒有這一欄，請改用 myNTU「歷年成績」頁整頁複製（手機請先切換成電腦版網站）。</>
+            )}
           </p>
         )}
         {gradeMatch && gradesUpdated === null && (

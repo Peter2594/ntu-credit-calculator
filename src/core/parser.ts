@@ -8,10 +8,12 @@ const SEMESTER = /^\d{3}-[1-4]$/
  * 無空格的寫法是一個字元接五位數字（705E22200），英語授課則是 E 接含數字的五碼（943EU0300、B01E101B1）；
  * 單位代碼必含數字，SPORT1001 這類課號才不會被誤認。
  */
-const IDENTIFIER = /^(?=[0-9A-Z]{0,2}\d)[0-9A-Z]{3}(?:\s[0-9A-Z]{5}|[0-9A-Z]\d{5}|E(?=[0-9A-Z]{0,4}\d)[0-9A-Z]{5})$/
+const IDENTIFIER = /^(?=[0-9A-Z]{0,2}\d)[0-9A-Z]{3}(?:\s?[0-9A-Z]{5}|[0-9A-Z]\d{5}|E(?=[0-9A-Z]{0,4}\d)[0-9A-Z]{5})$/
+/** 拿掉零寬字元後「705 10300」可能變成「70510300」，補回空白 */
+const tidyIdentifier = (s: string) => (/^[0-9A-Z]{8}$/.test(s) ? `${s.slice(0, 3)} ${s.slice(3)}` : s)
 const UNIT_CODE = /^(?=[0-9A-Z]{0,2}\d)[0-9A-Z]{3}$/
 const IDENTIFIER_TAIL = /^[0-9A-Z]{5}$/
-const COURSE_CODE = /^[A-Za-z]{2,}\s*\d[\w]*$/
+const COURSE_CODE = /^[A-Za-z&]{2,}\s*\d[\w]*$/
 const GEN_ED_DOMAIN = /^A\d+\*?$/
 const CREDITS = /^\d+(?:\.\d+)?$/
 /** 班次，如 01、H3 */
@@ -32,8 +34,19 @@ const MAX_SPAN = 12
  * 通識領域（皆可省略），接著是課名，直到成績為止。
  * 兩種切法（逐行、逐詞）都試，取解析出較多課程的結果。
  */
+/**
+ * 瀏覽器複製網頁表格時常夾帶看不見的字元：不斷行空白、窄空白、全形空白換成一般空白，
+ * 零寬字元直接拿掉，否則識別碼「705 10300」中間的空白認不出來，整份會解析不到任何課。
+ */
+export function normalizeSpaces(raw: string): string {
+  return raw
+    .replace(/\r/g, '')
+    .replace(/[\u200b-\u200d\u2060\ufeff]/g, '')
+    .replace(/[\u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]/g, ' ')
+}
+
 export function parseTranscript(raw: string): ParsedCourse[] {
-  const text = raw.replace(/\r/g, '').replace(/[ 　]/g, ' ')
+  const text = normalizeSpaces(raw)
 
   const fields = text
     .split(/[\n\t❮]/)
@@ -110,7 +123,7 @@ function readCourse(tokens: string[], at: number, semester: string) {
       course: {
         semester,
         ...(code ? { code } : {}),
-        identifier: tokens[at]!,
+        identifier: tidyIdentifier(tokens[at]!),
         credits: Number(credits),
         name: tokens.slice(cursor, g).join(' '),
         grade: t,
@@ -129,7 +142,7 @@ export type GradeRow = { semester: string; name: string; grade: string; genEdDom
  * 內容含課程識別碼時代表是完整格式，回傳空陣列。
  */
 export function parseGradeRows(raw: string): GradeRow[] {
-  const text = raw.replace(/\r/g, '').replace(/[\u00a0\u3000]/g, ' ')
+  const text = normalizeSpaces(raw)
   const records = text.split('❮').map((r) =>
     r.split(/[\n\t]/).map((f) => f.trim().replace(/\s+/g, ' ')).filter(Boolean),
   )

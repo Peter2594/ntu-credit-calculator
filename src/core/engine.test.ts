@@ -605,3 +605,34 @@ describe('溝通表達課程充抵通識與特定領域通識不採計為選修'
     expect(evaluate([gen(18, 'A1'), c('國文', 3)], p).counted.elective).toBe(0)
   })
 })
+
+describe('通識指定領域：跨領域課程擇一計入', () => {
+  const p: Program = {
+    id: 'p1', kind: '主修', name: '編造學系', deptPrefix: '900',
+    requirements: { chinese: 6, genEd: 15, chineseGenEd: 18 },
+    creditRules: { genEdDomains: ['A1', 'A4', 'A5', 'A8'] },
+  }
+  // 資管系指定 A1–A4、A7、A8，沒有 A5
+  const im = { ...p, creditRules: { genEdDomains: ['A1', 'A2', 'A3', 'A4', 'A7', 'A8'] } }
+  const gen = (domain: string): Course => ({
+    id: Math.random().toString(36).slice(2), name: '編造', credits: 3, semester: '114-1', grade: 'A',
+    assignments: [{ programId: 'p1', category: '通識' }], overridden: false, genEdDomain: domain,
+  })
+
+  it('A58* 可以算成 A8，湊滿 3 個指定領域', () => {
+    const r = evaluate([gen('A1'), gen('A4'), gen('A58*')], im)
+    expect(r.genEd?.covered).toEqual(['A1', 'A4', 'A8'])
+    expect(r.gaps.genEdDomains).toBe(0)
+  })
+
+  it('跨領域的課只能算一個領域', () => {
+    const r = evaluate([gen('A58*'), gen('A1')], p)
+    expect(r.genEd?.covered.length).toBe(2)
+    expect(r.gaps.genEdDomains).toBe(1)
+  })
+
+  it('兩門跨領域課會分到不同領域', () => {
+    const r = evaluate([gen('A58*'), gen('A5'), gen('A1')], p)
+    expect(r.genEd?.covered).toEqual(['A1', 'A5', 'A8'])
+  })
+})

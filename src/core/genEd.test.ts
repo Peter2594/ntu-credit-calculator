@@ -13,3 +13,12 @@ describe('designatedDomains：各院系指定通識領域', () => {
     expect(designatedDomains('H060')).toBeUndefined()
   })
 })
+
+describe('domainsOf：跨領域通識', () => {
+  it('A58* 表示 A5 與 A8，星號與單一領域照常', async () => {
+    const { domainsOf } = await import('./genEd.js')
+    expect(domainsOf('A58*')).toEqual(['A5', 'A8'])
+    expect(domainsOf('A1')).toEqual(['A1'])
+    expect(domainsOf('A6*')).toEqual(['A6'])
+  })
+})
