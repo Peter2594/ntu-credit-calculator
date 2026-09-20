@@ -39,24 +39,23 @@ export function StatTile({ label, tone, value, required, delta, info, open, onTo
   const Wrapper = onToggle ? 'button' : 'div'
   return (
     <Wrapper
-      className={`tile tone-${tone}${onToggle ? ' clickable' : ''}${open ? ' open' : ''}`}
+      className={`tile tone-${tone}${gap > 0 ? ' short' : ''}${onToggle ? ' clickable' : ''}${open ? ' open' : ''}`}
       {...(onToggle ? { type: 'button' as const, onClick: onToggle, 'aria-expanded': !!open } : {})}
     >
       <div className="tile-head">
         <span className="tile-label">
-          <span className="dot" />
           {label}
           {info && <Info text={info} />}
           {onToggle && <span className="tile-caret" aria-hidden="true">{open ? '▾' : '▸'}</span>}
         </span>
-        {hasTarget && (gap === 0
-          ? <span className="badge ok">達標</span>
-          : <span className="badge gap">差 {gap}</span>)}
       </div>
       <div className="tile-value">
         <strong>{value}</strong>
         {hasTarget && <span className="of">/ {required}</span>}
         <Delta value={delta} />
+        {hasTarget && (gap === 0
+          ? <span className="badge ok">達標</span>
+          : <span className="badge gap">差 {gap}</span>)}
       </div>
       <div
         className={hasTarget ? 'bar' : 'bar no-target'}
@@ -186,7 +185,11 @@ export function ProgramProgress({ program, result, baseline, courses }: {
       { label: '體育', gap: result.pe.gap },
     ] : []),
   ].filter((g) => g.gap > 0)
-  const chips = [...gaps.map((g) => `${g.label} −${g.gap}`), ...unmetGroups.map((name) => `${name}未達標`)]
+  // 各類別的缺口在下方每個方塊都會標，這裡只放沒有專屬方塊的規定（模組、指定領域）
+  const chips = [
+    ...(program.kind === '學程' ? gaps.map((g) => `${g.label} −${g.gap}`) : []),
+    ...unmetGroups.map((name) => `${name}未達標`),
+  ]
 
   return (
     <div className="stack">
