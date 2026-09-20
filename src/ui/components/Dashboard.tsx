@@ -89,7 +89,7 @@ export function Dashboard({ state, actions, goTo }: Props) {
                 {ownGenEd} 門本系開的通識課可能不採計通識，請確認 →
               </button>
             )}
-            <ProgramProgress program={p} result={results.get(p.id)!} />
+            <ProgramProgress program={p} result={results.get(p.id)!} courses={counted} />
             <RequiredList program={p} courses={courses} actions={actions} pickGap={results.get(p.id)?.gaps.total} unmetGroups={results.get(p.id)?.gaps.groups} />
           </article>
         )

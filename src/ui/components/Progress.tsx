@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import type { Evaluation } from '../../core/engine'
-import type { Program } from '../../core/types'
+import type { Category, Course, Program } from '../../core/types'
+import { isPlanned } from '../constants'
 
 export type Tone = 'major' | 'in' | 'out' | 'elective' | 'common' | 'pe'
 
@@ -24,20 +26,28 @@ type TileProps = {
   required?: number
   delta?: number
   info?: string
+  /** 有課程清單時整塊可以點開，看看哪些課被歸到這一類 */
+  open?: boolean
+  onToggle?(): void
 }
 
-export function StatTile({ label, tone, value, required, delta, info }: TileProps) {
+export function StatTile({ label, tone, value, required, delta, info, open, onToggle }: TileProps) {
   const hasTarget = required !== undefined && required > 0
   const pct = hasTarget ? Math.min(100, (value / required) * 100) : 0
   const gap = hasTarget ? Math.max(0, required - value) : 0
 
+  const Wrapper = onToggle ? 'button' : 'div'
   return (
-    <div className={`tile tone-${tone}`}>
+    <Wrapper
+      className={`tile tone-${tone}${onToggle ? ' clickable' : ''}${open ? ' open' : ''}`}
+      {...(onToggle ? { type: 'button' as const, onClick: onToggle, 'aria-expanded': !!open } : {})}
+    >
       <div className="tile-head">
         <span className="tile-label">
           <span className="dot" />
           {label}
           {info && <Info text={info} />}
+          {onToggle && <span className="tile-caret" aria-hidden="true">{open ? '▾' : '▸'}</span>}
         </span>
         {hasTarget && (gap === 0
           ? <span className="badge ok">達標</span>
@@ -60,6 +70,50 @@ export function StatTile({ label, tone, value, required, delta, info }: TileProp
       >
         {hasTarget && <div className="bar-fill" style={{ width: `${pct}%` }} />}
       </div>
+    </Wrapper>
+  )
+}
+
+/** 點開方塊後列出被歸到這一類的課，讓使用者確認分類對不對 */
+function CourseBreakdown({ label, courses, programId, categories }: {
+  label: string
+  courses: Course[]
+  programId: string
+  categories: Category[]
+}) {
+  const rows = courses
+    .filter((c) => c.assignments.some((a) => a.programId === programId && categories.includes(a.category)))
+    .sort((a, b) => a.semester.localeCompare(b.semester) || a.name.localeCompare(b.name))
+  const credits = rows.reduce((s, c) => s + c.credits, 0)
+
+  return (
+    <div className="breakdown card stack-xs">
+      <div className="row between wrap">
+        <strong>{label}</strong>
+        <span className="muted small">{rows.length} 門 · {credits} 學分</span>
+      </div>
+      {rows.length === 0 ? (
+        <p className="muted small">沒有課程歸在這一類。</p>
+      ) : (
+        <div className="table-wrap">
+          <table className="table compact">
+            <thead>
+              <tr><th>學期</th><th>課名</th><th className="num">學分</th><th>分類</th><th>成績</th></tr>
+            </thead>
+            <tbody>
+              {rows.map((c) => (
+                <tr key={c.id}>
+                  <td>{c.semester}</td>
+                  <td>{c.name}</td>
+                  <td className="num">{c.credits}</td>
+                  <td>{c.assignments.find((a) => a.programId === programId)?.category}</td>
+                  <td>{isPlanned(c) ? '計畫中' : c.grade}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }
@@ -85,11 +139,23 @@ function Ring({ value, total }: { value: number; total?: number }) {
 }
 
 /** 一個學程的完整進度，儀表板與試算共用。 */
-export function ProgramProgress({ program, result, baseline }: {
+export function ProgramProgress({ program, result, baseline, courses }: {
   program: Program
   result: Evaluation
   baseline?: Evaluation
+  /** 有給課程時，方塊可以點開看哪些課被歸到那一類 */
+  courses?: Course[]
 }) {
+  const [openTile, setOpenTile] = useState<string | null>(null)
+  const breakdown = (label: string, categories: Category[]) => courses && {
+    open: openTile === label,
+    onToggle: () => setOpenTile((x) => (x === label ? null : label)),
+    categories,
+  }
+  const panel = (label: string, categories: Category[]) =>
+    courses && openTile === label
+      ? <CourseBreakdown label={label} courses={courses} programId={program.id} categories={categories} />
+      : null
   const req = program.requirements
   const d = (pick: (e: Evaluation) => number) => (baseline ? pick(result) - pick(baseline) : undefined)
   const lost = result.totalTaken - result.totalCounted
@@ -108,6 +174,9 @@ export function ProgramProgress({ program, result, baseline }: {
     : undefined
 
   const isMain = program.kind === '主修'
+  // 停修、不及格、服務學習、全年課只修半年等被排除的課，讓使用者也能確認
+  const excluded = (courses ?? []).filter((c) =>
+    c.assignments.some((a) => a.programId === program.id && a.category === '不計入')).length
   const gaps = [
     { label: '系訂必修', gap: result.gaps.major },
     ...(isMain ? [
@@ -151,9 +220,13 @@ export function ProgramProgress({ program, result, baseline }: {
       </div>
 
       {program.kind === '學程' ? null : !isMain ? (
+        <>
         <div className="tiles">
           {req.major !== undefined && (
-            <StatTile tone="major" label="系訂必修" value={result.counted.major} required={req.major} delta={d((e) => e.counted.major)} />
+            <StatTile
+              tone="major" label="系訂必修" value={result.counted.major} required={req.major}
+              delta={d((e) => e.counted.major)} {...breakdown('系訂必修', ['系訂必修'])}
+            />
           )}
           <StatTile
             tone="in" label="選修課程"
@@ -162,23 +235,36 @@ export function ProgramProgress({ program, result, baseline }: {
             info={program.kind === '輔系'
               ? '該系開的課；依學期先後分給輔系，湊滿門檻後其餘仍算主修選修'
               : '該系開的非必修課，含指定選修'}
+            {...breakdown('選修課程', ['限本系選修'])}
           />
         </div>
+        {panel('系訂必修', ['系訂必修'])}
+        {panel('選修課程', ['限本系選修'])}
+        </>
       ) : (
+      <>
       <div className="tiles">
-        <StatTile tone="major" label="系訂必修" value={result.counted.major} required={req.major} delta={d((e) => e.counted.major)} />
-        <StatTile tone="elective" label="選修合計" value={result.counted.elective} required={req.elective} delta={d((e) => e.counted.elective)} />
+        <StatTile
+          tone="major" label="系訂必修" value={result.counted.major} required={req.major}
+          delta={d((e) => e.counted.major)} {...breakdown('系訂必修', ['系訂必修'])}
+        />
+        <StatTile
+          tone="elective" label="選修合計" value={result.counted.elective} required={req.elective}
+          delta={d((e) => e.counted.elective)} {...breakdown('選修合計', ['限本系選修', '一般選修'])}
+        />
         <StatTile
           tone="in" label="系內選修"
           value={result.counted.electiveInMajor} required={req.electiveInMajor}
           delta={d((e) => e.counted.electiveInMajor)}
           info="選修中至少要有這麼多學分是本系（含研究所）開的課"
+          {...breakdown('系內選修', ['限本系選修'])}
         />
         <StatTile
           tone="out" label="系外選修"
           value={result.counted.electiveOutside}
           delta={d((e) => e.counted.electiveOutside)}
           info={`${outsideCap !== undefined ? `最多採計 ${outsideCap} 學分。` : ''}含必修抵免餘數與外文超修`}
+          {...breakdown('系外選修', ['一般選修'])}
         />
         <StatTile
           tone="common" label="共同＋通識"
@@ -189,14 +275,29 @@ export function ProgramProgress({ program, result, baseline }: {
             result.genEd && `通識須修系上指定領域 ${result.genEd.designated.join('、')} 中的 ${result.genEd.need} 個（大一國文 6 學分者 2 個），目前已修 ${result.genEd.covered.length ? result.genEd.covered.join('、') : '0 個'}。國際學生不受指定領域限制`,
             '溝通表達與職涯發展課程（原基本能力課程）依課程網 108–115 學年開課清單辨認，至多充抵通識 6 學分，超出的計入選修',
           ].filter(Boolean).join('。')}
+          {...breakdown('共同＋通識', ['國文', '外文', '通識'])}
         />
         <StatTile
           tone="pe" label="體育"
           value={result.pe.taken} required={req.pe}
           delta={d((e) => e.pe.taken)}
           info="必修但不計入畢業總學分"
+          {...breakdown('體育', ['體育'])}
         />
       </div>
+      {panel('系訂必修', ['系訂必修'])}
+      {panel('選修合計', ['限本系選修', '一般選修'])}
+      {panel('系內選修', ['限本系選修'])}
+      {panel('系外選修', ['一般選修'])}
+      {panel('共同＋通識', ['國文', '外文', '通識'])}
+      {panel('體育', ['體育'])}
+      {excluded > 0 && (
+        <button className="link small" onClick={() => setOpenTile((x) => (x === '不計入' ? null : '不計入'))}>
+          {openTile === '不計入' ? '收起' : `查看不計入的 ${excluded} 門課`}
+        </button>
+      )}
+      {panel('不計入', ['不計入'])}
+      </>
       )}
     </div>
   )

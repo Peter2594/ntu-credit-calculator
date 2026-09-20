@@ -280,6 +280,12 @@ fieldset { border: 0; margin: 0; padding: 0; }
 .tile-value { display: flex; align-items: baseline; gap: 4px; font-variant-numeric: tabular-nums; }
 .tile-value strong { font-size: 1.5rem; font-weight: 800; line-height: 1.1; }
 .tile-value .of { color: var(--muted); font-size: 0.9rem; }
+/* 可點開看該類別有哪些課的方塊 */
+.tile.clickable { cursor: pointer; text-align: left; font: inherit; color: inherit; border: 1px solid transparent; }
+.tile.clickable:hover { border-color: var(--border); }
+.tile.open { border-color: var(--accent); }
+.tile-caret { color: var(--muted); font-size: 0.75rem; margin-left: 4px; }
+.breakdown { padding: 12px 14px; }
 .badge { font-size: 0.72rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .badge.ok { background: var(--accent-soft); color: var(--ok); }
 .badge.gap { background: var(--warn-bg); color: var(--warn-text); }
