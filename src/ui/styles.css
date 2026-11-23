@@ -196,7 +196,9 @@ fieldset { border: 0; margin: 0; padding: 0; }
 .btn.ghost:hover:not(:disabled) { color: var(--text); background: var(--surface-2); }
 .btn.small { font-size: 0.8rem; padding: 3px 9px; }
 .btn.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
-.danger-text, .btn.ghost.danger-text { color: var(--danger); }
+.danger-text { color: var(--danger); }
+.btn.ghost.danger-text { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 30%, transparent); }
+.btn.ghost.danger-text:hover:not(:disabled) { background: var(--clash); color: var(--danger); border-color: var(--danger); }
 .link { font: inherit; border: 0; background: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; }
 
 .segmented { display: inline-flex; background: var(--surface-2); border-radius: 999px; padding: 3px; gap: 2px; }
@@ -250,7 +252,9 @@ fieldset { border: 0; margin: 0; padding: 0; }
 .progress-detail { display: flex; flex-direction: column; gap: 12px; }
 /* 桌機：概覽靠左、分項佔滿右側，不留大片空白 */
 @media (min-width: 900px) {
-  .progress-layout { display: grid; grid-template-columns: minmax(230px, 270px) minmax(0, 1fr); align-items: start; gap: 24px; }
+  .progress-layout { display: grid; grid-template-columns: minmax(230px, 270px) minmax(0, 1fr); gap: 24px; }
+  /* 左欄比右欄矮時，概覽垂直置中，空白平均分配在上下 */
+  .progress-layout .hero-col { height: 100%; display: flex; align-items: center; }
   .progress-layout .hero { flex-direction: column; align-items: flex-start; gap: 14px; }
   .progress-layout .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

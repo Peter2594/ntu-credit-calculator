@@ -197,6 +197,7 @@ export function ProgramProgress({ program, result, baseline, courses }: {
   const hasTiles = program.kind !== '學程'
   return (
     <div className={hasTiles ? 'stack progress-layout' : 'stack'}>
+      <div className="hero-col">
       <div className="hero">
         <Ring value={subjects ? subjects.count : result.totalCounted} total={subjects ? subjects.target : req.total} />
         <div className="hero-body">
@@ -224,6 +225,7 @@ export function ProgramProgress({ program, result, baseline, courses }: {
             </div>
           )}
         </div>
+      </div>
       </div>
 
       {!hasTiles ? null : !isMain ? (
