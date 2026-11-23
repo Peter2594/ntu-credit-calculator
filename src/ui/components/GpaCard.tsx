@@ -39,7 +39,7 @@ export function GpaCard({ state }: { state: AppState }) {
         )}
       </div>
       {r.semesters.length > 1 && (
-        <div className="gpa-terms">
+        <div className="gpa-terms" aria-label="各學期 GPA">
           {r.semesters.map((s) => {
             // 刻度從 2.0 起算，差距才看得出來
             const pct = Math.max(6, (((s.ntu ?? 0) - 2) / 2.3) * 100)
