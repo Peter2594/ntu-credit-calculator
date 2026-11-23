@@ -244,6 +244,13 @@ fieldset { border: 0; margin: 0; padding: 0; }
 
 /* 總覽 */
 .hero { display: flex; align-items: center; gap: 24px; }
+.progress-detail { display: flex; flex-direction: column; gap: 12px; }
+/* 桌機：概覽靠左、分項佔滿右側，不留大片空白 */
+@media (min-width: 900px) {
+  .progress-layout { display: grid; grid-template-columns: minmax(230px, 270px) minmax(0, 1fr); align-items: start; gap: 24px; }
+  .progress-layout .hero { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .progress-layout .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 .ring { width: 128px; height: 128px; flex: none; }
 .ring-track { fill: none; stroke: var(--surface-2); stroke-width: 12; }
 .ring-fill { fill: none; stroke: var(--accent); stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 0.5s ease; }

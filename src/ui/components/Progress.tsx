@@ -191,8 +191,10 @@ export function ProgramProgress({ program, result, baseline, courses }: {
     ...unmetGroups.map((name) => `${name}未達標`),
   ]
 
+  // 有分項方塊時，桌機把概覽與分項並排，不讓右側留一大片空白
+  const hasTiles = program.kind !== '學程'
   return (
-    <div className="stack">
+    <div className={hasTiles ? 'stack progress-layout' : 'stack'}>
       <div className="hero">
         <Ring value={subjects ? subjects.count : result.totalCounted} total={subjects ? subjects.target : req.total} />
         <div className="hero-body">
@@ -222,8 +224,8 @@ export function ProgramProgress({ program, result, baseline, courses }: {
         </div>
       </div>
 
-      {program.kind === '學程' ? null : !isMain ? (
-        <>
+      {!hasTiles ? null : !isMain ? (
+        <div className="progress-detail">
         <div className="tiles">
           {req.major !== undefined && (
             <StatTile
@@ -243,9 +245,9 @@ export function ProgramProgress({ program, result, baseline, courses }: {
         </div>
         {panel('系訂必修', ['系訂必修'])}
         {panel('選修課程', ['限本系選修'])}
-        </>
+        </div>
       ) : (
-      <>
+      <div className="progress-detail">
       <div className="tiles">
         <StatTile
           tone="major" label="系訂必修" value={result.counted.major} required={req.major}
@@ -301,7 +303,7 @@ export function ProgramProgress({ program, result, baseline, courses }: {
         </button>
       )}
       {panel('不計入', ['不計入'])}
-      </>
+      </div>
       )}
     </div>
   )
