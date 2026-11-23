@@ -26,7 +26,7 @@ const FIELD_LABEL = /^(?:學年期|學期|課號|課程識別碼|識別碼|班�
 const MAX_SPAN = 12
 
 /**
- * 解析 myNTU 歷年成績複製貼上的文字。
+ * 解析教務處「成績與名次查詢」（ifsel3.aca.ntu.edu.tw/hissco，原 myNTU 歷年成績）複製貼上的文字。
  *
  * 電腦整頁複製時每個欄位一行，還夾帶表頭與每學期統計列；手機複製時常變成整列同一行，
  * 以 Tab 或空格分隔，甚至每個欄位前面帶標籤。所以不依賴行或記錄邊界：
@@ -137,7 +137,7 @@ function readCourse(tokens: string[], at: number, semester: string) {
 export type GradeRow = { semester: string; name: string; grade: string; genEdDomain?: string }
 
 /**
- * 手機版歷年成績頁只顯示學期、通識領域、課名、成績，沒有課號、識別碼、學分，
+ * 手機版成績頁只顯示學期、通識領域、課名、成績，沒有課號、識別碼、學分，
  * 無法算學分與分類，但可以拿來更新已匯入課程的成績。
  * 內容含課程識別碼時代表是完整格式，回傳空陣列。
  */

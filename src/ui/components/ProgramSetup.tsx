@@ -44,7 +44,7 @@ export function ProgramSetup({ state, actions, goTo }: Props) {
 
       {programs.length === 0 && (
         <div className="notice">
-          先新增你的主修。之後到「課程」貼上 myNTU 歷年成績，就能看到進度。
+          先新增你的主修。之後到「課程」貼上「成績與名次查詢」的成績，就能看到進度。
         </div>
       )}
 

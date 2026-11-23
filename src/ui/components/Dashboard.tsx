@@ -30,7 +30,7 @@ export function Dashboard({ state, actions, goTo }: Props) {
   if (courses.length === 0) {
     return (
       <Empty
-        text="還沒有課程資料。貼上 myNTU 的歷年成績就能看到進度。"
+        text="還沒有課程資料。貼上「成績與名次查詢」的成績就能看到進度。"
         action="匯入成績"
         onClick={() => goTo('courses')}
       />

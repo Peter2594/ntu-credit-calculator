@@ -84,16 +84,19 @@ export function CoursesView({ state, actions, goTo }: Props) {
       <div className="card stack-sm">
         <textarea
           rows={6}
-          placeholder={'myNTU「歷年成績」頁面 → Ctrl+A 全選 → Ctrl+C 複製 → 貼在這裡'}
+          placeholder={'「成績與名次查詢」頁面 → Ctrl+A 全選 → Ctrl+C 複製 → 貼在這裡'}
           value={raw}
           onChange={(e) => {
             setRaw(e.target.value)
             setUsingSample(false)
           }}
-          aria-label="歷年成績原文"
+          aria-label="成績與名次查詢原文"
         />
         <div className="row wrap">
           <button className="btn primary" disabled={!raw.trim()} onClick={() => parse(raw)}>解析</button>
+          <a className="btn ghost" href="https://ifsel3.aca.ntu.edu.tw/hissco/index.asp" target="_blank" rel="noreferrer">
+            開啟成績與名次查詢 ↗
+          </a>
           <button
             className="btn ghost"
             onClick={() => {
@@ -115,11 +118,11 @@ export function CoursesView({ state, actions, goTo }: Props) {
         {preview && preview.length === 0 && gradeRows.length === 0 && gradesUpdated === null && (
           <p className="notice warn">
             {desktopUnreadable ? (
-              <>看起來是電腦版的歷年成績，但讀不到任何一門課的課程識別碼。請確認是用 Ctrl+A 整頁全選後複製；
+              <>看起來是電腦版的成績頁面，但讀不到任何一門課的課程識別碼。請確認是用 Ctrl+A 整頁全選後複製；
               若還是不行，請回報你使用的瀏覽器，方便修正。</>
             ) : (
               <>沒有解析出任何課程。工具要靠「課程識別碼」（例如 705 10300）判斷開課單位，只有課號無法分類。
-              教務處的成績紀錄 PDF 沒有這一欄，請改用 myNTU「歷年成績」頁整頁複製（手機請先切換成電腦版網站）。</>
+              教務處的成績紀錄 PDF 沒有這一欄，請改用「成績與名次查詢」頁整頁複製（手機請先切換成電腦版網站）。</>
             )}
           </p>
         )}
