@@ -1,6 +1,7 @@
 import { CATEGORIES, type Category, type Course, type Program } from './types.js'
 import { freshmanKind, isCommCourse } from './classify.js'
 import { coveredDomains, domainsOf } from './genEd.js'
+import { ONLINE_CAP, onlineCourseOf } from './onlineCourses.js'
 import { coveredGroups, groupResults, requiredKey, requiredProgress, unmetGroupRules, unmetOutsideRules, type GroupResult } from './courses.js'
 
 export type Tally = Record<Category, number>
@@ -86,12 +87,15 @@ export function evaluate(courses: Course[], program: Program, others: Program[] 
   // 溝通表達與職涯發展課程（原基本能力課程）至多充抵通識 6 學分，超出的計入選修
   const commCredits = genEdCourses.filter((c) => !c.genEdDomain && isCommCourse(c)).reduce((s, c) => s + c.credits, 0)
   const commExcess = Math.max(0, commCredits - COMM_CAP)
-  const genEdTaken = taken['通識'] - commExcess
+  // 線上課程學分採計至多 6 學分，超出的不採計（不像溝通表達課程會溢出到選修）
+  const onlineCredits = genEdCourses.filter((c) => onlineCourseOf(c)).reduce((s, c) => s + c.credits, 0)
+  const onlineExcess = Math.max(0, onlineCredits - ONLINE_CAP)
+  const genEdTaken = taken['通識'] - commExcess - onlineExcess
   const chinese = capped(taken['國文'], req.chinese)
   const genEd = capped(genEdTaken, req.genEd)
   const foreign = capped(taken['外文'], req.foreign)
   const foreignOverflow = rules.foreignOverflowToElective === false ? 0 : overflow(taken['外文'], req.foreign)
-  const commonRaw = taken['國文'] + taken['外文'] + taken['通識']
+  const commonRaw = taken['國文'] + taken['外文'] + taken['通識'] - onlineExcess
   const chineseGenEd = capped(chinese + genEd, req.chineseGenEd)
   const common = capped(chineseGenEd + foreign, req.common)
   // 國文與通識合計超過上限的部分：學生可自選「國文 6＋通識 12」或「國文 3＋通識 15」，算成對自己有利的那一類超修

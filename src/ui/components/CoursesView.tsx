@@ -2,6 +2,7 @@ import { startTransition, useEffect, useMemo, useState } from 'react'
 import { parseGradeRows, parseTranscript, type GradeRow, type ParsedCourse } from '../../core/parser'
 import { halfYearOnly, updateGrades } from '../../core/courses'
 import { deptPrefixOf, deptPrefixesOf, isCommCourse, isOwnDeptGenEd } from '../../core/classify'
+import { onlineCourseOf } from '../../core/onlineCourses'
 import { SYNTHETIC_TRANSCRIPT } from '../../core/fixtures/transcript'
 import type { AppState } from '../../core/storage'
 import { CATEGORIES, type Category, type Course } from '../../core/types'
@@ -242,6 +243,9 @@ function CourseItem({ course, state, actions, halfYear }: { course: Course; stat
           )}
           {halfYear && main?.creditRules?.halfYearCounts === false && (
             <span className="chip warn" title="系上規定全年課程只修半年及格者不計入畢業學分；若其實是半年課，請手動改分類">全年課只修上學期</span>
+          )}
+          {onlineCourseOf(course) && (
+            <span className="chip" title="線上課程學分採計：限通識或選修、畢業前至多 6 學分，成績不計入 GPA">線上課程</span>
           )}
           {isCommCourse(course) && !course.genEdDomain && (
             <span className="chip" title="原基本能力課程，可充抵通識至多 6 學分，超出的計入選修">溝通表達課程</span>

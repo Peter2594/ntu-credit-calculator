@@ -1,5 +1,6 @@
 import { applyClassification, deptPrefixOf, deptPrefixesOf, requiredMatcher, type ClassifyContext } from './classify.js'
 import type { Category, Course, Program, RequiredCourse } from './types.js'
+import { onlineCourseOf } from './onlineCourses.js'
 import type { ParsedCourse } from './parser.js'
 
 /** 同一學期、同課號、同識別碼、同課名視為同一門課 —— 重複匯入時靠它比對。 */
@@ -63,9 +64,18 @@ export function mergeImported(
   return reclassifyAll(result, programs)
 }
 
+/** 線上課程與校內課程同名時（要點第六點不得採計）。停修、不及格的同名課不算修過。 */
+export function duplicateOnline<T extends ParsedCourse>(courses: T[]): Set<T> {
+  const takenNames = new Set(courses
+    .filter((c) => !onlineCourseOf(c) && passed(c.grade))
+    .map((c) => c.name.replace(/\s+/g, '')))
+  return new Set(courses.filter((c) => onlineCourseOf(c) && takenNames.has(c.name.replace(/\s+/g, ''))))
+}
+
 export function reclassifyAll(courses: Course[], programs: Program[]): Course[] {
   const half = halfYearOnly(courses)
-  return courses.map((c) => classifyAll(c, programs, { halfYear: half.has(c) }))
+  const duplicate = duplicateOnline(courses)
+  return courses.map((c) => classifyAll(c, programs, { halfYear: half.has(c), duplicateOnline: duplicate.has(c) }))
 }
 
 /** 使用者手動指定分類。抵免屬系辦裁量，覆寫後自動規則不再改它。 */
@@ -75,7 +85,10 @@ export function setCategory(course: Course, programId: string, category: Categor
 }
 
 export function resetCategory(course: Course, programs: Program[], all: Course[] = [course]): Course {
-  return classifyAll({ ...course, overridden: false, assignments: [] }, programs, { halfYear: halfYearOnly(all).has(course) })
+  return classifyAll({ ...course, overridden: false, assignments: [] }, programs, {
+    halfYear: halfYearOnly(all).has(course),
+    duplicateOnline: duplicateOnline(all).has(course),
+  })
 }
 
 export function removeProgram(courses: Course[], programId: string): Course[] {

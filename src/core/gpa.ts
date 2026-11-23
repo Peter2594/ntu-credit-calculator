@@ -1,4 +1,5 @@
 import type { Course } from './types.js'
+import { onlineCourseOf } from './onlineCourses.js'
 
 export type GpaScale = 'ntu' | 'us'
 
@@ -29,7 +30,8 @@ function summarize(courses: Course[]): GpaSummary {
   let us = 0
   for (const c of courses) {
     const p = gradePoint(c.grade, 'ntu')
-    if (p === null || c.credits <= 0) continue
+    // 線上採計課程的成績不計入學期 GPA，也不計入畢業 GPA（要點第五點）
+    if (p === null || c.credits <= 0 || onlineCourseOf(c)) continue
     credits += c.credits
     ntu += p * c.credits
     us += gradePoint(c.grade, 'us')! * c.credits

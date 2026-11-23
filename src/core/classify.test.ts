@@ -242,3 +242,22 @@ describe('classify：體育課不會被當成通識', () => {
     expect(classify(course({ identifier: 'H02 10200', genEdDomain: 'A2', name: '專項體育：籃球' }), program)).toBe('體育')
   })
 })
+
+describe('classify：線上課程學分採計', () => {
+  const online = (over: Partial<ParsedCourse> = {}) =>
+    course({ identifier: 'N0100600', name: '用 Python 做商管程式設計', credits: 2, grade: '通過', ...over })
+
+  it('成績單沒有通識領域欄時，依清單認定為通識', () => {
+    expect(classify(online(), program)).toBe('通識')
+  })
+
+  it('畢業學系開授的線上課程不得採計通識，依系上規定計入系內選修或不計入', () => {
+    const im = { ...program, deptPrefix: '705' }
+    expect(classify(online(), { ...im, creditRules: { ownGenEdToElective: true } })).toBe('限本系選修')
+    expect(classify(online(), { ...im, creditRules: { ownGenEdToElective: false } })).toBe('不計入')
+  })
+
+  it('入學後已修過同名課程時不得採計', () => {
+    expect(classify(online(), program, { duplicateOnline: true })).toBe('不計入')
+  })
+})

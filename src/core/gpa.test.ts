@@ -63,3 +63,19 @@ describe('computeGpa', () => {
     expect(computeGpa([c('通過', 3)], 'p1').overall.ntu).toBeNull()
   })
 })
+
+describe('computeGpa：線上課程不計入 GPA', () => {
+  const c = (name: string, grade: string, credits = 2, identifier?: string): Course => ({
+    id: name, name, credits, semester: '114-1', grade, identifier, assignments: [], overridden: false,
+  })
+
+  it('成績不列入學期與累計 GPA，但仍算實得學分', () => {
+    const normal = c('編造課', 'A')
+    const mooc = c('頑想學概率：機率', 'A+', 2, 'N0100700')
+    const r = computeGpa([normal, mooc])
+    expect(r.overall.ntu).toBe(4.0)
+    expect(r.overall.credits).toBe(2)
+    expect(r.semesters[0]!.ntu).toBe(4.0)
+    expect(r.earnedCredits).toBe(4)
+  })
+})

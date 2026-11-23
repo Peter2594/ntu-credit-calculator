@@ -672,3 +672,21 @@ describe('以學程科目數為門檻的學程（半導體學程）', () => {
     expect(e.gaps.groups).toEqual([])
   })
 })
+
+describe('線上課程採計上限 6 學分', () => {
+  const p: Program = {
+    id: 'p1', kind: '主修', name: '編造學系', deptPrefix: '900',
+    requirements: { chinese: 6, genEd: 15, chineseGenEd: 18, elective: 40 },
+  }
+  const mooc = (identifier: string, credits: number): Course => ({
+    id: identifier, name: identifier, credits, semester: '114-1', grade: '通過', identifier,
+    assignments: [{ programId: 'p1', category: '通識' }], overridden: false,
+  })
+
+  it('超過 6 學分的部分不採計，也不計入選修', () => {
+    const courses = [mooc('N0100600', 2), mooc('N0100700', 2), mooc('N0100900', 2), mooc('N0101300', 2), c('一般選修', 10)]
+    const r = evaluate(courses, p)
+    expect(r.counted.common).toBe(6)
+    expect(r.counted.elective).toBe(10)
+  })
+})

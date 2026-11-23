@@ -277,6 +277,7 @@ export function ProgramProgress({ program, result, baseline, courses }: {
             '國文、外文、通識合計。國文最多 6、通識最多 15、兩者合計最多 18',
             result.genEd && `通識須修系上指定領域 ${result.genEd.designated.join('、')} 中的 ${result.genEd.need} 個（大一國文 6 學分者 2 個），目前已修 ${result.genEd.covered.length ? result.genEd.covered.join('、') : '0 個'}。國際學生不受指定領域限制`,
             '溝通表達與職涯發展課程（原基本能力課程）依課程網 108–115 學年開課清單辨認，至多充抵通識 6 學分，超出的計入選修',
+            '線上課程學分採計至多 6 學分，超出的不採計；成績不計入 GPA，畢業學系開授者不得計通識',
           ].filter(Boolean).join('。')}
           {...breakdown('共同＋通識', ['國文', '外文', '通識'])}
         />

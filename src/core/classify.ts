@@ -1,6 +1,7 @@
 import type { Category, Course, Program, RequiredCourse } from './types.js'
 import type { ParsedCourse } from './parser.js'
 import { COMM_COURSES, FRESHMAN_COURSES } from './generalCourses.js'
+import { onlineCourseOf } from './onlineCourses.js'
 
 /** 識別碼前三碼即開課單位代碼，格式不一但位置固定。 */
 export function deptPrefixOf(identifier?: string): string {
@@ -94,16 +95,25 @@ export function isRequiredCourse(course: ParsedCourse, program: Program): boolea
  * 沒寫時工具先算通識、由介面提醒使用者確認。
  */
 export function isOwnDeptGenEd(course: ParsedCourse, program: Program): boolean {
+  const online = onlineCourseOf(course)
+  const domain = course.genEdDomain ?? online?.domain
   return program.creditRules?.ownGenEdToElective === undefined &&
-    !!course.genEdDomain && !course.genEdDomain.endsWith('*') &&
-    deptPrefixesOf(program).includes(deptPrefixOf(course.identifier))
+    !!domain && !domain.endsWith('*') &&
+    deptPrefixesOf(program).includes(online?.deptPrefix ?? deptPrefixOf(course.identifier))
 }
 
 /** 需要看整份成績單才知道的資訊，由 reclassifyAll 提供 */
-export type ClassifyContext = { halfYear?: boolean }
+export type ClassifyContext = {
+  halfYear?: boolean
+  /** 線上課程的同名課在校內已經修過，依要點第六點不得採計 */
+  duplicateOnline?: boolean
+}
 
 export function classify(course: ParsedCourse, program: Program, context: ClassifyContext = {}): Category {
-  const prefix = deptPrefixOf(course.identifier)
+  // 線上採計課程的通識領域與開課學系來自數位學習中心的清單，成績單上不一定有這兩欄
+  const online = onlineCourseOf(course)
+  const prefix = online?.deptPrefix ?? deptPrefixOf(course.identifier)
+  const genEdDomain = course.genEdDomain ?? online?.domain
   const code = course.code ?? ''
   const ownDept = deptPrefixesOf(program).includes(prefix)
 
@@ -111,16 +121,20 @@ export function classify(course: ParsedCourse, program: Program, context: Classi
   if (course.grade && FAILED.has(course.grade)) return '不計入'
   const rules = program.creditRules ?? {}
   if (context.halfYear && rules.halfYearCounts === false) return '不計入'
+  // 入學後已修過同名課程者，線上課程不得辦理採計
+  if (online && context.duplicateOnline) return '不計入'
   if (isRequiredCourse(course, program)) return '系訂必修'
   // 有星號的是「經認可為通識的專業課」，本系開授者不得採計通識，但可計入系內選修
-  if (course.genEdDomain?.endsWith('*') && ownDept) return '限本系選修'
+  if (genEdDomain?.endsWith('*') && ownDept) return '限本系選修'
   // 本系開的一般通識不得採計通識；系上寫明是否計入選修
-  if (course.genEdDomain && ownDept && rules.ownGenEdToElective !== undefined) {
+  if (genEdDomain && ownDept && rules.ownGenEdToElective !== undefined) {
     return rules.ownGenEdToElective ? '限本系選修' : '不計入'
   }
+  // 線上課程只能採計通識或選修，本系開授時不得計通識
+  if (online && ownDept) return '限本系選修'
   // 體育的班次可能是 A1、A2，會被讀成通識領域，所以先認體育
   if (prefix === '002' || code.startsWith('PE') || PE_NAME.test(course.name)) return '體育'
-  if (course.genEdDomain) return '通識'
+  if (genEdDomain) return '通識'
   // 新生專題、新生講座是否納入畢業學分由各系決定；擇一計入在 engine 處理
   const freshman = freshmanKind(course)
   if (freshman && rules.freshman) {
