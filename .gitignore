@@ -4,3 +4,4 @@ dist/
 fixtures/local/
 scripts/.cache/
 .gstack/
+.claude-flow/
