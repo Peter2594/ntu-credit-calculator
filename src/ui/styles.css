@@ -286,7 +286,6 @@ fieldset { border: 0; margin: 0; padding: 0; }
 .badge.gap { background: var(--warn-bg); color: var(--warn-text); }
 
 .bar { height: 6px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
-.bar.no-target { background: repeating-linear-gradient(90deg, var(--surface-3) 0 5px, transparent 5px 9px); }
 .bar-fill { height: 100%; background: var(--accent); border-radius: inherit; transition: width 0.4s ease; }
 .tile.short .bar-fill { background: var(--warn-border); }
 .ok { color: var(--ok); font-weight: 600; }
@@ -386,6 +385,10 @@ fieldset { border: 0; margin: 0; padding: 0; }
 }
 
 @media (max-width: 640px) {
+  /* 手機觸控區至少 44px，手指才按得準 */
+  .tab { min-height: 44px; padding: 10px 14px; }
+  .btn.small, .req-action .btn { min-height: 40px; }
+  .course-controls select, .inline-field select { min-height: 40px; }
   .grid-2, .grid-3, .grid-picker, .gpa-figures { grid-template-columns: minmax(0, 1fr); }
   .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .content { padding-top: 20px; }

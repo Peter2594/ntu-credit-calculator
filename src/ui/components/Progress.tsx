@@ -57,9 +57,10 @@ export function StatTile({ label, tone, value, required, delta, info, open, onTo
           ? <span className="badge ok">達標</span>
           : <span className="badge gap">差 {gap}</span>)}
       </div>
+      {hasTarget && (
       <div
-        className={hasTarget ? 'bar' : 'bar no-target'}
-        {...(hasTarget && {
+        className="bar"
+        {...({
           role: 'progressbar',
           'aria-label': label,
           'aria-valuemin': 0,
@@ -67,8 +68,9 @@ export function StatTile({ label, tone, value, required, delta, info, open, onTo
           'aria-valuenow': Math.min(value, required),
         })}
       >
-        {hasTarget && <div className="bar-fill" style={{ width: `${pct}%` }} />}
+        <div className="bar-fill" style={{ width: `${pct}%` }} />
       </div>
+      )}
     </Wrapper>
   )
 }
