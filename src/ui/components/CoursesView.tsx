@@ -78,7 +78,7 @@ export function CoursesView({ state, actions, goTo }: Props) {
   return (
     <section className="stack">
       <div className="section-head">
-        <h2>匯入成績</h2>
+        <h1>匯入成績</h1>
       </div>
 
       <div className="card stack-sm">

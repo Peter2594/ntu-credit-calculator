@@ -61,7 +61,7 @@ export function TrialView({ state, actions }: Props) {
   return (
     <section className="stack">
       <div className="section-head">
-        <h2>試算</h2>
+        <h1>試算</h1>
       </div>
 
       <form className="card stack-sm" onSubmit={add}>

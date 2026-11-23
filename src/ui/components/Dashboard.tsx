@@ -42,7 +42,7 @@ export function Dashboard({ state, actions, goTo }: Props) {
   return (
     <section className="stack">
       <div className="section-head row between wrap">
-        <h2>畢業進度</h2>
+        <h1>畢業進度</h1>
         {plannedCount > 0 && (
           <div className="segmented" role="group" aria-label="計算範圍">
             <button className={!includePlanned ? 'active' : ''} onClick={() => setIncludePlanned(false)}>

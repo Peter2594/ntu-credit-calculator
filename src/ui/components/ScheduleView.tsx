@@ -34,7 +34,7 @@ export function ScheduleView({ state, actions }: Props) {
   return (
     <section className="stack">
       <div className="section-head row between wrap">
-        <h2>課表</h2>
+        <h1>課表</h1>
         <label className="inline-field">
           <span className="muted">學期</span>
           <input

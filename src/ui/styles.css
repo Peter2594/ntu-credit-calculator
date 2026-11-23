@@ -61,7 +61,8 @@ body {
 }
 
 h1, h2, h3 { margin: 0; line-height: 1.3; letter-spacing: 0.01em; }
-h2 { font-size: 1.4rem; font-weight: 700; }
+h1 { font-size: 1.4rem; font-weight: 700; }
+h2 { font-size: 1.2rem; font-weight: 700; }
 h3 { font-size: 1.08rem; font-weight: 700; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
@@ -83,6 +84,8 @@ a:hover { text-decoration: underline; }
   display: flex; justify-content: space-between; align-items: center; gap: 12px;
 }
 .brand { display: flex; align-items: center; gap: 10px; }
+/* 品牌名不是標題，字級小於頁面主標題 */
+.brand-name { font-size: 1.1rem; font-weight: 800; letter-spacing: 0.01em; }
 .brand-mark {
   width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center;
   background: var(--accent); color: var(--accent-text); font-weight: 800; font-size: 0.95rem;

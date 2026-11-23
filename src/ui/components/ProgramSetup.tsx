@@ -39,7 +39,7 @@ export function ProgramSetup({ state, actions, goTo }: Props) {
   return (
     <section className="stack">
       <div className="section-head">
-        <h2>學程設定</h2>
+        <h1>學程設定</h1>
       </div>
 
       {programs.length === 0 && (

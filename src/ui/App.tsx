@@ -127,7 +127,7 @@ export function App() {
         <div className="masthead-inner">
           <div className="brand">
             <span className="brand-mark" aria-hidden="true">學</span>
-            <h1>學分計算表</h1>
+            <span className="brand-name">學分計算表</span>
           </div>
           <span className="privacy-badge" title="沒有伺服器，資料不會上傳">
             <span className="lock" aria-hidden="true">●</span> 資料只存在本機
