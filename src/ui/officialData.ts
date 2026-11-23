@@ -22,13 +22,23 @@ export type OfficialYear = { year: string; fetchedAt: string; departments: Offic
 const BASE = `${import.meta.env.BASE_URL}data/requirements`
 const cache = new Map<string, Promise<unknown>>()
 
+/** 連線不穩時重試幾次再放棄；逾時才不會一直轉圈。 */
+async function fetchJson<T>(url: string, attempt = 1): Promise<T> {
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(15000) })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return (await res.json()) as T
+  } catch (err) {
+    if (attempt >= 3) throw err
+    await new Promise((r) => setTimeout(r, 500 * attempt))
+    return fetchJson<T>(url, attempt + 1)
+  }
+}
+
 function getJson<T>(url: string): Promise<T> {
   if (!cache.has(url)) {
-    const p = fetch(url).then((r) => {
-      if (!r.ok) throw new Error(`HTTP ${r.status}`)
-      return r.json()
-    })
-    // 失敗時不留在快取，下次可以重試
+    const p = fetchJson<T>(url)
+    // 失敗時不留在快取，按重試就會重新抓
     p.catch(() => cache.delete(url))
     cache.set(url, p)
   }

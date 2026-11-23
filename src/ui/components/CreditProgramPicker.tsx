@@ -100,6 +100,7 @@ export function CreditProgramPicker({ program, onChange }: Props) {
   const [programs, setPrograms] = useState<CreditProgram[] | null>(null)
   const [updated, setUpdated] = useState('')
   const [error, setError] = useState(false)
+  const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
     loadData()
@@ -108,9 +109,18 @@ export function CreditProgramPicker({ program, onChange }: Props) {
         setUpdated(d.updated)
       })
       .catch(() => setError(true))
-  }, [])
+  }, [attempt])
 
-  if (error) return <p className="notice warn">學程資料載入失敗，請稍後再試。</p>
+  if (error) {
+    return (
+      <div className="notice warn stack-xs">
+        <div>學程資料載入失敗，可能是網路不穩。</div>
+        <div>
+          <button className="btn primary small" onClick={() => { setError(false); setAttempt((n) => n + 1) }}>重試</button>
+        </div>
+      </div>
+    )
+  }
 
   const selected = programs?.find((p) => p.code === program.source?.deptCode && program.source?.kind === '學程')
 

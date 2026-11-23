@@ -58,6 +58,11 @@ export function OfficialPicker({ program, onChange }: Props) {
   const [year, setYear] = useState(program.source?.year ?? '')
   const [data, setData] = useState<OfficialYear | null>(null)
   const [error, setError] = useState(false)
+  const [attempt, setAttempt] = useState(0)
+  const retry = () => {
+    setError(false)
+    setAttempt((n) => n + 1)
+  }
 
   useEffect(() => {
     loadYears()
@@ -66,13 +71,13 @@ export function OfficialPicker({ program, onChange }: Props) {
         setYear((y) => y || ys[0] || '')
       })
       .catch(() => setError(true))
-  }, [])
+  }, [attempt])
 
   useEffect(() => {
     if (!year) return
     setData(null)
     loadYear(year).then(setData).catch(() => setError(true))
-  }, [year])
+  }, [year, attempt])
 
   const selected = program.source?.year === year ? program.source.deptCode : ''
   // 只在下拉的年度就是帶入來源年度時才比對，避免拿到別年同代碼的系
@@ -99,7 +104,12 @@ export function OfficialPicker({ program, onChange }: Props) {
   }, [dept, program, onChange])
 
   if (error) {
-    return <p className="notice warn">官方資料載入失敗，請在下方手動填寫門檻。</p>
+    return (
+      <div className="notice warn stack-xs">
+        <div>官方資料載入失敗，可能是網路不穩。按重試再試一次，或在下方手動填寫門檻。</div>
+        <div><button className="btn primary small" onClick={retry}>重試</button></div>
+      </div>
+    )
   }
 
   const listed = program.requiredCourses?.reduce((s, c) => s + c.credits, 0) ?? 0
