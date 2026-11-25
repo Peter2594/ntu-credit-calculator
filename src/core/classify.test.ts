@@ -322,3 +322,32 @@ describe('跨校課名的後綴', () => {
     expect(classify(course({ name: '教育統計學（二）', identifier: 'TA00UE007', grade: 'A' }), minor)).toBe('一般選修')
   })
 })
+
+describe('MAGI 審查抓到的缺陷', () => {
+  it('課名後綴只拿掉師培標記，不會把分課的後綴也砍掉', () => {
+    const program: Program = {
+      id: 'p9', kind: '輔系', name: '臺師大歷史學系', deptPrefix: '', crossSchool: '臺師大',
+      requirements: { total: 24 },
+      requiredMode: 'pick',
+      requiredCourses: [
+        { code: '', identifier: '', name: '中國通史（上古）', credits: 2, scope: '不限本院(系)課程' },
+      ],
+    }
+    // 臺大那邊多出來的師培標記要忽略
+    const teaching: Program = {
+      ...program,
+      requiredCourses: [{ code: '', identifier: '', name: '教學原理', credits: 2, scope: '不限本院(系)課程' }],
+    }
+    expect(classify(course({ name: '教學原理（教）', identifier: 'TA00UE005', grade: 'A' }), teaching)).toBe('系訂必修')
+    // 中國通史的四個斷代是不同課，不能混為一談
+    expect(classify(course({ name: '中國通史（上古）', identifier: 'TA01UG001', grade: 'A' }), program)).toBe('系訂必修')
+    expect(classify(course({ name: '中國通史（中古）', identifier: 'TA01UG002', grade: 'A' }), program)).toBe('一般選修')
+    expect(classify(course({ name: '中國通史（近現代）', identifier: 'TA01UG003', grade: 'A' }), program)).toBe('一般選修')
+    // 微積分甲乙、普物上下同理
+    const calc: Program = {
+      ...program,
+      requiredCourses: [{ code: '', identifier: '', name: '微積分（甲）', credits: 3, scope: '不限本院(系)課程' }],
+    }
+    expect(classify(course({ name: '微積分（乙）', identifier: 'TA01UG004', grade: 'A' }), calc)).toBe('一般選修')
+  })
+})

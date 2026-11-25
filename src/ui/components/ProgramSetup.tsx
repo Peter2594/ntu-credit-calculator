@@ -26,7 +26,8 @@ const DETAIL_FIELDS: Field[] = [
   { key: 'chineseGenEd', label: '國文＋通識合計', hint: '例：國文 6＋通識 12 或 國文 3＋通識 15 皆為 18' },
 ]
 
-const KINDS: ProgramKind[] = ['主修', '院學士', '雙主修', '輔系', '學程']
+// 依常見程度排序：多數人只設主修，院學士與跨校都是少數
+const KINDS: ProgramKind[] = ['主修', '雙主修', '輔系', '學程', '院學士']
 
 function blankProgram(kind: ProgramKind): Program {
   return { id: newId(), kind, name: '', deptPrefix: '', requirements: {} }

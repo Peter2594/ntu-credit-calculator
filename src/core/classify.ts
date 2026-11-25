@@ -53,12 +53,14 @@ export function withGraduatePrefix(prefix: string): string {
 const squash = (s?: string) => (s ?? '').replace(/\s+/g, '').toUpperCase()
 
 /**
- * 課名比對前先正規化。臺師大的跨校課程在臺大的課名會多「（教）」之類的後綴
- * （課架表寫「教學原理」、臺大寫「教學原理（教）」），去掉才對得上；
- * 「（一）」「（二）」這種序號是不同課，要保留。
+ * 課名比對前先正規化。臺師大的跨校課程在臺大的課名會多「（教）」這個師培標記
+ * （課架表寫「教學原理」、臺大寫「教學原理（教）」），去掉才對得上。
+ *
+ * 只砍白名單內的標記：課名後綴多半是真的在分課（中國通史（上古）／（中古）、
+ * 微積分（甲）／（乙）、普通物理（上）／（下）），一律砍掉會把不同課合成一門。
  */
-const normalizeName = (name: string) =>
-  name.replace(/\s+/g, '').replace(/[（(][^0-9一二三四五六七八九十]{1,3}[）)]$/, '')
+const COURSE_NAME_TAG = /[（(](?:教|師培)[）)]$/
+const normalizeName = (name: string) => name.replace(/\s+/g, '').replace(COURSE_NAME_TAG, '')
 
 /** 這門課是否滿足某一門系訂必修。認可範圍不限本系時，他系開的同名課也算。 */
 export function matchesRequired(course: ParsedCourse, r: RequiredCourse): boolean {
@@ -120,7 +122,14 @@ export function isCrossSchool(course: ParsedCourse): boolean {
   return allianceSchoolOf(course) !== undefined
 }
 
+/** 這門課是否屬於某個跨校雙主修／輔系：看識別碼的學校代碼。 */
+export function isCrossSchoolProgramCourse(course: ParsedCourse, program: Program): boolean {
+  return program.crossSchool !== undefined && allianceSchoolOf(course) === program.crossSchool
+}
+
 export function isRequiredCourse(course: ParsedCourse, program: Program): boolean {
+  // 跨校學程的科目表只有課名，不先確認是不是該校開的，本校的同名課（統計學、經濟學）會被當成必修
+  if (program.crossSchool !== undefined && !isCrossSchoolProgramCourse(course, program)) return false
   return (program.requiredCourses ?? []).some((r) => matchesRequired(course, r))
 }
 
@@ -144,21 +153,17 @@ export type ClassifyContext = {
   duplicateOnline?: boolean
 }
 
-/** 這門課是否屬於某個跨校雙主修／輔系：看識別碼的學校代碼。 */
-export function isCrossSchoolProgramCourse(course: ParsedCourse, program: Program): boolean {
-  return program.crossSchool !== undefined && allianceSchoolOf(course) === program.crossSchool
-}
-
 export function classify(course: ParsedCourse, program: Program, context: ClassifyContext = {}): Category {
   // 線上採計課程的通識領域與開課學系來自數位學習中心的清單，成績單上不一定有這兩欄
   const online = onlineCourseOf(course)
   const prefix = online?.deptPrefix ?? deptPrefixOf(course.identifier)
   const genEdDomain = course.genEdDomain ?? online?.domain
   const code = course.code ?? ''
-  // 跨校學程有科目清單時，清單外的課不算（不然同校別系、通識都會被掃進來）；
-  // 沒有清單（臺師大課架查不到）時只能退回以學校判斷，介面會提醒使用者自行剔除。
+  // 跨校學程：清單是一份可選範圍（pick）時，清單外的課不算，不然同校別系、通識都會被掃進來；
+  // 清單只列必修、其餘由該系課程自由補足（all），或根本沒有清單時，才退回以學校判斷。
+  const crossListIsMenu = (program.requiredCourses ?? []).length > 0 && program.requiredMode !== 'all'
   const ownDept = program.crossSchool !== undefined
-    ? isCrossSchoolProgramCourse(course, program) && (program.requiredCourses ?? []).length === 0
+    ? isCrossSchoolProgramCourse(course, program) && !crossListIsMenu
     : deptPrefixesOf(program).includes(prefix)
 
   if (course.grade === WITHDRAWN) return '不計入'

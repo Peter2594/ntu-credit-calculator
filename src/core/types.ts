@@ -123,6 +123,11 @@ export type Program = {
   creditRules?: CreditRules
   /** 學分學程後來分成多個方案（組別），已選的學程被自動歸到預設方案、使用者還沒確認 */
   planUnconfirmed?: boolean
+  /**
+   * 這個學程的科目無法完整驗證的原因（如法規沒有科目表、清單只列必修）。
+   * 有值時進度不會顯示「已達標」，只說學分夠了，避免學生以為自己能畢業。
+   */
+  unverifiedSubjects?: string
   /** 門檻從官方資料帶入時記下來源，方便使用者核對。跨校雙主修、輔系的 deptCode 是「學校|學系」。 */
   source?: { year: string; deptCode: string; kind?: ProgramKind | '跨校' }
 }

@@ -195,7 +195,8 @@ const categoryOf = (course: Course, programId: string) =>
  * 多修的該系課程仍留給主修當選修。
  */
 function allocateMinors(courses: Course[], programs: Program[]): Map<string, Set<string>> {
-  const main = programs.find(isMainDegree)
+  // 主修與院學士可以同時存在，兩邊的系訂必修都不得兼充輔系（輔系辦法第六條）
+  const mains = programs.filter(isMainDegree)
   const taken = new Set<string>()
   const result = new Map<string, Set<string>>()
 
@@ -208,7 +209,7 @@ function allocateMinors(courses: Course[], programs: Program[]): Map<string, Set
     const eligible = courses
       .filter((c) => !taken.has(c.id))
       .filter((c) => counts.includes(categoryOf(c, minor.id) ?? ''))
-      .filter((c) => !main || categoryOf(c, main.id) !== '系訂必修')
+      .filter((c) => mains.every((m) => categoryOf(c, m.id) !== '系訂必修'))
       .sort((a, b) => a.semester.localeCompare(b.semester))
 
     for (const c of eligible) {

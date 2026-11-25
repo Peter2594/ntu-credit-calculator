@@ -126,8 +126,18 @@ describe('跨校輔系有科目表時只採計表上的課', () => {
     expect(classify(course({ name: '資料庫管理系統', identifier: 'TBFB36027', grade: 'A' }), listed)).toBe('系訂必修')
   })
 
-  it('同校但不在表上的課不算進這個輔系', () => {
-    expect(classify(course({ name: '機械設計', identifier: 'TBFB36028', grade: 'A' }), listed)).toBe('一般選修')
+  it('清單只列必修時（all），該校其他課仍算系內選修，用來補足應修學分', () => {
+    expect(classify(course({ name: '機械設計', identifier: 'TBFB36028', grade: 'A' }), listed)).toBe('限本系選修')
+  })
+
+  it('清單是一份可選範圍時（pick），清單外的課不算', () => {
+    const menu: Program = { ...listed, requiredMode: 'pick' }
+    expect(classify(course({ name: '機械設計', identifier: 'TBFB36028', grade: 'A' }), menu)).toBe('一般選修')
+  })
+
+  it('本校的同名課不會被算成跨校輔系的必修', () => {
+    // 臺科大的科目表只有課名，沒有識別碼；不先確認學校，本校的「資料庫管理系統」會被當成必修
+    expect(classify(course({ name: '資料庫管理系統', identifier: '705 10300', grade: 'A' }), listed)).toBe('一般選修')
   })
 
   it('沒有科目表時才退回以學校判斷', () => {

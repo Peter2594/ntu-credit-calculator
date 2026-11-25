@@ -118,7 +118,7 @@ def clean(sections):
             entry["mode"] = "all" if listed < s["total"] else "pick"
             entry["listedCredits"] = listed
         # 合計是範圍或附帶條件時留原文，介面可以照實顯示
-        if s.get("totalText") and not re.fullmatch(r"\d+(?:\.\d+)?\s*學分?", s["totalText"]):
+        if s.get("totalText") and not re.fullmatch(r"\d+(?:\.\d+)?\s*(?:學分)?", s["totalText"]):
             entry["totalText"] = s["totalText"]
         out.append(entry)
     return out

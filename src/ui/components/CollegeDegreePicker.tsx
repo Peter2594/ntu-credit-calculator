@@ -56,8 +56,15 @@ function toRequired(c: CollegeDegree['courses'][number]): RequiredCourse {
 
 /** 從院學士資料帶入的欄位。使用者自己調整的門檻數字會被覆蓋，所以只在選擇時套用。 */
 function derive(d: CollegeDegree, program: Program): Program {
+  // 換學院之後舊的抵免、模組規定都不適用；留著會套用到新清單
+  const { waivers, groupRules, outsideRules, ...rest } = program
+  const unverified = d.noCourseTable
+    ? '這個學院的應修科目由學生所屬學系認定，法規沒有固定科目表，工具只算總學分與共同必修及通識。'
+    : '領域專長與各組選修的課程由學院逐學期公告，清單只收法規明文列出的科目，認列與充抵由院學士學位審查小組決定。'
+
   return {
-    ...program,
+    ...rest,
+    unverifiedSubjects: unverified,
     name: d.name,
     deptPrefix: '',
     requirements: d.requirements,
@@ -71,7 +78,7 @@ function derive(d: CollegeDegree, program: Program): Program {
 }
 
 const derivedFields = (p: Program) =>
-  JSON.stringify([p.name, p.requiredCourses, p.requiredNote, p.requiredGroups, p.creditRules])
+  JSON.stringify([p.name, p.requiredCourses, p.requiredNote, p.requiredGroups, p.creditRules, p.unverifiedSubjects])
 
 /**
  * 院學士資料是選的當下複製進瀏覽器的；法規更新後換成新的清單與規定。

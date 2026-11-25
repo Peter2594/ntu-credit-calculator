@@ -3,7 +3,7 @@ import {
   courseKey, mergeImported, reclassifyAll, setCategory, requiredProgress, requiredKey, waiveRequired, unwaiveRequired,
   resetCategory, removeProgram, updateGrades, halfYearOnly,
 } from './courses.js'
-import type { Course, Program } from './types.js'
+import type { RequiredCourse, Course, Program } from './types.js'
 import type { ParsedCourse } from './parser.js'
 
 const p1: Program = { id: 'p1', kind: '主修', name: '甲系', deptPrefix: '900', requirements: {} }
@@ -223,5 +223,18 @@ describe('halfYearOnly：全年課只修了上學期', () => {
   it('下學期停修或不及格，上學期仍只算半年', () => {
     const upper = p('編造學上', '113-1', 'A')
     expect(halfYearOnly([upper, p('編造學下', '113-2', '停修')]).has(upper)).toBe(true)
+  })
+})
+
+describe('抵免的 key', () => {
+  const item = (name: string, code = '', identifier = ''): RequiredCourse =>
+    ({ code, identifier, name, credits: 3, scope: '不限本院(系)課程' })
+
+  it('沒有課號與識別碼時以課名區分，一次抵免不會套用到整份清單', () => {
+    expect(requiredKey(item('資料庫管理系統'))).not.toBe(requiredKey(item('系統分析與設計')))
+  })
+
+  it('有課號時沿用原本的 key，既有的抵免紀錄不會失效', () => {
+    expect(requiredKey(item('個體經濟學', 'ECON1002', '303 10200'))).toBe('ECON1002|303 10200')
   })
 })

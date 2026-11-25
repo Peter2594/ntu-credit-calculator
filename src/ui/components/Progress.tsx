@@ -213,10 +213,13 @@ export function ProgramProgress({ program, result, baseline, courses }: {
             <Delta value={d((e) => e.subjects?.count ?? e.totalCounted)} />
           </div>
           {remaining !== undefined && (
-            <div className={remaining === 0 && unmetGroups.length === 0 ? 'hero-remaining ok' : 'hero-remaining'}>
+            <div className={remaining === 0 && unmetGroups.length === 0 && !program.unverifiedSubjects ? 'hero-remaining ok' : 'hero-remaining'}>
               {remaining > 0
                 ? `還差 ${remaining} ${subjects ? '科' : '學分'}`
-                : unmetGroups.length > 0 ? (isMain ? '學分夠了，還有規定沒達到' : '學分夠了，模組還沒達標') : '已達標'}
+                : unmetGroups.length > 0 ? (isMain ? '學分夠了，還有規定沒達到' : '學分夠了，模組還沒達標')
+                  : program.unverifiedSubjects
+                    ? <>學分夠了，科目未驗證<Info text={program.unverifiedSubjects} /></>
+                    : '已達標'}
             </div>
           )}
           {chips.length > 0 && (

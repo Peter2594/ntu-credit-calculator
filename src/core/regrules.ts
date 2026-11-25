@@ -27,15 +27,30 @@ const FIELDS: Record<string, keyof RulePage> = {
 
 const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', nbsp: ' ' }
 
+const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g
+/** 「…學系 劉宇誠 承辦人電子信箱」這種夾在空白之間的承辦人姓名；「由日文系承辦人確認」不會被誤刪 */
+const STAFF_NAME = /(?<=\s)[一-鿿]{2,3}(?=\s*承辦人)/g
+
+/**
+ * 教務處的規定說明常附承辦人姓名與信箱。這個專案是公開的，不收錄教職員個資，
+ * 所以在解析階段就拿掉；要寄件的學生請看教務處或系所的原始公告。
+ */
+export function redactContacts(text: string): string {
+  return text
+    .replace(EMAIL, '〔承辦人信箱，見系所公告〕')
+    .replace(STAFF_NAME, '')
+    .replace(/ {2,}/g, ' ')
+}
+
 function cellText(html: string): string {
-  return html
+  return redactContacts(html
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<[^>]+>/g, '')
     .replace(/&(amp|lt|gt|quot|nbsp);/g, (_, k: string) => ENTITIES[k] ?? '')
     .split('\n')
     .map((l) => l.replace(/\s+/g, ' ').trim())
     .filter(Boolean)
-    .join('\n')
+    .join('\n'))
 }
 
 export function parseRulePage(html: string): RulePage | null {

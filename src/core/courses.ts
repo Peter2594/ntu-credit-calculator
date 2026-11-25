@@ -333,7 +333,12 @@ export function unmetOutsideRules(courses: Course[], program: Program, others: P
   }).map((rule) => rule.label)
 }
 
-export const requiredKey = (r: RequiredCourse) => `${r.code}|${r.identifier}`
+/**
+ * 抵免紀錄的 key。跨校與院學士的科目表只有課名，沒有課號與識別碼，
+ * 全部共用「|」會讓一次抵免套用到整份清單，所以兩者皆空時改用課名。
+ */
+export const requiredKey = (r: RequiredCourse) =>
+  r.code || r.identifier ? `${r.code}|${r.identifier}` : `||${r.name}`
 
 /**
  * 系辦核可的抵免常常課號、課名都不同，自動比對永遠認不出來，由使用者指定。

@@ -61,7 +61,7 @@ function noteFor(school: SchoolEntry, dept: string, kind: Kind, plan: Plan | und
   const range = ALLIANCE_CREDITS[school.school][kind]
   const bound = range.max ? `${range.min}–${range.max}` : `至少 ${range.min}`
   if (!plan) {
-    return `${school.school}${dept}的${kind}科目與學分依該系課程架構，${school.school}各系${kind}${bound} 學分。${school.note}`
+    return `${school.school}${dept}沒有公告的${kind}科目表，${school.school}各系${kind}${bound} 學分。${school.note}`
   }
   if (plan.closed) return `${school.school}已停止受理申請修讀${dept}${kind}；仍在修習者請依入學當年度的應修科目表。`
   const listed = plan.mode === 'all'
@@ -75,9 +75,18 @@ function derive(
   school: SchoolEntry, dept: string, kind: Kind, plan: Plan | undefined, program: Program,
 ): Program {
   const fallback = ALLIANCE_CREDITS[school.school][kind].min
-  const { source, requiredCourses, requiredMode, ...rest } = program
+  // 換系之後舊的抵免、模組規定都不適用；留著會套用到新清單
+  const { source, requiredCourses, requiredMode, waivers, requiredGroups, groupRules, outsideRules,
+    unverifiedSubjects, ...rest } = program
+  const unverified = !plan || plan.courses.length === 0
+    ? `${school.school}${dept}沒有公告的${kind}科目表，工具把識別碼開頭是 ${school.school === '臺師大' ? 'TA' : 'TB'} 的課都先算進來，其中不屬於這個系的課請自行改成不計入。`
+    : (plan.mode ?? 'all') === 'all'
+      ? `科目表上的 ${plan.courses.length} 科是必修，其餘學分由該系開設的課程自由補足；工具無法從臺大的識別碼判斷是不是這個系開的課。`
+      : undefined
+
   return {
     ...rest,
+    ...(unverified ? { unverifiedSubjects: unverified } : {}),
     name: `${school.school}${dept}`,
     deptPrefix: '',
     crossSchool: school.school,
@@ -91,7 +100,7 @@ function derive(
 }
 
 const derivedFields = (p: Program) =>
-  JSON.stringify([p.name, p.requiredCourses, p.requiredMode, p.requiredNote, p.crossSchool])
+  JSON.stringify([p.name, p.requiredCourses, p.requiredMode, p.requiredNote, p.crossSchool, p.unverifiedSubjects])
 
 /** 跨校資料更新後，已選的跨校雙主修、輔系換成新的科目表（門檻數字不覆蓋，使用者可能改過）。 */
 export function refreshAlliance(programs: Program[], schools: SchoolEntry[]): Program[] | null {
@@ -139,11 +148,11 @@ export function AlliancePicker({ program, onChange }: Props) {
 
   const pickSchool = (value: string) => {
     if (!value) {
-      const { crossSchool, source, requiredCourses, requiredMode, requiredNote, ...rest } = program
+      const { crossSchool, source, requiredCourses, requiredMode, requiredNote, waivers, ...rest } = program
       onChange(rest)
       return
     }
-    const { source, requiredCourses, requiredMode, requiredNote, ...rest } = program
+    const { source, requiredCourses, requiredMode, requiredNote, waivers, requiredGroups, groupRules, ...rest } = program
     onChange({
       ...rest,
       crossSchool: value as AllianceSchool,
@@ -202,15 +211,17 @@ export function AlliancePicker({ program, onChange }: Props) {
         <div className="source-summary">
           <div className="source-stats">
             <span><b>{plan?.total ?? ALLIANCE_CREDITS[school.school][kind].min}</b>應修學分</span>
-            <span><b>{plan?.courses.length || '—'}</b>清單科目</span>
+            {plan && plan.courses.length > 0
+              ? <span><b>{plan.courses.length}</b>清單科目</span>
+              : <span className="warn-text">尚無科目清單，需自行核對</span>}
           </div>
           <p className="rule-text">{program.requiredNote}</p>
           {plan?.closed && <div className="warn-text small">這個{kind}已停止受理申請，資料僅供仍在修習者對照。</div>}
           {(!plan || plan.courses.length === 0) && (
             <>
               <div className="warn-text small">
-                沒有科目清單時，工具會把識別碼開頭是 {school.school === '臺師大' ? 'TA' : 'TB'} 的課都先算進這個{kind}，
-                其中不屬於這個系的課請到「課程」改成不計入。
+                沒有科目清單時，工具會把識別碼開頭是 {school.school === '臺師大' ? 'TA' : 'TB'} 的課都先算進這個{kind}；
+                其中不屬於這個系的課，請到「課程」改成不計入。進度只會顯示「學分夠了，科目未驗證」。
               </div>
               {school.sourceUrl && (
                 <p className="muted small">
