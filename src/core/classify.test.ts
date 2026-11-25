@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { classify, deptPrefixOf, applyClassification, isOwnDeptGenEd, withGraduatePrefix } from './classify.js'
+import { classify, deptPrefixOf, applyClassification, isCrossSchool, isOwnDeptGenEd, withGraduatePrefix } from './classify.js'
 import type { Course, Program } from './types.js'
 import type { ParsedCourse } from './parser.js'
 
@@ -259,5 +259,18 @@ describe('classify：線上課程學分採計', () => {
 
   it('入學後已修過同名課程時不得採計', () => {
     expect(classify(online(), program, { duplicateOnline: true })).toBe('不計入')
+  })
+})
+
+describe('classify：溝通表達課程與臺大系統跨校課程', () => {
+  it('通識領域 B 依規定算通識', () => {
+    expect(classify(course({ identifier: 'Z00 U0230', genEdDomain: 'B', name: '設計你的人生' }), program)).toBe('通識')
+  })
+
+  it('跨校課程沒有通識領域時算一般選修（是否計入畢業學分由系所審核）', () => {
+    const c = course({ identifier: 'TBFB36027', code: 'TB10310647', name: '基礎理財規劃實務' })
+    expect(classify(c, program)).toBe('一般選修')
+    expect(isCrossSchool(c)).toBe(true)
+    expect(isCrossSchool(course({ identifier: '705 10300', name: '程式設計' }))).toBe(false)
   })
 })

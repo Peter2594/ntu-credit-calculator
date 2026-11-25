@@ -54,8 +54,12 @@ export function designatedDomains(deptCode: string): string[] | undefined {
   return TABLE.get(deptCode.slice(0, 4))
 }
 
-/** 成績單的通識領域欄：跨領域課程寫成 A58*（A5 與 A8），星號表示經認可為通識的專業課 */
+/**
+ * 成績單的通識領域欄：跨領域課程寫成 A58*（A5 與 A8），星號表示經認可為通識的專業課。
+ * B 是溝通表達與職涯發展課程，不屬於任何通識領域。
+ */
 export function domainsOf(genEdDomain: string): string[] {
+  if (!/^A\d/.test(genEdDomain)) return []
   return [...genEdDomain.replace('*', '').replace(/^A/, '')].map((d) => `A${d}`)
 }
 

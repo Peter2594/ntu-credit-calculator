@@ -2,19 +2,31 @@ import type { Course } from './types.js'
 
 export type ParsedCourse = Omit<Course, 'id' | 'assignments' | 'overridden'>
 
-const SEMESTER = /^\d{3}-[1-4]$/
+/** 學期；暑修寫成「112/2」（學年/梯次），轉成可排序的「112-暑2」 */
+const SEMESTER = /^\d{3}[-/][1-4]$/
+const normalizeSemester = (s: string) => s.replace('/', '-暑')
 /**
  * 課程識別碼：三碼單位代碼（必含數字，如 705、H01、P37）＋五碼；
  * 無空格的寫法是一個字元接五位數字（705E22200），英語授課則是 E 接含數字的五碼（943EU0300、B01E101B1）；
  * 單位代碼必含數字，SPORT1001 這類課號才不會被誤認。
  */
-const IDENTIFIER = /^(?=[0-9A-Z]{0,2}\d)[0-9A-Z]{3}(?:\s?[0-9A-Z]{5}|[0-9A-Z]\d{5}|E(?=[0-9A-Z]{0,4}\d)[0-9A-Z]{5})$/
+const NTU_IDENTIFIER = /^(?=[0-9A-Z]{0,2}\d)[0-9A-Z]{3}(?:\s?[0-9A-Z]{5}|[0-9A-Z]\d{5}|E(?=[0-9A-Z]{0,4}\d)[0-9A-Z]{5})$/
+/**
+ * 臺大系統跨校課程（臺科大 TBFB36027）與暑期班（SCN 20440）：三至四個大寫字母接五位數字。
+ * 限大寫且尾碼五位全為數字，課號（SPORT1001、GenEdu5026）才不會被誤認。
+ */
+const ALLIANCE_IDENTIFIER = /^[A-Z]{3,4}\s?\d{5}$/
+const isIdentifier = (t: string) => NTU_IDENTIFIER.test(t) || ALLIANCE_IDENTIFIER.test(t)
 /** 拿掉零寬字元後「705 10300」可能變成「70510300」，補回空白 */
 const tidyIdentifier = (s: string) => (/^[0-9A-Z]{8}$/.test(s) ? `${s.slice(0, 3)} ${s.slice(3)}` : s)
 const UNIT_CODE = /^(?=[0-9A-Z]{0,2}\d)[0-9A-Z]{3}$/
+/** 暑期班、跨校課程的單位碼沒有數字（SCN 20440），尾碼必須全是數字才合併 */
+const ALLIANCE_UNIT = /^[A-Z]{3}$/
+const DIGIT_TAIL = /^\d{5}$/
 const IDENTIFIER_TAIL = /^[0-9A-Z]{5}$/
 const COURSE_CODE = /^[A-Za-z&]{2,}\s*\d[\w]*$/
-const GEN_ED_DOMAIN = /^A\d+\*?$/
+/** 通識領域；B 是溝通表達與職涯發展課程（原基本能力課程） */
+const GEN_ED_DOMAIN = /^(?:A\d+\*?|B)$/
 const CREDITS = /^\d+(?:\.\d+)?$/
 /** 班次，如 01、H3 */
 const CLASS_NO = /^[0-9A-Z]{2}$/
@@ -63,7 +75,9 @@ function mergeIdentifiers(words: string[]): string[] {
   const out: string[] = []
   for (let i = 0; i < words.length; i++) {
     const next = words[i + 1]
-    if (UNIT_CODE.test(words[i]!) && next !== undefined && IDENTIFIER_TAIL.test(next)) {
+    const mergeable = next !== undefined &&
+      ((UNIT_CODE.test(words[i]!) && IDENTIFIER_TAIL.test(next)) || (ALLIANCE_UNIT.test(words[i]!) && DIGIT_TAIL.test(next)))
+    if (mergeable) {
       out.push(`${words[i]} ${next}`)
       i++
     } else {
@@ -80,10 +94,10 @@ function scan(tokens: string[]): ParsedCourse[] {
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i]!
     if (SEMESTER.test(token)) {
-      semester = token
+      semester = normalizeSemester(token)
       continue
     }
-    if (!IDENTIFIER.test(token)) continue
+    if (!isIdentifier(token)) continue
 
     const found = readCourse(tokens, i, semester)
     if (found) {
@@ -115,7 +129,7 @@ function readCourse(tokens: string[], at: number, semester: string) {
   const limit = Math.min(at + MAX_SPAN, tokens.length - 1)
   for (let g = cursor + 1; g <= limit; g++) {
     const t = tokens[g]!
-    if (IDENTIFIER.test(t) || SEMESTER.test(t)) return null
+    if (isIdentifier(t) || SEMESTER.test(t)) return null
     if (!GRADE.test(t)) continue
 
     return {
@@ -146,10 +160,10 @@ export function parseGradeRows(raw: string): GradeRow[] {
   const records = text.split('❮').map((r) =>
     r.split(/[\n\t]/).map((f) => f.trim().replace(/\s+/g, ' ')).filter(Boolean),
   )
-  if (records.some((fields) => fields.some((f) => IDENTIFIER.test(f)))) return []
+  if (records.some((fields) => fields.some((f) => isIdentifier(f)))) return []
 
   return records.flatMap((fields): GradeRow[] => {
-    const semester = fields.find((f) => SEMESTER.test(f))
+    const semester = fields.find((f) => SEMESTER.test(f))?.replace('/', '-暑')
     let gradeAt = fields.length - 1
     while (gradeAt >= 0 && !GRADE.test(fields[gradeAt]!)) gradeAt--
     if (!semester || gradeAt < 1) return []

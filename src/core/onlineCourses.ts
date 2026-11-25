@@ -39,11 +39,14 @@ const byIdentifier = new Map(ONLINE_COURSES.flatMap((c) => (c.identifier ? [[squ
 const byCode = new Map(ONLINE_COURSES.flatMap((c) => (c.code ? [[squash(c.code), c] as const] : [])))
 const byName = new Map(ONLINE_COURSES.map((c) => [squash(c.name), c] as const))
 
-/** 這門課是不是線上採計課程。成績單上的寫法不一，識別碼、課號、課名都比對。 */
+/**
+ * 這門課是不是線上採計課程。以識別碼或課號比對；
+ * 兩者都沒有時才用課名，否則同名的實體課（如暑修「用 Python 做商管程式設計」）會被誤判。
+ */
 export function onlineCourseOf(course: { identifier?: string; code?: string; name: string }): OnlineCourse | undefined {
-  return byIdentifier.get(squash(course.identifier)) ??
-    byCode.get(squash(course.code)) ??
-    byName.get(squash(course.name))
+  const matched = byIdentifier.get(squash(course.identifier)) ?? byCode.get(squash(course.code))
+  if (matched) return matched
+  return course.identifier || course.code ? undefined : byName.get(squash(course.name))
 }
 
 /** 線上課程採計上限（要點第四條） */

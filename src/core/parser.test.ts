@@ -189,3 +189,30 @@ describe('parseTranscript：瀏覽器複製時夾帶的特殊字元與課號寫�
     expect(parseTranscript(text)[0]).toMatchObject({ genEdDomain: 'A58*', credits: 3 })
   })
 })
+
+describe('parseTranscript：溝通表達課程、暑修、臺大系統跨校課程', () => {
+  const pick = (text: string) => parseTranscript(text)[0]
+
+  it('通識領域欄是 B（溝通表達與職涯發展）的課讀得到', () => {
+    const noClass = ['113-1', 'GenEdu5026', 'H02 50240', 'B', '2', '大師給問-未來職涯巡航', '通過', '❮'].join('\n')
+    expect(pick(noClass)).toMatchObject({ identifier: 'H02 50240', credits: 2, genEdDomain: 'B', name: '大師給問-未來職涯巡航' })
+    const withClass = ['114/2', 'GenEdu5031', 'H02 50290', 'S1', 'B', '2', '暑期職涯培訓', '通過', '❮'].join('\n')
+    expect(pick(withClass)).toMatchObject({ identifier: 'H02 50290', credits: 2, genEdDomain: 'B' })
+  })
+
+  it('暑修的「學年/梯次」轉成可排序的學期', () => {
+    const text = ['112/2', 'SCGN2044', 'SCN 20440', '01', 'A6', '2', '用 Python 做商管程式設計', 'A+', '❮'].join('\n')
+    expect(pick(text)).toMatchObject({ semester: '112-暑2', identifier: 'SCN 20440', credits: 2, genEdDomain: 'A6' })
+    expect(['112-1', '112-2', '112-暑2', '113-1'].slice().sort()).toEqual(['112-1', '112-2', '112-暑2', '113-1'])
+  })
+
+  it('臺大系統跨校課程（臺科大）的課號與識別碼讀得到', () => {
+    const text = ['112-1', 'TB10310647', 'TBFB36027', '01', '3', '基礎理財規劃實務', 'A+', '❮'].join('\n')
+    expect(pick(text)).toMatchObject({ code: 'TB10310647', identifier: 'TBFB36027', credits: 3, name: '基礎理財規劃實務' })
+  })
+
+  it('課號不會被誤認成識別碼', () => {
+    const text = ['113-1', 'SPORT1001', 'H01 12400', '1', '健康體適能', '通過', '❮'].join('\n')
+    expect(pick(text)).toMatchObject({ code: 'SPORT1001', identifier: 'H01 12400' })
+  })
+})

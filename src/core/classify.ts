@@ -16,9 +16,12 @@ const COMM = new Set(COMM_COURSES.map(([id]) => id))
 const FRESHMAN_IDS = new Set(FRESHMAN_COURSES.map(([id]) => id))
 const squashId = (s?: string) => (s ?? '').replace(/\s+/g, '').toUpperCase()
 
-/** 溝通表達與職涯發展課程（原基本能力課程），依課程網歷年開課清單辨認 */
+/**
+ * 溝通表達與職涯發展課程（原基本能力課程）。成績單的通識領域欄標示為 B，
+ * 沒有標示時以課程網歷年開課清單的識別碼辨認。
+ */
 export function isCommCourse(course: ParsedCourse): boolean {
-  return COMM.has(squashId(course.identifier))
+  return course.genEdDomain === 'B' || COMM.has(squashId(course.identifier))
 }
 
 /**
@@ -83,6 +86,23 @@ export function requiredMatcher<T extends ParsedCourse>(courses: T[]): (r: Requi
     ])
     return [...found].sort((a, b) => order.get(a)! - order.get(b)!)
   }
+}
+
+/** 臺大系統跨校課程與暑期班的識別碼：大寫字母接五位數字 */
+const ALLIANCE = /^[A-Z]{3,4}\d{5}$/
+
+/** 臺大暑期班（識別碼以 SC 開頭，如 SCN 20440） */
+export function isSummerSession(course: ParsedCourse): boolean {
+  const id = squashId(course.identifier)
+  return ALLIANCE.test(id) && id.startsWith('SC')
+}
+
+/**
+ * 臺灣大學系統跨校課程（臺師大、臺科大）。依臺大校際選課規定：
+ * 通識由共同教育中心認列、體育認列選修體育、軍訓不計入，其餘是否計入畢業學分由所屬系所審核。
+ */
+export function isCrossSchool(course: ParsedCourse): boolean {
+  return ALLIANCE.test(squashId(course.identifier)) && !isSummerSession(course)
 }
 
 export function isRequiredCourse(course: ParsedCourse, program: Program): boolean {
