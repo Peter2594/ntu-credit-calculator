@@ -1,4 +1,4 @@
-import type { Category, Course, Program, RequiredCourse } from './types.js'
+import type { AllianceSchool, Category, Course, Program, RequiredCourse } from './types.js'
 import type { ParsedCourse } from './parser.js'
 import { COMM_COURSES, FRESHMAN_COURSES } from './generalCourses.js'
 import { onlineCourseOf } from './onlineCourses.js'
@@ -88,21 +88,28 @@ export function requiredMatcher<T extends ParsedCourse>(courses: T[]): (r: Requi
   }
 }
 
-/** 臺大系統跨校課程與暑期班的識別碼：大寫字母接五位數字 */
-const ALLIANCE = /^[A-Z]{3,4}\d{5}$/
+/** 臺大暑期班識別碼：大寫字母接五位數字，以 SC 開頭（SCN 20440） */
+const SUMMER = /^SC[A-Z]{1,2}\d{5}$/
 
-/** 臺大暑期班（識別碼以 SC 開頭，如 SCN 20440） */
+/** 臺大系統跨校課程識別碼：TA 臺師大、TB 臺科大，共九碼 */
+const ALLIANCE = /^T([AB])[0-9A-Z]{7}$/
+
 export function isSummerSession(course: ParsedCourse): boolean {
-  const id = squashId(course.identifier)
-  return ALLIANCE.test(id) && id.startsWith('SC')
+  return SUMMER.test(squashId(course.identifier))
 }
 
 /**
- * 臺灣大學系統跨校課程（臺師大、臺科大）。依臺大校際選課規定：
- * 通識由共同教育中心認列、體育認列選修體育、軍訓不計入，其餘是否計入畢業學分由所屬系所審核。
+ * 這門課是臺灣大學系統哪一校開的（臺師大、臺科大），不是跨校課程時回傳 undefined。
+ * 依臺大校際選課規定：通識由共同教育中心認列、體育認列選修體育、軍訓不計入，
+ * 其餘是否計入畢業學分由所屬系所審核。
  */
+export function allianceSchoolOf(course: ParsedCourse): AllianceSchool | undefined {
+  const m = ALLIANCE.exec(squashId(course.identifier))
+  return m ? (m[1] === 'A' ? '臺師大' : '臺科大') : undefined
+}
+
 export function isCrossSchool(course: ParsedCourse): boolean {
-  return ALLIANCE.test(squashId(course.identifier)) && !isSummerSession(course)
+  return allianceSchoolOf(course) !== undefined
 }
 
 export function isRequiredCourse(course: ParsedCourse, program: Program): boolean {
@@ -129,13 +136,22 @@ export type ClassifyContext = {
   duplicateOnline?: boolean
 }
 
+/** 這門課是否屬於某個跨校雙主修／輔系：看識別碼的學校代碼。 */
+export function isCrossSchoolProgramCourse(course: ParsedCourse, program: Program): boolean {
+  return program.crossSchool !== undefined && allianceSchoolOf(course) === program.crossSchool
+}
+
 export function classify(course: ParsedCourse, program: Program, context: ClassifyContext = {}): Category {
   // 線上採計課程的通識領域與開課學系來自數位學習中心的清單，成績單上不一定有這兩欄
   const online = onlineCourseOf(course)
   const prefix = online?.deptPrefix ?? deptPrefixOf(course.identifier)
   const genEdDomain = course.genEdDomain ?? online?.domain
   const code = course.code ?? ''
-  const ownDept = deptPrefixesOf(program).includes(prefix)
+  // 跨校學程有科目清單時，清單外的課不算（不然同校別系、通識都會被掃進來）；
+  // 沒有清單（臺師大課架查不到）時只能退回以學校判斷，介面會提醒使用者自行剔除。
+  const ownDept = program.crossSchool !== undefined
+    ? isCrossSchoolProgramCourse(course, program) && (program.requiredCourses ?? []).length === 0
+    : deptPrefixesOf(program).includes(prefix)
 
   if (course.grade === WITHDRAWN) return '不計入'
   if (course.grade && FAILED.has(course.grade)) return '不計入'

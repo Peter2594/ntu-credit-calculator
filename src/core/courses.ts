@@ -1,5 +1,5 @@
 import { applyClassification, deptPrefixOf, deptPrefixesOf, requiredMatcher, type ClassifyContext } from './classify.js'
-import type { Category, Course, Program, RequiredCourse } from './types.js'
+import { isMainDegree, type Category, type Course, type Program, type RequiredCourse } from './types.js'
 import { onlineCourseOf } from './onlineCourses.js'
 import type { ParsedCourse } from './parser.js'
 
@@ -319,7 +319,7 @@ export function unmetOutsideRules(courses: Course[], program: Program, others: P
 
   return rules.filter((rule) => {
     const depts = others.filter((p) =>
-      rule.mainOnly ? p.kind === '主修' : p.kind === '主修' || p.kind === '雙主修' || p.kind === '輔系')
+      rule.mainOnly ? isMainDegree(p) : isMainDegree(p) || p.kind === '雙主修' || p.kind === '輔系')
     if (depts.length === 0) return false
     const inside = (course: Course) => rule.basis === '開設'
       ? depts.some((p) => deptPrefixesOf(p).includes(deptPrefixOf(course.identifier)))

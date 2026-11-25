@@ -20,7 +20,31 @@ export type Requirements = {
   pe?: number
 }
 
-export type ProgramKind = '主修' | '雙主修' | '輔系' | '學程'
+export type ProgramKind = '主修' | '雙主修' | '輔系' | '學程' | '院學士'
+
+/** 臺灣大學系統的另外兩校，可跨校修讀雙主修與輔系。 */
+export const ALLIANCE_SCHOOLS = ['臺師大', '臺科大'] as const
+export type AllianceSchool = (typeof ALLIANCE_SCHOOLS)[number]
+
+/**
+ * 跨校修讀的科目與學分數依加修校系的規定（臺大系統學生跨校修讀雙主修及輔系辦法第三條）。
+ * 臺師大：各系雙主修課程 40–50 學分、輔系 20–30 學分（臺師大雙主修及輔系辦法第六條）。
+ * 臺科大：各系雙主修不得少於 40 學分、輔系不得少於 20 學分（臺科大雙主修辦法第五條、輔系辦法第五條）。
+ * 實際學分以加修學系公告的課程架構為準，這裡只給預設值與提醒範圍。
+ */
+export const ALLIANCE_CREDITS: Record<AllianceSchool, Record<'輔系' | '雙主修', { min: number; max?: number }>> = {
+  臺師大: { 輔系: { min: 20, max: 30 }, 雙主修: { min: 40, max: 50 } },
+  臺科大: { 輔系: { min: 20 }, 雙主修: { min: 40 } },
+}
+
+/**
+ * 主修與院學士都是「畢業學位」：共同必修、通識、系外選修都算在它身上，總學分就是畢業學分。
+ * 雙主修、輔系、學分學程則只看該系（學程）的課。
+ * 依院學士學位暨校學士學位設置準則，學生得以院學士資格畢業，所以它的門檻是一整套畢業規定。
+ */
+export function isMainDegree(program: { kind: ProgramKind }): boolean {
+  return program.kind === '主修' || program.kind === '院學士'
+}
 
 /**
  * 各系在必修課程查詢系統備註寫明的採計規定。沒寫的欄位留空，計算時沿用保守的預設
@@ -61,6 +85,11 @@ export type Program = {
   name: string
   /** 識別碼前三碼，多個以逗號分隔（如系與所：705,725）。 */
   deptPrefix: string
+  /**
+   * 跨校修讀的雙主修或輔系（臺大系統）。設了之後改以「這門課是不是該校開的」判斷，
+   * 因為臺師大、臺科大的識別碼沒有穩定的學系前綴可用。
+   */
+  crossSchool?: AllianceSchool
   requirements: Requirements
   requiredCourses?: RequiredCourse[]
   /** all：清單每門都要修（主修、雙主修）；pick：從清單任選湊滿學分（輔系） */
@@ -94,8 +123,8 @@ export type Program = {
   creditRules?: CreditRules
   /** 學分學程後來分成多個方案（組別），已選的學程被自動歸到預設方案、使用者還沒確認 */
   planUnconfirmed?: boolean
-  /** 門檻從官方資料帶入時記下來源，方便使用者核對。 */
-  source?: { year: string; deptCode: string; kind?: ProgramKind }
+  /** 門檻從官方資料帶入時記下來源，方便使用者核對。跨校雙主修、輔系的 deptCode 是「學校|學系」。 */
+  source?: { year: string; deptCode: string; kind?: ProgramKind | '跨校' }
 }
 
 export type Slot = {

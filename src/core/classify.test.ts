@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { classify, deptPrefixOf, applyClassification, isCrossSchool, isOwnDeptGenEd, withGraduatePrefix } from './classify.js'
+import { allianceSchoolOf, classify, deptPrefixOf, applyClassification, isCrossSchool, isOwnDeptGenEd, isSummerSession, withGraduatePrefix } from './classify.js'
 import type { Course, Program } from './types.js'
 import type { ParsedCourse } from './parser.js'
 
@@ -272,5 +272,32 @@ describe('classify：溝通表達課程與臺大系統跨校課程', () => {
     expect(classify(c, program)).toBe('一般選修')
     expect(isCrossSchool(c)).toBe(true)
     expect(isCrossSchool(course({ identifier: '705 10300', name: '程式設計' }))).toBe(false)
+  })
+})
+
+describe('臺大系統跨校課程', () => {
+  it('依識別碼開頭分辨開課學校', () => {
+    expect(allianceSchoolOf(course({ identifier: 'TA01UG004' }))).toBe('臺師大')
+    expect(allianceSchoolOf(course({ identifier: 'TAAEC8015' }))).toBe('臺師大')
+    expect(allianceSchoolOf(course({ identifier: 'TBFB36027' }))).toBe('臺科大')
+    // 暑期班與一般臺大課程不是跨校課程
+    expect(allianceSchoolOf(course({ identifier: 'SCN 20440' }))).toBeUndefined()
+    expect(allianceSchoolOf(course({ identifier: '705 10300' }))).toBeUndefined()
+    expect(isCrossSchool(course({ identifier: 'TA0 1UG006' }))).toBe(true)
+    expect(isSummerSession(course({ identifier: 'SCN 20440' }))).toBe(true)
+  })
+
+  it('跨校輔系以開課學校認本系的課', () => {
+    const minor: Program = { id: 'm1', kind: '輔系', name: '臺師大教育學系', deptPrefix: '', crossSchool: '臺師大', requirements: { total: 20 } }
+    expect(classify(course({ identifier: 'TAAEC8015', grade: 'A' }), minor)).toBe('限本系選修')
+    // 臺科大的課不屬於臺師大輔系
+    expect(classify(course({ identifier: 'TBFB36027', grade: 'A' }), minor)).toBe('一般選修')
+    // 本校的課也不屬於跨校輔系
+    expect(classify(course({ identifier: '705 10300', grade: 'A' }), minor)).toBe('一般選修')
+  })
+
+  it('跨校課程的通識仍算通識，不會被算成輔系的課', () => {
+    const minor: Program = { id: 'm1', kind: '輔系', name: '臺師大教育學系', deptPrefix: '', crossSchool: '臺師大', requirements: { total: 20 } }
+    expect(classify(course({ identifier: 'TA01UG004', genEdDomain: 'A1', grade: 'A' }), minor)).toBe('通識')
   })
 })

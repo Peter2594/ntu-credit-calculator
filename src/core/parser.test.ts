@@ -211,6 +211,21 @@ describe('parseTranscript：溝通表達課程、暑修、臺大系統跨校課�
     expect(pick(text)).toMatchObject({ code: 'TB10310647', identifier: 'TBFB36027', credits: 3, name: '基礎理財規劃實務' })
   })
 
+  it('臺大系統跨校課程（臺師大）的課號與識別碼讀得到', () => {
+    // 臺師大識別碼英數混用（TA01UG004、TAAEC8015、TA3E11013），只能靠開頭 TA 與九碼認
+    const genEd = ['115-1', 'TA10310169', 'TA01UG004', '26', 'A1', '2', '音樂鑑賞', 'A', '❮'].join('\n')
+    expect(pick(genEd)).toMatchObject({ code: 'TA10310169', identifier: 'TA01UG004', credits: 2, genEdDomain: 'A1', name: '音樂鑑賞' })
+    const mixed = ['115-1', 'TA11510029', 'TA0EUG051', '61', '2', '與AI對話', 'A-', '❮'].join('\n')
+    expect(pick(mixed)).toMatchObject({ identifier: 'TA0EUG051', credits: 2, name: '與AI對話' })
+    const letters = ['115-1', 'TA11420002', 'TAAEC8015', '69', '2', '教學原理', 'B+', '❮'].join('\n')
+    expect(pick(letters)).toMatchObject({ identifier: 'TAAEC8015', credits: 2, name: '教學原理' })
+  })
+
+  it('識別碼被空格拆開的跨校課程接得回來', () => {
+    const text = ['115-1', 'TA10310171', 'TA0', '1UG006', '27', 'A1', '2', '臺灣小說選讀', 'A', '❮'].join('\n')
+    expect(pick(text)).toMatchObject({ identifier: 'TA0 1UG006', credits: 2, name: '臺灣小說選讀' })
+  })
+
   it('課號不會被誤認成識別碼', () => {
     const text = ['113-1', 'SPORT1001', 'H01 12400', '1', '健康體適能', '通過', '❮'].join('\n')
     expect(pick(text)).toMatchObject({ code: 'SPORT1001', identifier: 'H01 12400' })

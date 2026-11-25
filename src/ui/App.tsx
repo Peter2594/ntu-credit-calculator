@@ -13,6 +13,8 @@ import { ScheduleView } from './components/ScheduleView'
 import { TrialView } from './components/TrialView'
 import { ProgramSetup } from './components/ProgramSetup'
 import { loadPrograms, refreshCreditPrograms } from './components/CreditProgramPicker'
+import { loadCollegeDegrees, refreshCollegeDegrees } from './components/CollegeDegreePicker'
+import { loadAlliance, refreshAlliance } from './components/AlliancePicker'
 import { loadYear, refreshMainRules, type OfficialYear } from './officialData'
 
 export type Tab = 'dashboard' | 'courses' | 'schedule' | 'trial' | 'programs'
@@ -57,6 +59,34 @@ export function App() {
       )
       .catch(() => {})
   }, [hasCreditProgram, setState])
+
+  // 已選的院學士換成最新的科目表與規定
+  const hasCollegeDegree = state.programs.some((p) => p.source?.kind === '院學士')
+  useEffect(() => {
+    if (!hasCollegeDegree) return
+    loadCollegeDegrees()
+      .then((data) =>
+        setState((s) => {
+          const programs = refreshCollegeDegrees(s.programs, data)
+          return programs ? { programs, courses: reclassifyAll(s.courses, programs) } : s
+        }),
+      )
+      .catch(() => {})
+  }, [hasCollegeDegree, setState])
+
+  // 已選的跨校雙主修、輔系換成最新的應修科目表
+  const hasAlliance = state.programs.some((p) => p.source?.kind === '跨校')
+  useEffect(() => {
+    if (!hasAlliance) return
+    loadAlliance()
+      .then((schools) =>
+        setState((s) => {
+          const programs = refreshAlliance(s.programs, schools)
+          return programs ? { programs, courses: reclassifyAll(s.courses, programs) } : s
+        }),
+      )
+      .catch(() => {})
+  }, [hasAlliance, setState])
 
   // 主修補上系上的超修、本系通識、新生課程規定與指定通識領域
   const mainYears = [...new Set(state.programs.flatMap((p) => (p.kind === '主修' && p.source ? [p.source.year] : [])))].sort().join(',')

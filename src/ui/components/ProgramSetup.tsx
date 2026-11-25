@@ -1,9 +1,11 @@
 import type { AppState } from '../../core/storage'
-import type { Program, ProgramKind, Requirements } from '../../core/types'
+import { isMainDegree, type Program, type ProgramKind, type Requirements } from '../../core/types'
 import type { Actions, Tab } from '../App'
 import { newId } from '../constants'
 import { OfficialPicker } from './OfficialPicker'
 import { CreditProgramPicker } from './CreditProgramPicker'
+import { CollegeDegreePicker } from './CollegeDegreePicker'
+import { AlliancePicker } from './AlliancePicker'
 import { Info } from './Progress'
 
 type Field = { key: keyof Requirements; label: string; hint?: string }
@@ -24,7 +26,7 @@ const DETAIL_FIELDS: Field[] = [
   { key: 'chineseGenEd', label: '國文＋通識合計', hint: '例：國文 6＋通識 12 或 國文 3＋通識 15 皆為 18' },
 ]
 
-const KINDS: ProgramKind[] = ['主修', '雙主修', '輔系', '學程']
+const KINDS: ProgramKind[] = ['主修', '院學士', '雙主修', '輔系', '學程']
 
 function blankProgram(kind: ProgramKind): Program {
   return { id: newId(), kind, name: '', deptPrefix: '', requirements: {} }
@@ -34,7 +36,7 @@ type Props = { state: AppState; actions: Actions; goTo(tab: Tab): void }
 
 export function ProgramSetup({ state, actions, goTo }: Props) {
   const { programs } = state
-  const hasMajor = programs.some((p) => p.kind === '主修')
+  const hasMajor = programs.some(isMainDegree)
 
   return (
     <section className="stack">
@@ -100,6 +102,8 @@ function ProgramCard({ program, onChange, onDelete }: {
     onChange({ ...program, requirements })
   }
 
+  const canCrossSchool = program.kind === '雙主修' || program.kind === '輔系'
+
   const renderField = (f: Field) => (
     <label key={f.key} className="field">
       <span className="field-label">{f.label}{f.hint && <Info text={f.hint} />}</span>
@@ -121,7 +125,12 @@ function ProgramCard({ program, onChange, onDelete }: {
           <span className="field-label">類型</span>
           <select
             value={program.kind}
-            onChange={(e) => onChange({ ...program, kind: e.target.value as ProgramKind })}
+            onChange={(e) => {
+              const kind = e.target.value as ProgramKind
+              // 換類型後舊的官方資料來源與跨校設定不再適用
+              const { source, crossSchool, ...rest } = program
+              onChange({ ...rest, kind })
+            }}
           >
             {KINDS.map((k) => <option key={k}>{k}</option>)}
           </select>
@@ -129,9 +138,16 @@ function ProgramCard({ program, onChange, onDelete }: {
         <button className="btn ghost small danger-text" onClick={onDelete}>刪除這個學程</button>
       </div>
 
-      {program.kind === '學程'
-        ? <CreditProgramPicker program={program} onChange={onChange} />
-        : <OfficialPicker program={program} onChange={onChange} />}
+      {program.kind === '學程' ? (
+        <CreditProgramPicker program={program} onChange={onChange} />
+      ) : program.kind === '院學士' ? (
+        <CollegeDegreePicker program={program} onChange={onChange} />
+      ) : (
+        <>
+          {canCrossSchool && <AlliancePicker program={program} onChange={onChange} />}
+          {!program.crossSchool && <OfficialPicker program={program} onChange={onChange} />}
+        </>
+      )}
 
       {program.kind !== '學程' && (
       <details open={!program.source}>
@@ -155,7 +171,7 @@ function ProgramCard({ program, onChange, onDelete }: {
               />
             </label>
           </div>
-          {program.kind === '主修' ? (
+          {isMainDegree(program) ? (
             <>
               <div className="grid-3">{MAIN_FIELDS.map(renderField)}</div>
               <div className="grid-4">{DETAIL_FIELDS.map(renderField)}</div>

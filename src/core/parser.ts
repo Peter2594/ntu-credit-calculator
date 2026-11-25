@@ -12,17 +12,26 @@ const normalizeSemester = (s: string) => s.replace('/', '-暑')
  */
 const NTU_IDENTIFIER = /^(?=[0-9A-Z]{0,2}\d)[0-9A-Z]{3}(?:\s?[0-9A-Z]{5}|[0-9A-Z]\d{5}|E(?=[0-9A-Z]{0,4}\d)[0-9A-Z]{5})$/
 /**
- * 臺大系統跨校課程（臺科大 TBFB36027）與暑期班（SCN 20440）：三至四個大寫字母接五位數字。
+ * 臺大暑期班識別碼（SCN 20440）：三至四個大寫字母接五位數字。
  * 限大寫且尾碼五位全為數字，課號（SPORT1001、GenEdu5026）才不會被誤認。
  */
-const ALLIANCE_IDENTIFIER = /^[A-Z]{3,4}\s?\d{5}$/
-const isIdentifier = (t: string) => NTU_IDENTIFIER.test(t) || ALLIANCE_IDENTIFIER.test(t)
+const SUMMER_IDENTIFIER = /^[A-Z]{3,4}\s?\d{5}$/
+/**
+ * 臺大系統跨校課程識別碼共九碼，開頭兩碼是學校：TA 臺師大（TA01UG004、TAAEC8015）、
+ * TB 臺科大（TBFB36027）。第三碼後英數混用，格式不一，只能靠開頭與長度認。
+ */
+const ALLIANCE_IDENTIFIER = /^T[AB][0-9A-Z]\s?[0-9A-Z]{6}$/
+const isIdentifier = (t: string) =>
+  NTU_IDENTIFIER.test(t) || SUMMER_IDENTIFIER.test(t) || ALLIANCE_IDENTIFIER.test(t)
 /** 拿掉零寬字元後「705 10300」可能變成「70510300」，補回空白 */
 const tidyIdentifier = (s: string) => (/^[0-9A-Z]{8}$/.test(s) ? `${s.slice(0, 3)} ${s.slice(3)}` : s)
 const UNIT_CODE = /^(?=[0-9A-Z]{0,2}\d)[0-9A-Z]{3}$/
-/** 暑期班、跨校課程的單位碼沒有數字（SCN 20440），尾碼必須全是數字才合併 */
-const ALLIANCE_UNIT = /^[A-Z]{3}$/
+/** 暑期班的單位碼沒有數字（SCN 20440），尾碼必須全是數字才合併 */
+const SUMMER_UNIT = /^[A-Z]{3}$/
 const DIGIT_TAIL = /^\d{5}$/
+/** 跨校課程識別碼若被空格拆開（TA0 1UG004），前三碼是 T 加學校代碼 */
+const ALLIANCE_UNIT = /^T[AB][0-9A-Z]$/
+const ALLIANCE_TAIL = /^[0-9A-Z]{6}$/
 const IDENTIFIER_TAIL = /^[0-9A-Z]{5}$/
 const COURSE_CODE = /^[A-Za-z&]{2,}\s*\d[\w]*$/
 /** 通識領域；B 是溝通表達與職涯發展課程（原基本能力課程） */
@@ -76,7 +85,9 @@ function mergeIdentifiers(words: string[]): string[] {
   for (let i = 0; i < words.length; i++) {
     const next = words[i + 1]
     const mergeable = next !== undefined &&
-      ((UNIT_CODE.test(words[i]!) && IDENTIFIER_TAIL.test(next)) || (ALLIANCE_UNIT.test(words[i]!) && DIGIT_TAIL.test(next)))
+      ((UNIT_CODE.test(words[i]!) && IDENTIFIER_TAIL.test(next)) ||
+        (SUMMER_UNIT.test(words[i]!) && DIGIT_TAIL.test(next)) ||
+        (ALLIANCE_UNIT.test(words[i]!) && ALLIANCE_TAIL.test(next)))
     if (mergeable) {
       out.push(`${words[i]} ${next}`)
       i++

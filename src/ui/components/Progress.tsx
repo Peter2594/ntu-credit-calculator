@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Evaluation } from '../../core/engine'
-import type { Category, Course, Program } from '../../core/types'
+import { isMainDegree, type Category, type Course, type Program } from '../../core/types'
 import { isPlanned } from '../constants'
 
 export type Tone = 'major' | 'in' | 'out' | 'elective' | 'common' | 'pe'
@@ -174,7 +174,7 @@ export function ProgramProgress({ program, result, baseline, courses }: {
     ? req.elective - req.electiveInMajor
     : undefined
 
-  const isMain = program.kind === '主修'
+  const isMain = isMainDegree(program)
   // 停修、不及格、服務學習、全年課只修半年等被排除的課，讓使用者也能確認
   const excluded = (courses ?? []).filter((c) =>
     c.assignments.some((a) => a.programId === program.id && a.category === '不計入')).length

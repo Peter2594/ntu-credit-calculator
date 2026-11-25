@@ -1,4 +1,4 @@
-import { CATEGORIES, type Category, type Course, type Program } from './types.js'
+import { CATEGORIES, isMainDegree, type Category, type Course, type Program } from './types.js'
 import { freshmanKind, isCommCourse } from './classify.js'
 import { coveredDomains, domainsOf } from './genEd.js'
 import { ONLINE_CAP, onlineCourseOf } from './onlineCourses.js'
@@ -128,8 +128,8 @@ export function evaluate(courses: Course[], program: Program, others: Program[] 
     electiveInMajor + taken['一般選修'] + majorOverflow + foreignOverflow + commonOverflow - freshmanExtra
   const elective = capped(electiveRaw, req.elective)
 
-  // 雙主修、輔系只看該系開的課；共同必修、通識、系外選修都在主修那邊採計
-  const isMain = program.kind === '主修'
+  // 雙主修、輔系只看該系開的課；共同必修、通識、系外選修都在主修（或院學士）那邊採計
+  const isMain = isMainDegree(program)
   const deptOnly = taken['系訂必修'] + taken['限本系選修']
   // 學分學程的模組有「至多採計 N 學分／N 門」時，超出部分不計入學程學分
   const groups = program.requiredMode === 'pick' ? groupResults(courses, program) : []
@@ -195,7 +195,7 @@ const categoryOf = (course: Course, programId: string) =>
  * 多修的該系課程仍留給主修當選修。
  */
 function allocateMinors(courses: Course[], programs: Program[]): Map<string, Set<string>> {
-  const main = programs.find((p) => p.kind === '主修')
+  const main = programs.find(isMainDegree)
   const taken = new Set<string>()
   const result = new Map<string, Set<string>>()
 
