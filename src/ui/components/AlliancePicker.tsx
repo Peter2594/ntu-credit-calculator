@@ -26,6 +26,8 @@ type SchoolEntry = {
   year: string
   source: string
   sourceUrl?: string
+  /** 該校對這份文件的稱呼：臺科大叫應修科目表、臺師大叫課程架構表 */
+  docName?: string
   note: string
   programs: DeptEntry[]
 }
@@ -65,7 +67,7 @@ function noteFor(school: SchoolEntry, dept: string, kind: Kind, plan: Plan | und
   const listed = plan.mode === 'all'
     ? `表上 ${plan.courses.length} 科為必修（${plan.listedCredits} 學分），其餘由該系開設的課程補足。`
     : `表上 ${plan.courses.length} 科為可採計範圍，湊滿應修學分即可。`
-  return `${school.year} 學年度${school.school}${dept}${kind}應修科目表：應修 ${plan.totalText ?? `${plan.total} 學分`}。${listed}` +
+  return `${school.year} 學年度${school.school}${dept}${kind}${school.docName ?? '應修科目表'}：應修 ${plan.totalText ?? `${plan.total} 學分`}。${listed}` +
     `能不能與本系科目兼充，由原就讀校系與加修學系認定；本系系訂必修不得兼充輔系科目。`
 }
 
@@ -187,8 +189,9 @@ export function AlliancePicker({ program, onChange }: Props) {
             <option value="" disabled>請選擇學系</option>
             {school.programs.map((p) => {
               const item = p[kind]
-              const closed = item?.closed ? '（已停招）' : ''
-              const credits = item?.total ? `${item.total} 學分` : '依課架'
+              if (!item) return <option key={p.dept} value={p.dept}>{p.dept}（沒有{kind}課架）</option>
+              const closed = item.closed ? '（已停招）' : ''
+              const credits = item.total ? `${item.total} 學分` : '依該系公告'
               return <option key={p.dept} value={p.dept}>{p.dept}（{credits}）{closed}</option>
             })}
           </select>

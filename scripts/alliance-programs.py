@@ -152,6 +152,7 @@ def main():
                 "school": "臺科大",
                 "year": YEAR,
                 "source": "臺科大教務處註冊組「各系應修科目表」",
+                "docName": "應修科目表",
                 "note": "表上的科目才採計；備註另有先修或成績門檻的，以該系公告為準。",
                 "programs": [],
             },
@@ -159,6 +160,7 @@ def main():
                 "school": "臺師大",
                 "year": YEAR,
                 "source": "臺師大課架查詢系統",
+                "docName": "課程架構表",
                 "sourceUrl": "https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/index.jsp",
                 "note": "臺師大的雙主修（40–50 學分）、輔系（20–30 學分）課架逐系公告於課架查詢系統，"
                         "該系統擋自動擷取，工具只列得出系所清單；請到課架查詢系統查該系科目表後自行填學分。",

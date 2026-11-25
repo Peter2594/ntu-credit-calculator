@@ -18,6 +18,13 @@ import sys
 import time
 import urllib.request
 
+# Windows 主控台預設 cp950，印中文系名會炸，統一用 UTF-8 輸出
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except AttributeError:
+        pass
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "public", "data", "alliance-programs.json")
 CACHE = os.path.join(ROOT, "scripts", "ntnu-structures.json")
@@ -57,8 +64,11 @@ CODE = re.compile(r"^[A-Z0-9]{3,}\d{3,}$")
 CREDITS = re.compile(r"^(\d+(?:\.\d+)?)$")
 REQUIRED_TOTAL = re.compile(r"必修課程，應修\s*(\d+(?:\.\d+)?)\s*學分")
 ELECTIVE_TOTAL = re.compile(r"選修課程，應修\s*(\d+(?:\.\d+)?)\s*學分")
-# 課名前面有流水號與全英語授課標記，如「4 E 教育研究法」「1   西洋教育史」
-TITLE = re.compile(r"^\d+\s+(?:E\s+)?(.+)$")
+# 課名前面有流水號與全英語授課標記，如「4 E 教育研究法」「1   西洋教育史」；
+# 分課群的系編號寫成「1-1   語言學概論」
+TITLE = re.compile(r"^\d+(?:-\d+)*\s+(?:E\s+)?(.+)$")
+# 總計學分數區塊的一列，如「28.0」「視覺設計組 30.0學分」
+TOTAL_ROW = re.compile(r"^(?:(\D+?)\s+)?(\d+(?:\.\d+)?)\s*(?:學分)?$")
 
 
 def fetch(dept: str, sst: str) -> bytes:
@@ -99,15 +109,38 @@ def parse(data: bytes) -> dict | None:
         value = float(credit.group(1))
         courses.append({"name": name, "credits": int(value) if value == int(value) else value})
 
-    total = (float(required.group(1)) if required else 0) + (float(elective.group(1)) if elective else 0)
-    return {
+    # 「總計學分數」區塊才是真的應修總數：分組的系（如設計系視覺／產品設計組）
+    # 會列出每組的必修、選修與總計，條文開頭的「必修課程，應修X學分」只是共同部分。
+    totals: dict[str, float] = {}
+    try:
+        start = lines.index("總計學分數") + 1
+    except ValueError:
+        start = len(lines)
+    for line in lines[start:]:
+        if line.startswith("科目代碼"):
+            break
+        m2 = TOTAL_ROW.match(line)
+        if not m2:
+            continue
+        value = float(m2.group(2))
+        # 「115」那一列是適用學年度，不是學分
+        if m2.group(1) is None and value == int(value) and 100 <= value <= 199 and "學分" not in line:
+            continue
+        totals[m2.group(1) or ""] = value
+
+    fallback = (float(required.group(1)) if required else 0) + (float(elective.group(1)) if elective else 0)
+    total = min(totals.values()) if totals else (fallback or None)
+    result = {
         "dept": dept,
         "kind": kind,
-        "total": total if total else None,
+        "total": total,
         "requiredCredits": float(required.group(1)) if required else None,
         "electiveCredits": float(elective.group(1)) if elective else None,
         "courses": courses,
     }
+    if len(totals) > 1:
+        result["totalText"] = "、".join(f"{k}{v:g} 學分" for k, v in totals.items())
+    return result
 
 
 def main():
@@ -127,7 +160,9 @@ def main():
             skipped.append(f"{name}（{exc}）")
             continue
         if plan is None:
-            skipped.append(f"{name}（不是課架表）")
+            # 資料夾裡多半混著使用者自己的 PDF，只回報看起來是從下載頁存下來的那些
+            if name.lower().startswith("coursestructreport"):
+                skipped.append(f"{name}（伺服器沒給課架表）")
             continue
         plans.append(plan)
         print(f"{plan['dept']} {plan['kind']}：{plan['total']} 學分、{len(plan['courses'])} 科", file=sys.stderr)
@@ -150,6 +185,7 @@ def main():
     ntnu["programs"] = [by_dept[k] for k in sorted(by_dept)]
     ntnu["year"] = YEAR
     ntnu["source"] = "臺師大課架查詢系統的課程架構表"
+    ntnu["docName"] = "課程架構表"
     ntnu["note"] = ("課名以臺師大課架表為準；臺大成績單上的跨校課名可能多了（教）之類的後綴，"
                     "比對時會忽略括號內容。認列與兼充由原就讀校系與加修學系認定。")
     ntnu.pop("sourceUrl", None)

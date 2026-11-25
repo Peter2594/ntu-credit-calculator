@@ -28,10 +28,31 @@ const ntust = schools.find((s) => s.school === '臺科大')!
 const ntnu = schools.find((s) => s.school === '臺師大')!
 
 describe('臺大系統跨校雙主修、輔系資料', () => {
-  it('兩校都在，臺科大有逐系科目表', () => {
+  it('兩校都在，而且都有逐系科目表', () => {
     expect(schools.map((s) => s.school)).toEqual(['臺科大', '臺師大'])
     expect(ntust.programs.length).toBeGreaterThanOrEqual(19)
-    expect(ntnu.programs.length).toBeGreaterThan(0)
+    expect(ntnu.programs.length).toBeGreaterThanOrEqual(36)
+  })
+
+  it('臺師大的學分落在該校辦法的範圍內（輔系 20–30、雙主修 40–50）', () => {
+    for (const p of ntnu.programs) {
+      if (p.輔系?.total) {
+        expect(p.輔系.total).toBeGreaterThanOrEqual(20)
+        expect(p.輔系.total).toBeLessThanOrEqual(30)
+      }
+      if (p.雙主修?.total) {
+        expect(p.雙主修.total).toBeGreaterThanOrEqual(40)
+        expect(p.雙主修.total).toBeLessThanOrEqual(50)
+      }
+    }
+  })
+
+  it('臺師大每個系都讀得到科目清單', () => {
+    for (const p of ntnu.programs) {
+      for (const plan of [p.輔系, p.雙主修]) {
+        if (plan) expect(plan.courses.length).toBeGreaterThan(0)
+      }
+    }
   })
 
   it('學系名稱不重複', () => {
