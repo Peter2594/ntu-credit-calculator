@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-Hant">
+<meta charset="utf-8">
+<title>臺師大課架表下載清單</title>
+<style>
+  body { font: 16px/1.6 "Noto Sans TC", "Microsoft JhengHei", system-ui; margin: 2rem auto; max-width: 48rem; padding: 0 1rem; }
+  ol { columns: 2; }
+  li { break-inside: avoid; }
+  button { font: inherit; padding: .6rem 1.2rem; }
+  .note { background: #f4f4f5; padding: 1rem; border-radius: .5rem; }
+</style>
+<h1>臺師大雙主修、輔系課程架構表</h1>
+<p class="note">
+  按下按鈕會依序開始下載 76 份 PDF，瀏覽器會先問「是否允許下載多個檔案」，請按允許。<br>
+  檔名會是 <code>CourseStructReportCtrl.pdf</code> 之類的重複名稱沒關係，每份 PDF 第一行就寫了系名與輔系／雙主修，之後靠內容辨認。<br>
+  下載完把整個資料夾路徑給我。也可以直接點下面的連結逐一下載。
+</p>
+<p><button id="go">開始下載（76 份）</button> <span id="status"></span></p>
+<ol>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=EU00&amp;sst=U2&amp;cssgno=" download="ntnu-01.pdf">教育系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=EU00&amp;sst=U3&amp;cssgno=" download="ntnu-02.pdf">教育系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=EU01&amp;sst=U2&amp;cssgno=" download="ntnu-03.pdf">心輔系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=EU01&amp;sst=U3&amp;cssgno=" download="ntnu-04.pdf">心輔系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=EU02&amp;sst=U2&amp;cssgno=" download="ntnu-05.pdf">社教系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=EU02&amp;sst=U3&amp;cssgno=" download="ntnu-06.pdf">社教系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=EU05&amp;sst=U2&amp;cssgno=" download="ntnu-07.pdf">衛教系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=EU05&amp;sst=U3&amp;cssgno=" download="ntnu-08.pdf">衛教系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=EU06&amp;sst=U2&amp;cssgno=" download="ntnu-09.pdf">幼家科學系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=EU06&amp;sst=U3&amp;cssgno=" download="ntnu-10.pdf">幼家科學系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=EU07&amp;sst=U2&amp;cssgno=" download="ntnu-11.pdf">公領系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=EU07&amp;sst=U3&amp;cssgno=" download="ntnu-12.pdf">公領系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=EU09&amp;sst=U2&amp;cssgno=" download="ntnu-13.pdf">特教系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=EU09&amp;sst=U3&amp;cssgno=" download="ntnu-14.pdf">特教系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=EU11&amp;sst=U2&amp;cssgno=" download="ntnu-15.pdf">學習科學學位學程　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=EU11&amp;sst=U3&amp;cssgno=" download="ntnu-16.pdf">學習科學學位學程　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=EU13&amp;sst=U2&amp;cssgno=" download="ntnu-17.pdf">教院學士班　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=EU13&amp;sst=U3&amp;cssgno=" download="ntnu-18.pdf">教院學士班　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=LU20&amp;sst=U2&amp;cssgno=" download="ntnu-19.pdf">國文系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=LU20&amp;sst=U3&amp;cssgno=" download="ntnu-20.pdf">國文系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=LU21&amp;sst=U2&amp;cssgno=" download="ntnu-21.pdf">英語系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=LU21&amp;sst=U3&amp;cssgno=" download="ntnu-22.pdf">英語系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=LU22&amp;sst=U2&amp;cssgno=" download="ntnu-23.pdf">歷史系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=LU22&amp;sst=U3&amp;cssgno=" download="ntnu-24.pdf">歷史系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=LU23&amp;sst=U2&amp;cssgno=" download="ntnu-25.pdf">地理系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=LU23&amp;sst=U3&amp;cssgno=" download="ntnu-26.pdf">地理系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=LU26&amp;sst=U2&amp;cssgno=" download="ntnu-27.pdf">臺文系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=LU26&amp;sst=U3&amp;cssgno=" download="ntnu-28.pdf">臺文系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=SU40&amp;sst=U2&amp;cssgno=" download="ntnu-29.pdf">數學系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=SU40&amp;sst=U3&amp;cssgno=" download="ntnu-30.pdf">數學系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=SU41&amp;sst=U2&amp;cssgno=" download="ntnu-31.pdf">物理系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=SU41&amp;sst=U3&amp;cssgno=" download="ntnu-32.pdf">物理系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=SU42&amp;sst=U2&amp;cssgno=" download="ntnu-33.pdf">化學系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=SU42&amp;sst=U3&amp;cssgno=" download="ntnu-34.pdf">化學系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=SU43&amp;sst=U2&amp;cssgno=" download="ntnu-35.pdf">生科系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=SU43&amp;sst=U3&amp;cssgno=" download="ntnu-36.pdf">生科系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=SU44&amp;sst=U2&amp;cssgno=" download="ntnu-37.pdf">地科系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=SU44&amp;sst=U3&amp;cssgno=" download="ntnu-38.pdf">地科系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=SU47&amp;sst=U2&amp;cssgno=" download="ntnu-39.pdf">資工系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=SU47&amp;sst=U3&amp;cssgno=" download="ntnu-40.pdf">資工系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=SU51&amp;sst=U2&amp;cssgno=" download="ntnu-41.pdf">營養學位學程　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=SU51&amp;sst=U3&amp;cssgno=" download="ntnu-42.pdf">營養學位學程　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=TU60&amp;sst=U2&amp;cssgno=" download="ntnu-43.pdf">美術系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=TU60&amp;sst=U3&amp;cssgno=" download="ntnu-44.pdf">美術系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=TU68&amp;sst=U2&amp;cssgno=" download="ntnu-45.pdf">設計系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=TU68&amp;sst=U3&amp;cssgno=" download="ntnu-46.pdf">設計系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=HU70&amp;sst=U2&amp;cssgno=" download="ntnu-47.pdf">工教系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=HU70&amp;sst=U3&amp;cssgno=" download="ntnu-48.pdf">工教系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=HU71&amp;sst=U2&amp;cssgno=" download="ntnu-49.pdf">科技系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=HU71&amp;sst=U3&amp;cssgno=" download="ntnu-50.pdf">科技系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=HU72&amp;sst=U2&amp;cssgno=" download="ntnu-51.pdf">圖傳系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=HU72&amp;sst=U3&amp;cssgno=" download="ntnu-52.pdf">圖傳系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=HU73&amp;sst=U2&amp;cssgno=" download="ntnu-53.pdf">機電系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=HU73&amp;sst=U3&amp;cssgno=" download="ntnu-54.pdf">機電系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=HU75&amp;sst=U2&amp;cssgno=" download="ntnu-55.pdf">電機系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=HU75&amp;sst=U3&amp;cssgno=" download="ntnu-56.pdf">電機系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=HU76&amp;sst=U2&amp;cssgno=" download="ntnu-57.pdf">車能學位學程　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=HU76&amp;sst=U3&amp;cssgno=" download="ntnu-58.pdf">車能學位學程　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=HU77&amp;sst=U2&amp;cssgno=" download="ntnu-59.pdf">光電學位學程　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=HU77&amp;sst=U3&amp;cssgno=" download="ntnu-60.pdf">光電學位學程　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=AU30&amp;sst=U2&amp;cssgno=" download="ntnu-61.pdf">體育系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=AU30&amp;sst=U3&amp;cssgno=" download="ntnu-62.pdf">體育系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=AU32&amp;sst=U2&amp;cssgno=" download="ntnu-63.pdf">競技系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=AU32&amp;sst=U3&amp;cssgno=" download="ntnu-64.pdf">競技系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=IU83&amp;sst=U2&amp;cssgno=" download="ntnu-65.pdf">東亞系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=IU83&amp;sst=U3&amp;cssgno=" download="ntnu-66.pdf">東亞系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=IU84&amp;sst=U2&amp;cssgno=" download="ntnu-67.pdf">華語系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=IU84&amp;sst=U3&amp;cssgno=" download="ntnu-68.pdf">華語系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=IUH0&amp;sst=U2&amp;cssgno=" download="ntnu-69.pdf">全球研究學位學程　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=IUH0&amp;sst=U3&amp;cssgno=" download="ntnu-70.pdf">全球研究學位學程　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=MU90&amp;sst=U2&amp;cssgno=" download="ntnu-71.pdf">音樂系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=MU90&amp;sst=U3&amp;cssgno=" download="ntnu-72.pdf">音樂系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=MU92&amp;sst=U2&amp;cssgno=" download="ntnu-73.pdf">表藝系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=MU92&amp;sst=U3&amp;cssgno=" download="ntnu-74.pdf">表藝系　輔系</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=OU57&amp;sst=U2&amp;cssgno=" download="ntnu-75.pdf">企管系　雙主修</a></li>
+    <li><a href="https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl?action=getStruct&amp;type=pdf&amp;lang=&amp;year=115&amp;deptCode=OU57&amp;sst=U3&amp;cssgno=" download="ntnu-76.pdf">企管系　輔系</a></li>
+</ol>
+<script>
+document.getElementById('go').addEventListener('click', async () => {
+  const links = [...document.querySelectorAll('ol a')];
+  const status = document.getElementById('status');
+  for (let i = 0; i < links.length; i++) {
+    status.textContent = `下載中 ${i + 1} / ${links.length}`;
+    links[i].click();
+    await new Promise((r) => setTimeout(r, 1200));
+  }
+  status.textContent = '全部送出了，確認下載資料夾有 ' + links.length + ' 份檔案';
+});
+</script>
+</html>

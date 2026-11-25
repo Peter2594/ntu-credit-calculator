@@ -301,3 +301,24 @@ describe('臺大系統跨校課程', () => {
     expect(classify(course({ identifier: 'TA01UG004', genEdDomain: 'A1', grade: 'A' }), minor)).toBe('通識')
   })
 })
+
+describe('跨校課名的後綴', () => {
+  const minor: Program = {
+    id: 'm1', kind: '輔系', name: '臺師大教育學系', deptPrefix: '', crossSchool: '臺師大',
+    requirements: { total: 28 },
+    requiredMode: 'pick',
+    requiredCourses: [
+      { code: '', identifier: '', name: '教學原理', credits: 2, scope: '不限本院(系)課程' },
+      { code: '', identifier: '', name: '教育統計學（一）', credits: 2, scope: '不限本院(系)課程' },
+    ],
+  }
+
+  it('臺大那邊多出來的「（教）」不影響比對', () => {
+    expect(classify(course({ name: '教學原理（教）', identifier: 'TA00UE005', grade: 'A' }), minor)).toBe('系訂必修')
+  })
+
+  it('「（一）」「（二）」是不同課，不會被混為一談', () => {
+    expect(classify(course({ name: '教育統計學（一）', identifier: 'TA00UE006', grade: 'A' }), minor)).toBe('系訂必修')
+    expect(classify(course({ name: '教育統計學（二）', identifier: 'TA00UE007', grade: 'A' }), minor)).toBe('一般選修')
+  })
+})

@@ -5,7 +5,10 @@
   CourseStructReportCtrl?action=getStruct&type=pdf&lang=&year=<學年>&deptCode=<系所>&sst=<學制>&cssgno=
 學制 U2 是雙主修、U3 是輔系（取自該系統的 getUMD）。
 
-執行：python scripts/ntnu-structures.py [學年]（預設 115，需要 pymupdf，會上網）
+課架查詢系統擋自動擷取，所以 PDF 由使用者用 scripts/ntnu-download.html 在瀏覽器下載，
+這支程式讀整個資料夾、從每份 PDF 的標題認出是哪個系的哪一種課架（下載順序不影響）。
+
+執行：python scripts/ntnu-structures.py <PDF 資料夾> [學年]
 """
 import io
 import json
@@ -19,24 +22,35 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "public", "data", "alliance-programs.json")
 CACHE = os.path.join(ROOT, "scripts", "ntnu-structures.json")
 
-YEAR = sys.argv[1] if len(sys.argv) > 1 else "115"
+FOLDER = sys.argv[1] if len(sys.argv) > 1 else ""
+YEAR = sys.argv[2] if len(sys.argv) > 2 else "115"
 REPORT = "https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseStructReportCtrl"
 SST = {"雙主修": "U2", "輔系": "U3"}
 
 # 大學部設有雙主修、輔系的系所，代碼取自該系統的 getDept
 DEPTS = {
+    # 教育學院
     "EU00": "教育系", "EU01": "心輔系", "EU02": "社教系", "EU05": "衛教系",
-    "EU06": "幼家科學系", "EU07": "公領系", "EU09": "特教系", "EU11": "學習科學學位學程",
-    "HU00": "國文系", "HU01": "英語系", "HU03": "歷史系", "HU04": "地理系",
-    "HU05": "臺文系", "HU06": "東亞系", "HU08": "華語系",
-    "SU00": "數學系", "SU01": "物理系", "SU02": "化學系", "SU03": "生命科學系",
-    "SU04": "地科系", "SU05": "資工系", "SU06": "營養科學學位學程",
-    "TU00": "科技應用與人力資源發展學系", "TU01": "圖文傳播系", "TU02": "機電工程系",
-    "TU03": "電機系", "TU04": "光電工程學士學位學程",
-    "AU00": "美術系", "AU01": "設計系",
-    "MU00": "音樂系", "MU02": "表演藝術學士學位學程",
-    "PU00": "體育與運動科學系",
-    "CU00": "企管系", "CU01": "管理學院學士班",
+    "EU06": "幼家科學系", "EU07": "公領系", "EU09": "特教系",
+    "EU11": "學習科學學位學程", "EU13": "教院學士班",
+    # 文學院
+    "LU20": "國文系", "LU21": "英語系", "LU22": "歷史系", "LU23": "地理系", "LU26": "臺文系",
+    # 理學院
+    "SU40": "數學系", "SU41": "物理系", "SU42": "化學系", "SU43": "生科系",
+    "SU44": "地科系", "SU47": "資工系", "SU51": "營養學位學程",
+    # 藝術學院
+    "TU60": "美術系", "TU68": "設計系",
+    # 科技與工程學院
+    "HU70": "工教系", "HU71": "科技系", "HU72": "圖傳系", "HU73": "機電系",
+    "HU75": "電機系", "HU76": "車能學位學程", "HU77": "光電學位學程",
+    # 運動與休閒學院
+    "AU30": "體育系", "AU32": "競技系",
+    # 國際與社會科學學院
+    "IU83": "東亞系", "IU84": "華語系", "IUH0": "全球研究學位學程",
+    # 音樂學院
+    "MU90": "音樂系", "MU92": "表藝系",
+    # 管理學院
+    "OU57": "企管系",
 }
 
 CODE = re.compile(r"^[A-Z0-9]{3,}\d{3,}$")
@@ -58,8 +72,13 @@ def parse(data: bytes) -> dict | None:
     import fitz
     doc = fitz.open(stream=data, filetype="pdf")
     text = "\n".join(p.get_text("text") for p in doc)
-    if "課程架構表" not in text:
+    title = next((ln.strip() for ln in text.splitlines() if "課程架構表" in ln), "")
+    if not title:
         return None
+    m = re.match(r"^國立臺灣師範大學(.+?)(雙主修|輔系)課程架構表$", title.strip())
+    if not m:
+        return None
+    dept, kind = m.group(1), m.group(2)
 
     lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
     required = REQUIRED_TOTAL.search(text)
@@ -82,6 +101,8 @@ def parse(data: bytes) -> dict | None:
 
     total = (float(required.group(1)) if required else 0) + (float(elective.group(1)) if elective else 0)
     return {
+        "dept": dept,
+        "kind": kind,
         "total": total if total else None,
         "requiredCredits": float(required.group(1)) if required else None,
         "electiveCredits": float(elective.group(1)) if elective else None,
@@ -90,50 +111,55 @@ def parse(data: bytes) -> dict | None:
 
 
 def main():
-    cache = json.load(io.open(CACHE, encoding="utf-8")) if os.path.exists(CACHE) else {}
+    if not FOLDER or not os.path.isdir(FOLDER):
+        sys.exit("用法：python scripts/ntnu-structures.py <PDF 資料夾> [學年]\n"
+                 "PDF 請先用 scripts/ntnu-download.html 在瀏覽器下載。")
 
-    for code, name in DEPTS.items():
-        for kind, sst in SST.items():
-            key = f"{code}|{sst}"
-            if key in cache:
-                continue
-            try:
-                plan = parse(fetch(code, sst))
-            except Exception as exc:  # noqa: BLE001 - 單一系查不到不該中斷整批
-                print(f"  ! {name} {kind}: {exc}", file=sys.stderr)
-                continue
-            cache[key] = {"dept": name, "kind": kind, **(plan or {"missing": True})}
-            n = len(plan["courses"]) if plan else 0
-            print(f"{name} {kind}: {plan['total'] if plan else '無課架'} 學分、{n} 科", file=sys.stderr)
-            time.sleep(0.6)
+    plans = []
+    skipped = []
+    for name in sorted(os.listdir(FOLDER)):
+        if not name.lower().endswith(".pdf"):
+            continue
+        path = os.path.join(FOLDER, name)
+        try:
+            plan = parse(io.open(path, "rb").read())
+        except Exception as exc:  # noqa: BLE001 - 壞掉的檔案不該中斷整批
+            skipped.append(f"{name}（{exc}）")
+            continue
+        if plan is None:
+            skipped.append(f"{name}（不是課架表）")
+            continue
+        plans.append(plan)
+        print(f"{plan['dept']} {plan['kind']}：{plan['total']} 學分、{len(plan['courses'])} 科", file=sys.stderr)
 
-    with io.open(CACHE, "w", encoding="utf-8") as f:
-        json.dump(cache, f, ensure_ascii=False, indent=0, sort_keys=True)
+    if not plans:
+        sys.exit("資料夾裡沒有讀得到的課架表 PDF")
 
-    # 併進 alliance-programs.json 的臺師大區塊
+    by_dept: dict[str, dict] = {}
+    for plan in plans:
+        entry = by_dept.setdefault(plan["dept"], {"dept": plan["dept"]})
+        body = {k: plan[k] for k in ("total", "requiredCredits", "electiveCredits", "courses")}
+        if body["total"] and body["courses"]:
+            listed = sum(c["credits"] for c in body["courses"])
+            body["listedCredits"] = listed
+            body["mode"] = "all" if listed < body["total"] else "pick"
+        entry[plan["kind"]] = body
+
     data = json.load(io.open(OUT, encoding="utf-8"))
     ntnu = next(s for s in data["schools"] if s["school"] == "臺師大")
-    by_dept: dict[str, dict] = {}
-    for v in cache.values():
-        if v.get("missing"):
-            continue
-        entry = by_dept.setdefault(v["dept"], {"dept": v["dept"]})
-        plan = {k: v[k] for k in ("total", "requiredCredits", "electiveCredits", "courses") if k in v}
-        if plan.get("total") and plan.get("courses"):
-            listed = sum(c["credits"] for c in plan["courses"])
-            plan["listedCredits"] = listed
-            plan["mode"] = "all" if listed < plan["total"] else "pick"
-        entry[v["kind"]] = plan
-
-    if by_dept:
-        ntnu["programs"] = [by_dept[k] for k in sorted(by_dept)]
-        ntnu["source"] = "臺師大課架查詢系統的課程架構表"
-        ntnu["note"] = ("課名以臺師大課架表為準；臺大成績單上的跨校課名可能多了（教）之類的後綴，"
-                        "比對時會忽略括號內容。認列與兼充由原就讀校系與加修學系認定。")
+    ntnu["programs"] = [by_dept[k] for k in sorted(by_dept)]
+    ntnu["year"] = YEAR
+    ntnu["source"] = "臺師大課架查詢系統的課程架構表"
+    ntnu["note"] = ("課名以臺師大課架表為準；臺大成績單上的跨校課名可能多了（教）之類的後綴，"
+                    "比對時會忽略括號內容。認列與兼充由原就讀校系與加修學系認定。")
+    ntnu.pop("sourceUrl", None)
 
     with io.open(OUT, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
-    print(f"\n{len(by_dept)} 個系寫進 {OUT}")
+
+    print(f"\n{len(by_dept)} 個系、{len(plans)} 份課架寫進 {OUT}")
+    if skipped:
+        print("略過：" + "、".join(skipped))
 
 
 if __name__ == "__main__":

@@ -52,13 +52,21 @@ export function withGraduatePrefix(prefix: string): string {
 
 const squash = (s?: string) => (s ?? '').replace(/\s+/g, '').toUpperCase()
 
+/**
+ * 課名比對前先正規化。臺師大的跨校課程在臺大的課名會多「（教）」之類的後綴
+ * （課架表寫「教學原理」、臺大寫「教學原理（教）」），去掉才對得上；
+ * 「（一）」「（二）」這種序號是不同課，要保留。
+ */
+const normalizeName = (name: string) =>
+  name.replace(/\s+/g, '').replace(/[（(][^0-9一二三四五六七八九十]{1,3}[）)]$/, '')
+
 /** 這門課是否滿足某一門系訂必修。認可範圍不限本系時，他系開的同名課也算。 */
 export function matchesRequired(course: ParsedCourse, r: RequiredCourse): boolean {
   const code = squash(course.code)
   const identifier = squash(course.identifier)
   return (code !== '' && squash(r.code) === code) ||
     (identifier !== '' && squash(r.identifier) === identifier) ||
-    (!r.scope.includes('限本系') && r.name === course.name)
+    (!r.scope.includes('限本系') && normalizeName(r.name) === normalizeName(course.name))
 }
 
 /**
@@ -77,12 +85,12 @@ export function requiredMatcher<T extends ParsedCourse>(courses: T[]): (r: Requi
   }
   const byCode = index((c) => squash(c.code))
   const byIdentifier = index((c) => squash(c.identifier))
-  const byName = index((c) => c.name)
+  const byName = index((c) => normalizeName(c.name))
   return (r) => {
     const found = new Set([
       ...(byCode.get(squash(r.code)) ?? []),
       ...(byIdentifier.get(squash(r.identifier)) ?? []),
-      ...(r.scope.includes('限本系') ? [] : byName.get(r.name) ?? []),
+      ...(r.scope.includes('限本系') ? [] : byName.get(normalizeName(r.name)) ?? []),
     ])
     return [...found].sort((a, b) => order.get(a)! - order.get(b)!)
   }
