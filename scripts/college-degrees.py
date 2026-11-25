@@ -38,7 +38,7 @@ degrees = []
 
 
 def degree(code, college, name, total, published, rules, groups, courses, requirements=None,
-           gen_ed_domains=None, group_rules=None):
+           gen_ed_domains=None, group_rules=None, no_course_table=False):
     entry = {
         "code": code,
         "college": college,
@@ -53,6 +53,9 @@ def degree(code, college, name, total, published, rules, groups, courses, requir
     }
     if gen_ed_domains:
         entry["genEdDomains"] = gen_ed_domains
+    # 法規本身就沒有固定科目表（醫學院交由各系認定），不是還沒整理
+    if no_course_table:
+        entry["noCourseTable"] = True
     degrees.append(entry)
 
 
@@ -228,11 +231,17 @@ degree(
 # ---------------------------------------------------------------- 醫學院
 degree(
     "CMED", "醫學院", "醫學院院學士學位", 128, "112.06.21",
-    "應修至少 128 學分，其中共同必修及通識科目 24 學分；其餘為所屬學系認定的基礎醫學與非臨床專業科目、"
-    "領域專長或跨域專長等。本院院學士專頁與修業辦法 PDF 目前連不上（www.mc.ntu.edu.tw 無法連線），"
-    "完整科目表尚未能整理，請依醫學院公告為準。",
+    "應修至少 128 學分。依修業辦法第三條，應修科目為：共同必修及通識科目 24 學分；"
+    "學生所屬學系認定必修之基礎醫學科目；學生所屬學系認定必修之非臨床專業科目；"
+    "以及至少一門領域專長、學分學程或跨域專長，或修畢至少 12 學分之領域專長、跨域專長（限 Level 3 以上）"
+    "或學分學程課程（不限同一領域專長、跨域專長或學分學程）。"
+    "基礎醫學與非臨床專業科目由學生所屬學系認定，法規本身沒有固定科目表，所以工具只算總學分與共同必修及通識；"
+    "修畢的所屬學系必修、領域專長等課程是否認列，由所屬學系審查後提院學士學位審查小組決定。"
+    "申請資格：四年制學系須修畢一至二年級必修、六年制須修畢一至三年級必修，"
+    "至遲於修業年限最後一年第一學期開始前提出。",
     [], [],
     {"total": 128, "common": 24},
+    no_course_table=True,
 )
 
 # ---------------------------------------------------------------- 工學院

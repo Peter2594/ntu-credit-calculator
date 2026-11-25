@@ -15,6 +15,8 @@ export type CollegeDegree = {
   courses: { name: string; credits: number; group: string; code?: string }[]
   /** 修業辦法自訂的通識領域限制（如管院限 A1–A4、A7、A8 中三個領域） */
   genEdDomains?: string[]
+  /** 法規本身就沒有固定科目表（醫學院交由各系認定），不是資料還沒整理 */
+  noCourseTable?: boolean
 }
 
 type CollegeDegreeData = { updated: string; degrees: CollegeDegree[] }
@@ -137,7 +139,7 @@ export function CollegeDegreePicker({ program, onChange }: Props) {
           <option value="" disabled>{degrees ? '請選擇學院' : '載入中…'}</option>
           {degrees?.map((d) => (
             <option key={d.code} value={d.code}>
-              {d.college}{d.courses.length === 0 ? '（科目表待補）' : ''}
+              {d.college}{d.courses.length > 0 ? '' : d.noCourseTable ? '（無固定科目表）' : '（科目表待補）'}
             </option>
           ))}
         </select>
@@ -155,7 +157,11 @@ export function CollegeDegreePicker({ program, onChange }: Props) {
             領域專長與各組選修的課程由學院逐學期公告，清單只收法規明文列出的科目，認列與充抵由院學士學位審查小組決定。
           </p>
           {selected.courses.length === 0 && (
-            <div className="warn-text small">這個學院的科目表還沒整理，目前只能看總學分與規定。</div>
+            <div className="warn-text small">
+              {selected.noCourseTable
+                ? '這個學院的應修科目由學生所屬學系認定，法規沒有固定科目表，所以只算總學分與共同必修及通識。'
+                : '這個學院的科目表還沒整理，目前只能看總學分與規定。'}
+            </div>
           )}
         </div>
       )}
