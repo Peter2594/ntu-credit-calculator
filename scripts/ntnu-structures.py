@@ -94,8 +94,14 @@ def parse(data: bytes) -> dict | None:
     required = REQUIRED_TOTAL.search(text)
     elective = ELECTIVE_TOTAL.search(text)
 
+    # 課架表把必修與選修排成好幾段，每段前面都重複一次「科目代碼」表頭。
+    # 第一段是必修（公告必修學分大於 0 時），其餘是選修與分課群。
     courses, seen = [], set()
+    section = -1
     for i, line in enumerate(lines):
+        if line == "科目代碼":
+            section += 1
+            continue
         if not CODE.match(line):
             continue
         m = TITLE.match(lines[i + 1]) if i + 1 < len(lines) else None
@@ -107,7 +113,11 @@ def parse(data: bytes) -> dict | None:
             continue
         seen.add(name)
         value = float(credit.group(1))
-        courses.append({"name": name, "credits": int(value) if value == int(value) else value})
+        courses.append({
+            "name": name,
+            "credits": int(value) if value == int(value) else value,
+            "section": max(section, 0),
+        })
 
     # 「總計學分數」區塊才是真的應修總數：分組的系（如設計系視覺／產品設計組）
     # 會列出每組的必修、選修與總計，條文開頭的「必修課程，應修X學分」只是共同部分。
@@ -130,9 +140,19 @@ def parse(data: bytes) -> dict | None:
 
     fallback = (float(required.group(1)) if required else 0) + (float(elective.group(1)) if elective else 0)
     total = min(totals.values()) if totals else (fallback or None)
+    required_credits = float(required.group(1)) if required else 0.0
+    # 只有第一段的學分正好等於公告的必修學分時，才敢把它標成必修；對不上就不分組
+    first = sum(c["credits"] for c in courses if c["section"] == 0)
+    grouped = required_credits > 0 and first == required_credits
+    for c in courses:
+        if grouped:
+            c["group"] = "必修" if c["section"] == 0 else "選修"
+        c.pop("section", None)
+
     result = {
         "dept": dept,
         "kind": kind,
+        **({"grouped": True} if grouped else {}),
         "total": total,
         "requiredCredits": float(required.group(1)) if required else None,
         "electiveCredits": float(elective.group(1)) if elective else None,
@@ -173,7 +193,7 @@ def main():
     by_dept: dict[str, dict] = {}
     for plan in plans:
         entry = by_dept.setdefault(plan["dept"], {"dept": plan["dept"]})
-        body = {k: plan[k] for k in ("total", "requiredCredits", "electiveCredits", "courses")}
+        body = {k: v for k, v in plan.items() if k not in ("dept", "kind")}
         if body["total"] and body["courses"]:
             listed = sum(c["credits"] for c in body["courses"])
             body["listedCredits"] = listed

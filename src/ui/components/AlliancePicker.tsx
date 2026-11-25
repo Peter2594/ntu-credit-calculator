@@ -16,7 +16,11 @@ type Plan = {
   listedCredits?: number
   /** 已停止受理申請的學程 */
   closed?: string
-  courses: { name: string; credits: number }[]
+  /** 課架表分得出必修與選修（臺師大）；分不出來時科目只能當一份可選清單 */
+  grouped?: boolean
+  requiredCredits?: number
+  electiveCredits?: number
+  courses: { name: string; credits: number; group?: string }[]
 }
 
 type DeptEntry = { dept: string } & Partial<Record<Kind, Plan>>
@@ -53,8 +57,22 @@ export function loadAlliance(): Promise<SchoolEntry[]> {
 }
 
 /** 科目表只列課名，沒有臺大這邊的課號與識別碼，所以以課名比對。 */
-function toRequired(c: { name: string; credits: number }): RequiredCourse {
-  return { code: '', identifier: '', name: c.name, credits: c.credits, scope: '不限本院(系)課程' }
+function toRequired(c: { name: string; credits: number; group?: string }): RequiredCourse {
+  return {
+    code: '', identifier: '', name: c.name, credits: c.credits,
+    ...(c.group ? { group: c.group } : {}),
+    scope: '不限本院(系)課程',
+  }
+}
+
+/** 課架表分得出必修與選修時，把兩者做成各自有學分門檻的模組，必修才會被當成門檻檢查。 */
+function groupsOf(plan: Plan | undefined): NonNullable<Program['requiredGroups']> | undefined {
+  if (!plan?.grouped) return undefined
+  const groups = [
+    ...(plan.requiredCredits ? [{ name: '必修', minCredits: plan.requiredCredits }] : []),
+    ...(plan.electiveCredits ? [{ name: '選修', minCredits: plan.electiveCredits }] : []),
+  ]
+  return groups.length > 0 ? groups : undefined
 }
 
 function noteFor(school: SchoolEntry, dept: string, kind: Kind, plan: Plan | undefined): string {
@@ -82,7 +100,9 @@ function derive(
     ? `${school.school}${dept}沒有公告的${kind}科目表，工具把識別碼開頭是 ${school.school === '臺師大' ? 'TA' : 'TB'} 的課都先算進來，其中不屬於這個系的課請自行改成不計入。`
     : (plan.mode ?? 'all') === 'all'
       ? `科目表上的 ${plan.courses.length} 科是必修，其餘學分由該系開設的課程自由補足；工具無法從臺大的識別碼判斷是不是這個系開的課。`
-      : undefined
+      : plan.grouped
+        ? undefined
+        : '課架表把必修與選修列在同一份清單，工具只比得出學分總數；必修是否修齊請自行對照課架表。'
 
   return {
     ...rest,
@@ -92,7 +112,11 @@ function derive(
     crossSchool: school.school,
     requirements: { total: plan?.total ?? fallback },
     ...(plan && plan.courses.length > 0
-      ? { requiredCourses: plan.courses.map(toRequired), requiredMode: plan.mode ?? 'all' }
+      ? {
+        requiredCourses: plan.courses.map(toRequired),
+        requiredMode: plan.mode ?? 'all',
+        ...(groupsOf(plan) ? { requiredGroups: groupsOf(plan) } : {}),
+      }
       : {}),
     requiredNote: noteFor(school, dept, kind, plan),
     source: { year: school.year, deptCode: `${school.school}|${dept}`, kind: '跨校' },
@@ -100,7 +124,8 @@ function derive(
 }
 
 const derivedFields = (p: Program) =>
-  JSON.stringify([p.name, p.requiredCourses, p.requiredMode, p.requiredNote, p.crossSchool, p.unverifiedSubjects])
+  JSON.stringify([p.name, p.requiredCourses, p.requiredMode, p.requiredNote, p.crossSchool,
+    p.unverifiedSubjects, p.requiredGroups])
 
 /** 跨校資料更新後，已選的跨校雙主修、輔系換成新的科目表（門檻數字不覆蓋，使用者可能改過）。 */
 export function refreshAlliance(programs: Program[], schools: SchoolEntry[]): Program[] | null {
