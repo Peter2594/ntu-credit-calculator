@@ -13,9 +13,21 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "public", "data", "college-degrees.json")
 
 
+# 修業辦法只寫課名。課號由 college-course-codes.py 查課程網補上，
+# 只有全校同名課都指向同一個課號時才採用（他系同名課才不會被誤算）。
+CODES = {}
+_codes_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "college-course-codes.json")
+if os.path.exists(_codes_path):
+    with open(_codes_path, encoding="utf-8") as _f:
+        CODES = json.load(_f).get("courses", {})
+
+
 def c(name, credits, group):
-    """法規只列課名，沒有課號與識別碼，因此以課名比對。"""
-    return {"name": name, "credits": credits, "group": group}
+    entry = {"name": name, "credits": credits, "group": group}
+    code = (CODES.get(name) or {}).get("code")
+    if code:
+        entry["code"] = code
+    return entry
 
 
 def many(group, *pairs):

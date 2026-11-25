@@ -16,7 +16,7 @@ type Degree = {
   rules: string
   requirements: Requirements
   groups: Group[]
-  courses: { name: string; credits: number; group: string }[]
+  courses: { name: string; credits: number; group: string; code?: string }[]
   genEdDomains?: string[]
 }
 
@@ -54,6 +54,20 @@ describe('院學士資料', () => {
     // 醫學院只查得到總學分與共同必修，其餘項目的科目表還沒公開
     if (major === undefined) return
     expect(common! + major + elective!).toBe(total)
+  })
+
+  it.each(degrees.map((d) => [d.code, d] as const))('%s 補上的課號格式正確', (_, d) => {
+    for (const c of d.courses) {
+      if (c.code === undefined) continue
+      // 台大課號是英文字母接數字，如 AtmSci1009、CHIN2003
+      expect(c.code).toMatch(/^[A-Za-z&]{2,}\d[\w]*$/)
+    }
+  })
+
+  it('有課號的科目夠多，不然等於沒補', () => {
+    const all = degrees.flatMap((d) => d.courses)
+    const withCode = all.filter((c) => c.code)
+    expect(withCode.length / all.length).toBeGreaterThan(0.5)
   })
 
   it('沒有把聯絡人信箱之類的個資抄進公開資料', () => {

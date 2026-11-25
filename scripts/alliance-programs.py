@@ -135,6 +135,15 @@ NTNU_DEPTS = [
 ]
 
 
+# 表上沒寫應修總數、但條文把組成列清楚的，依組成補上，並留下算式讓使用者核對
+OVERRIDES = {
+    ("臺科大", "電機工程系", "雙主修"): {
+        "total": 44,
+        "totalText": "44 學分（專業必修 29 學分＋領域選修正課十選四 12 學分＋領域選修實習八選三 3 學分）",
+    },
+}
+
+
 def main():
     result = {
         "updated": "2026-11-25",
@@ -164,7 +173,14 @@ def main():
         sections = clean(parse(pages(fetch(url)), kind))
         for s in sections:
             entry = by_dept.setdefault(s["dept"], {"dept": s["dept"]})
-            entry[kind] = {k: v for k, v in s.items() if k != "dept"}
+            plan = {k: v for k, v in s.items() if k != "dept"}
+            plan.update(OVERRIDES.get(("臺科大", s["dept"], kind), {}))
+            # 補上總數的也要重算清單模式
+            if plan.get("total") and plan.get("courses") and "mode" not in plan:
+                listed = sum(c["credits"] for c in plan["courses"])
+                plan["listedCredits"] = listed
+                plan["mode"] = "all" if listed < plan["total"] else "pick"
+            entry[kind] = plan
 
     result["schools"][0]["programs"] = [by_dept[k] for k in sorted(by_dept)]
 

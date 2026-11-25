@@ -12,7 +12,7 @@ export type CollegeDegree = {
   rules: string
   requirements: Requirements
   groups: NonNullable<Program['requiredGroups']>
-  courses: { name: string; credits: number; group: string }[]
+  courses: { name: string; credits: number; group: string; code?: string }[]
   /** 修業辦法自訂的通識領域限制（如管院限 A1–A4、A7、A8 中三個領域） */
   genEdDomains?: string[]
 }
@@ -37,15 +37,18 @@ export function loadCollegeDegrees(): Promise<CollegeDegree[]> {
   return loadData().then((d) => d.degrees)
 }
 
-/** 修業辦法只列課名（沒有課號與識別碼），所以一律以課名比對。 */
+/**
+ * 修業辦法只列課名。查得到唯一課號的科目改以課號比對（scope 限本系課程會關掉課名比對），
+ * 他系的同名課才不會被誤算；查不到或同名多課的只能退回課名比對。
+ */
 function toRequired(c: CollegeDegree['courses'][number]): RequiredCourse {
   return {
-    code: '',
+    code: c.code ?? '',
     identifier: '',
     name: c.name,
     credits: c.credits,
     group: c.group,
-    scope: '不限本院(系)課程',
+    scope: c.code ? '限本系課程' : '不限本院(系)課程',
   }
 }
 

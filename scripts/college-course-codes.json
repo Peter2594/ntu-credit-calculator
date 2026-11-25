@@ -1,0 +1,3164 @@
+{
+"courses": {
+"Python在生物學的應用": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"R語言在生態學的應用": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"《判斷力批判》的哲學構想": {
+"code": "Phl7953",
+"codes": [
+"Phl7953"
+],
+"deptPrefixes": [
+"124"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"《華嚴經．入法界品》哲學研讀": {
+"code": "Phl7569",
+"codes": [
+"Phl7569"
+],
+"deptPrefixes": [
+"124"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"世界史一": {
+"code": "Hist1013",
+"codes": [
+"Hist1013"
+],
+"deptPrefixes": [
+"103"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"世界史二": {
+"code": "Hist1014",
+"codes": [
+"Hist1014"
+],
+"deptPrefixes": [
+"103"
+],
+"hits": 2
+},
+"中國史一": {
+"code": "Hist1009",
+"codes": [
+"Hist1009"
+],
+"deptPrefixes": [
+"103"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"中國史二": {
+"code": "Hist1010",
+"codes": [
+"Hist1010"
+],
+"deptPrefixes": [
+"103"
+],
+"hits": 2
+},
+"中國哲學方法論研究": {
+"code": "Phl7376",
+"codes": [
+"Phl7376"
+],
+"deptPrefixes": [
+"124"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"中國大陸政治經濟發展": {
+"code": "PS4002",
+"codes": [
+"PS4002"
+],
+"deptPrefixes": [
+"302"
+],
+"hits": 5
+},
+"中國婦女與性別史": {
+"code": "Hist2129",
+"codes": [
+"Hist2129"
+],
+"deptPrefixes": [
+"103"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"中國思想史上": {
+"code": "CHIN3003",
+"codes": [
+"CHIN3003"
+],
+"deptPrefixes": [
+"CHI"
+],
+"hits": 2,
+"source": "文學院院學士課程清單"
+},
+"中國思想史下": {
+"code": "CHIN3004",
+"codes": [
+"CHIN3004"
+],
+"deptPrefixes": [
+"CHI"
+],
+"hits": 4
+},
+"中國文學史上": {
+"code": "CHIN2003",
+"codes": [
+"CHIN2003"
+],
+"deptPrefixes": [
+"CHI"
+],
+"hits": 2,
+"source": "文學院院學士課程清單"
+},
+"中國文學史下": {
+"code": "",
+"codes": [
+"CHIN2004",
+"CHIN2286"
+],
+"deptPrefixes": [
+"CHI"
+],
+"hits": 5
+},
+"中國近代史": {
+"code": "Hist2174",
+"codes": [
+"Hist2174"
+],
+"deptPrefixes": [
+"103"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"中級日語上": {
+"code": "JpnL2001",
+"codes": [
+"JpnL2001"
+],
+"deptPrefixes": [
+"107"
+],
+"hits": 2,
+"source": "文學院院學士課程清單"
+},
+"中級日語下": {
+"code": "JpnL2002",
+"codes": [
+"JpnL2002"
+],
+"deptPrefixes": [
+"107"
+],
+"hits": 4
+},
+"中華民國憲法及政府一": {
+"code": "PS1031",
+"codes": [
+"PS1031"
+],
+"deptPrefixes": [
+"302"
+],
+"hits": 9
+},
+"中華民國憲法及政府二": {
+"code": "PS1032",
+"codes": [
+"PS1032"
+],
+"deptPrefixes": [
+"302"
+],
+"hits": 9
+},
+"二十世紀歐洲史": {
+"code": "Hist2233",
+"codes": [
+"Hist2233"
+],
+"deptPrefixes": [
+"103"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"二十世紀美國文學": {
+"code": "FL4005",
+"codes": [
+"FL4005"
+],
+"deptPrefixes": [
+"102"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"二十世紀英國文學": {
+"code": "FL3004",
+"codes": [
+"FL3004"
+],
+"deptPrefixes": [
+"102"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"人文學資訊資源與服務": {
+"code": "LIS3034",
+"codes": [
+"LIS3034"
+],
+"deptPrefixes": [
+"106"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"人文科技的交響：新趨勢與新素養（一）": {
+"code": "CHIN1096",
+"codes": [
+"CHIN1096"
+],
+"deptPrefixes": [
+"CHI"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"人機互動": {
+"code": "LIS5066",
+"codes": [
+"LIS5066"
+],
+"deptPrefixes": [
+"126"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"人際溝通與讀者服務": {
+"code": "LIS5099",
+"codes": [
+"LIS5099"
+],
+"deptPrefixes": [
+"126"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"人體動作與力學分析": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"佛學概論": {
+"code": "Phl3022",
+"codes": [
+"Phl3022"
+],
+"deptPrefixes": [
+"104"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"佛教意識哲學": {
+"code": "Phl3207",
+"codes": [
+"Phl3207"
+],
+"deptPrefixes": [
+"104"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"作業研究應用與實作": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"作業管理": {
+"code": "",
+"codes": [
+"IM3003",
+"MBA7004"
+],
+"deptPrefixes": [
+"705",
+"741"
+],
+"hits": 2
+},
+"作物生產概論": {
+"code": "Agron1005",
+"codes": [
+"Agron1005"
+],
+"deptPrefixes": [
+"601"
+],
+"hits": 2
+},
+"個體經濟學上": {
+"code": "ECON2018",
+"codes": [
+"ECON2018"
+],
+"deptPrefixes": [
+"ECO"
+],
+"hits": 8
+},
+"個體經濟學下": {
+"code": "ECON2019",
+"codes": [
+"ECON2019"
+],
+"deptPrefixes": [
+"ECO"
+],
+"hits": 8
+},
+"個體經濟學原理與實習": {
+"code": "ECON1020",
+"codes": [
+"ECON1020"
+],
+"deptPrefixes": [
+"ECO"
+],
+"hits": 44
+},
+"倫理學": {
+"code": "Phl2062",
+"codes": [
+"Phl2062"
+],
+"deptPrefixes": [
+"104"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"先秦道家哲學": {
+"code": "Phl2015",
+"codes": [
+"Phl2015"
+],
+"deptPrefixes": [
+"104"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"光合作用與光植物生理學": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"全球大氣環流": {
+"code": "AtmSci7064",
+"codes": [
+"AtmSci7064"
+],
+"deptPrefixes": [
+"229"
+],
+"hits": 3
+},
+"典藏自然：自然史博物館巡禮": {
+"code": "EEB5097",
+"codes": [
+"EEB5097"
+],
+"deptPrefixes": [
+"B44"
+],
+"hits": 2
+},
+"分子演化：理論與實作": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"分析化學": {
+"code": "Chem2040",
+"codes": [
+"Chem2040"
+],
+"deptPrefixes": [
+"203"
+],
+"hits": 3
+},
+"分析化學乙上": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"分析化學乙下": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"利用深海底泥了解氣候變遷": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"前瞻講座課程": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"前瞻議題Ⅰ＆Ⅱ：氣候服務與環境永續": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"前瞻議題Ⅲ＆Ⅳ：微型感測與災害治理": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"動力學": {
+"code": "ME1006",
+"codes": [
+"ME1006"
+],
+"deptPrefixes": [
+"502"
+],
+"hits": 4
+},
+"動物生理學": {
+"code": "LS3014",
+"codes": [
+"LS3014"
+],
+"deptPrefixes": [
+"B01"
+],
+"hits": 1
+},
+"化學海洋概論": {
+"code": "Ocean5128",
+"codes": [
+"Ocean5128"
+],
+"deptPrefixes": [
+"241"
+],
+"hits": 6
+},
+"十九世紀美國文學": {
+"code": "FL4004",
+"codes": [
+"FL4004"
+],
+"deptPrefixes": [
+"102"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"十六世紀英國文學": {
+"code": "FL2003",
+"codes": [
+"FL2003"
+],
+"deptPrefixes": [
+"102"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"參考資源": {
+"code": "LIS1004",
+"codes": [
+"LIS1004"
+],
+"deptPrefixes": [
+"106"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"參考資訊服務": {
+"code": "LIS3008",
+"codes": [
+"LIS3008"
+],
+"deptPrefixes": [
+"106"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"古典社會學理論": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"古典美學": {
+"code": "Phl3808",
+"codes": [
+"Phl3808"
+],
+"deptPrefixes": [
+"104"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"古海洋學導論": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"古湖泊學": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"台灣史一": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"台灣史二": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"史學導論": {
+"code": "Hist1004",
+"codes": [
+"Hist1004"
+],
+"deptPrefixes": [
+"103"
+],
+"hits": 4
+},
+"商用日文": {
+"code": "JpnL3050",
+"codes": [
+"JpnL3050"
+],
+"deptPrefixes": [
+"107"
+],
+"hits": 2
+},
+"商管程式設計": {
+"code": "",
+"codes": [
+"Acc5050",
+"MBA5084",
+"MGT1006"
+],
+"deptPrefixes": [
+"700",
+"722",
+"741"
+],
+"hits": 8
+},
+"國際行銷管理": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"國際關係一": {
+"code": "PS1011",
+"codes": [
+"PS1011"
+],
+"deptPrefixes": [
+"302"
+],
+"hits": 7
+},
+"國際關係二": {
+"code": "PS1012",
+"codes": [
+"PS1012"
+],
+"deptPrefixes": [
+"302"
+],
+"hits": 6
+},
+"國際關係史一": {
+"code": "PS2201",
+"codes": [
+"PS2201"
+],
+"deptPrefixes": [
+"302"
+],
+"hits": 2
+},
+"國際關係史二": {
+"code": "PS2202",
+"codes": [
+"PS2202"
+],
+"deptPrefixes": [
+"302"
+],
+"hits": 2
+},
+"圖書資訊學專題": {
+"code": "LIS4014",
+"codes": [
+"LIS4014"
+],
+"deptPrefixes": [
+"106"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"圖書館學導論": {
+"code": "LIS1007",
+"codes": [
+"LIS1007"
+],
+"deptPrefixes": [
+"106"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"圖書館統計學": {
+"code": "LIS4011",
+"codes": [
+"LIS4011"
+],
+"deptPrefixes": [
+"106"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"圖書館資訊系統": {
+"code": "LIS3033",
+"codes": [
+"LIS3033"
+],
+"deptPrefixes": [
+"106"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"土壤學": {
+"code": "AC2003",
+"codes": [
+"AC2003"
+],
+"deptPrefixes": [
+"603"
+],
+"hits": 5
+},
+"土壤學實驗": {
+"code": "AC2004",
+"codes": [
+"AC2004"
+],
+"deptPrefixes": [
+"603"
+],
+"hits": 6
+},
+"地球歷史": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"地球氣候學": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"地球物理探勘概論": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"地球系統模式": {
+"code": "Ocean7181",
+"codes": [
+"Ocean7181"
+],
+"deptPrefixes": [
+"241"
+],
+"hits": 2
+},
+"地科專題研究": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"地質調查一": {
+"code": "Geo2012",
+"codes": [
+"Geo2012"
+],
+"deptPrefixes": [
+"204"
+],
+"hits": 2
+},
+"地質調查二": {
+"code": "Geo2013",
+"codes": [
+"Geo2013"
+],
+"deptPrefixes": [
+"204"
+],
+"hits": 6
+},
+"地質資源": {
+"code": "Geo4001",
+"codes": [
+"Geo4001"
+],
+"deptPrefixes": [
+"204"
+],
+"hits": 2
+},
+"基因體學": {
+"code": "Genom5001",
+"codes": [
+"Genom5001"
+],
+"deptPrefixes": [
+"455"
+],
+"hits": 7
+},
+"基本邏輯": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"基礎海洋統計": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"大氣動力學一": {
+"code": "AtmSci3001",
+"codes": [
+"AtmSci3001"
+],
+"deptPrefixes": [
+"209"
+],
+"hits": 3
+},
+"大氣科學概論": {
+"code": "AtmSci1009",
+"codes": [
+"AtmSci1009"
+],
+"deptPrefixes": [
+"209"
+],
+"hits": 2
+},
+"大氣程式實作": {
+"code": "AtmSci5085",
+"codes": [
+"AtmSci5085"
+],
+"deptPrefixes": [
+"229"
+],
+"hits": 2
+},
+"存在主義": {
+"code": "Phl3732",
+"codes": [
+"Phl3732"
+],
+"deptPrefixes": [
+"104"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"學士論文": {
+"code": "",
+"codes": [
+"AtmSci4009",
+"FL4214",
+"Hist4997",
+"LIS4020",
+"ME5999",
+"OT4033",
+"PT6009"
+],
+"deptPrefixes": [
+"102",
+"103",
+"106",
+"209",
+"408",
+"409",
+"522"
+],
+"hits": 25
+},
+"專題研究": {
+"code": "",
+"codes": [
+"FL7321",
+"Hist7001",
+"Hist8007",
+"LING5414"
+],
+"deptPrefixes": [
+"122",
+"123",
+"LIN"
+],
+"hits": 47
+},
+"專題研究一": {
+"code": "",
+"codes": [
+"CliLab1006",
+"FL8066",
+"LIS3030",
+"LIS7011",
+"PTCSL7245"
+],
+"deptPrefixes": [
+"106",
+"122",
+"126",
+"146",
+"404"
+],
+"hits": 38
+},
+"專題討論一": {
+"code": "",
+"codes": [
+"AGEC7001",
+"AGEC8001",
+"AM7001",
+"BP8027",
+"CHIN0008",
+"Forest4021",
+"Geo7007",
+"Geo8001",
+"Geog7006",
+"Geog8002",
+"HORT7001",
+"HORT8001",
+"Hist4991",
+"IPCS7010",
+"IPCS8001",
+"PT7046",
+"Phys7010"
+],
+"deptPrefixes": [
+"103",
+"222",
+"224",
+"228",
+"428",
+"543",
+"544",
+"605",
+"AGE",
+"CHI",
+"HOR",
+"IPC"
+],
+"hits": 46
+},
+"專題討論二": {
+"code": "",
+"codes": [
+"AGEC7002",
+"AGEC8002",
+"FOOD7007",
+"Geog7002",
+"Geog8003",
+"HORT7002",
+"HORT8002",
+"IPCS7011",
+"IPCS8002"
+],
+"deptPrefixes": [
+"228",
+"AGE",
+"FOO",
+"HOR",
+"IPC"
+],
+"hits": 19
+},
+"工程圖學": {
+"code": "",
+"codes": [
+"CIE1005",
+"ESOE1014",
+"ME1003"
+],
+"deptPrefixes": [
+"501",
+"502",
+"ESO"
+],
+"hits": 11
+},
+"工程導論一": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"工程數學": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"工程材料": {
+"code": "ME2004",
+"codes": [
+"ME2004"
+],
+"deptPrefixes": [
+"502"
+],
+"hits": 4
+},
+"康德《純粹理性批判》": {
+"code": "Phl7605",
+"codes": [
+"Phl7605"
+],
+"deptPrefixes": [
+"124"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"形上學": {
+"code": "Phl2064",
+"codes": [
+"Phl2064"
+],
+"deptPrefixes": [
+"104"
+],
+"hits": 2
+},
+"後期阿毘達磨與宗義書原典選讀": {
+"code": "Phl7270",
+"codes": [
+"Phl7270"
+],
+"deptPrefixes": [
+"124"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"後設倫理學專題：規範性": {
+"code": "Phl7757",
+"codes": [
+"Phl7757"
+],
+"deptPrefixes": [
+"124"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"微生物學": {
+"code": "",
+"codes": [
+"LS3020",
+"PPM1007"
+],
+"deptPrefixes": [
+"613",
+"B01"
+],
+"hits": 2
+},
+"微積分1": {
+"code": "MATH4006",
+"codes": [
+"MATH4006"
+],
+"deptPrefixes": [
+"MAT"
+],
+"hits": 79
+},
+"微積分2": {
+"code": "MATH4007",
+"codes": [
+"MATH4007"
+],
+"deptPrefixes": [
+"MAT"
+],
+"hits": 79
+},
+"微積分3": {
+"code": "MATH4008",
+"codes": [
+"MATH4008"
+],
+"deptPrefixes": [
+"MAT"
+],
+"hits": 78
+},
+"微積分4": {
+"code": "MATH4009",
+"codes": [
+"MATH4009"
+],
+"deptPrefixes": [
+"MAT"
+],
+"hits": 40
+},
+"微積分4-在經濟商管的應用": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"微積分一": {
+"code": "MATH1211",
+"codes": [
+"MATH1211"
+],
+"deptPrefixes": [
+"MAT"
+],
+"hits": 1
+},
+"微積分三": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"微積分二": {
+"code": "MATH1210",
+"codes": [
+"MATH1210"
+],
+"deptPrefixes": [
+"MAT"
+],
+"hits": 1
+},
+"微積分四": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"微積分預備課程": {
+"code": "MATH4012",
+"codes": [
+"MATH4012"
+],
+"deptPrefixes": [
+"MAT"
+],
+"hits": 2
+},
+"性別社會學": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"應用倫理學": {
+"code": "Phl4086",
+"codes": [
+"Phl4086"
+],
+"deptPrefixes": [
+"104"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"應用力學一": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"應用力學二": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"投資學": {
+"code": "",
+"codes": [
+"Fin2008",
+"IB3004"
+],
+"deptPrefixes": [
+"703",
+"704"
+],
+"hits": 3
+},
+"探索台灣殖民都市空間": {
+"code": "Hist1597",
+"codes": [
+"Hist1597"
+],
+"deptPrefixes": [
+"103"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"放射性廢棄物地質處置概論": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"政府檔案管理": {
+"code": "LIS4017",
+"codes": [
+"LIS4017"
+],
+"deptPrefixes": [
+"106"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"政治學一": {
+"code": "PS1005",
+"codes": [
+"PS1005"
+],
+"deptPrefixes": [
+"302"
+],
+"hits": 4
+},
+"政治學二": {
+"code": "PS1006",
+"codes": [
+"PS1006"
+],
+"deptPrefixes": [
+"302"
+],
+"hits": 4
+},
+"整合行銷傳播": {
+"code": "BICD3030",
+"codes": [
+"BICD3030"
+],
+"deptPrefixes": [
+"BIC"
+],
+"hits": 2
+},
+"數位圖書館": {
+"code": "LIS5078",
+"codes": [
+"LIS5078"
+],
+"deptPrefixes": [
+"106"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"文學作品讀法上": {
+"code": "FL1013",
+"codes": [
+"FL1013"
+],
+"deptPrefixes": [
+"102"
+],
+"hits": 3,
+"source": "文學院院學士課程清單"
+},
+"文學作品讀法下": {
+"code": "FL1014",
+"codes": [
+"FL1014"
+],
+"deptPrefixes": [
+"102"
+],
+"hits": 2
+},
+"新產品開發與行銷": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"新聞日語一": {
+"code": "JpnL4039",
+"codes": [
+"JpnL4039"
+],
+"deptPrefixes": [
+"107"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"方案設計與評估": {
+"code": "SW3001",
+"codes": [
+"SW3001"
+],
+"deptPrefixes": [
+"310"
+],
+"hits": 2
+},
+"族群遺傳學": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"日本史": {
+"code": "Hist2140",
+"codes": [
+"Hist2140"
+],
+"deptPrefixes": [
+"103"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"日本文學史上": {
+"code": "JpnL3003",
+"codes": [
+"JpnL3003"
+],
+"deptPrefixes": [
+"107"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"日本文學史下": {
+"code": "JpnL3004",
+"codes": [
+"JpnL3004"
+],
+"deptPrefixes": [
+"107"
+],
+"hits": 2
+},
+"日本文學名著選讀下": {
+"code": "JpnL3008",
+"codes": [
+"JpnL3008"
+],
+"deptPrefixes": [
+"107"
+],
+"hits": 2
+},
+"日本語言學概論上": {
+"code": "JpnL3001",
+"codes": [
+"JpnL3001"
+],
+"deptPrefixes": [
+"107"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"日本語言學概論下": {
+"code": "JpnL3002",
+"codes": [
+"JpnL3002"
+],
+"deptPrefixes": [
+"107"
+],
+"hits": 2
+},
+"日本近代史": {
+"code": "Hist2139",
+"codes": [
+"Hist2139"
+],
+"deptPrefixes": [
+"103"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"早期德國浪漫主義哲學與舒伯特的藝術歌曲": {
+"code": "Phl3733",
+"codes": [
+"Phl3733"
+],
+"deptPrefixes": [
+"104"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"早期美國文學": {
+"code": "FL4003",
+"codes": [
+"FL4003"
+],
+"deptPrefixes": [
+"102"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"普通化學": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"普通化學丙": {
+"code": "Chem1009",
+"codes": [
+"Chem1009"
+],
+"deptPrefixes": [
+"203"
+],
+"hits": 39
+},
+"普通化學實驗": {
+"code": "Chem1010",
+"codes": [
+"Chem1010"
+],
+"deptPrefixes": [
+"203"
+],
+"hits": 17
+},
+"普通心理學": {
+"code": "Psy1007",
+"codes": [
+"Psy1007"
+],
+"deptPrefixes": [
+"207"
+],
+"hits": 27
+},
+"普通物理學": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"普通物理學乙": {
+"code": "Phys1008",
+"codes": [
+"Phys1008"
+],
+"deptPrefixes": [
+"202"
+],
+"hits": 7
+},
+"普通物理學實驗": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"普通生物學": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"普通生物學丙": {
+"code": "LS1009",
+"codes": [
+"LS1009"
+],
+"deptPrefixes": [
+"B01"
+],
+"hits": 14
+},
+"普通生物學乙上": {
+"code": "LS1007",
+"codes": [
+"LS1007"
+],
+"deptPrefixes": [
+"B01"
+],
+"hits": 7
+},
+"普通生物學乙下": {
+"code": "LS1008",
+"codes": [
+"LS1008"
+],
+"deptPrefixes": [
+"B01"
+],
+"hits": 7
+},
+"普通生物學實驗乙上": {
+"code": "LS1015",
+"codes": [
+"LS1015"
+],
+"deptPrefixes": [
+"B01"
+],
+"hits": 6
+},
+"普通生物學實驗乙下": {
+"code": "LS1016",
+"codes": [
+"LS1016"
+],
+"deptPrefixes": [
+"B01"
+],
+"hits": 6
+},
+"智慧農業導論": {
+"code": "CBA5059",
+"codes": [
+"CBA5059"
+],
+"deptPrefixes": [
+"600"
+],
+"hits": 1
+},
+"書報討論（一）": {
+"code": "LS4001",
+"codes": [
+"LS4001"
+],
+"deptPrefixes": [
+"B01"
+],
+"hits": 6
+},
+"書報討論（二）": {
+"code": "LS4002",
+"codes": [
+"LS4002"
+],
+"deptPrefixes": [
+"B01"
+],
+"hits": 6
+},
+"書目療法專題": {
+"code": "LIS5065",
+"codes": [
+"LIS5065"
+],
+"deptPrefixes": [
+"126"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"會計學原理上": {
+"code": "MGT1001",
+"codes": [
+"MGT1001"
+],
+"deptPrefixes": [
+"700"
+],
+"hits": 1
+},
+"會計學原理下": {
+"code": "MGT1002",
+"codes": [
+"MGT1002"
+],
+"deptPrefixes": [
+"700"
+],
+"hits": 1
+},
+"會計資訊系統與數據分析": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"有機化學": {
+"code": "Chem2020",
+"codes": [
+"Chem2020"
+],
+"deptPrefixes": [
+"203"
+],
+"hits": 2
+},
+"有機化學實驗": {
+"code": "Chem2035",
+"codes": [
+"Chem2035"
+],
+"deptPrefixes": [
+"203"
+],
+"hits": 2
+},
+"期貨與選擇權": {
+"code": "",
+"codes": [
+"ECON4036",
+"Fin4001"
+],
+"deptPrefixes": [
+"703",
+"ECO"
+],
+"hits": 3
+},
+"材料力學": {
+"code": "",
+"codes": [
+"CIE2006",
+"DBME2006",
+"DBME7069",
+"MSE2016"
+],
+"deptPrefixes": [
+"501",
+"507",
+"DBM"
+],
+"hits": 7
+},
+"材料科學導論上": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"東亞導論": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"東亞文化交流史": {
+"code": "Hist1626",
+"codes": [
+"Hist1626"
+],
+"deptPrefixes": [
+"103"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"東亞文明：文學、思想、歷史": {
+"code": "CHIN4077",
+"codes": [
+"CHIN4077"
+],
+"deptPrefixes": [
+"CHI"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"東方古代政治思想": {
+"code": "Phl3113",
+"codes": [
+"Phl3113"
+],
+"deptPrefixes": [
+"104"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"植物生理學": {
+"code": "LS3016",
+"codes": [
+"LS3016"
+],
+"deptPrefixes": [
+"B01"
+],
+"hits": 1
+},
+"歐洲婦女與性別史": {
+"code": "Hist2186",
+"codes": [
+"Hist2186"
+],
+"deptPrefixes": [
+"103"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"歐洲文學1350─1800": {
+"code": "FL2005",
+"codes": [
+"FL2005"
+],
+"deptPrefixes": [
+"102"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"歐洲文學1800以後": {
+"code": "FL2006",
+"codes": [
+"FL2006"
+],
+"deptPrefixes": [
+"102"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"歐洲海外擴張史": {
+"code": "Hist2146",
+"codes": [
+"Hist2146"
+],
+"deptPrefixes": [
+"103"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"歐美專題講座": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"正義的理論與實踐": {
+"code": "Phl1905",
+"codes": [
+"Phl1905"
+],
+"deptPrefixes": [
+"104"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"歷史研究與寫作": {
+"code": "Hist3100",
+"codes": [
+"Hist3100"
+],
+"deptPrefixes": [
+"103"
+],
+"hits": 2,
+"source": "文學院院學士課程清單"
+},
+"比較政府一": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"比較政府二": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"氣候學": {
+"code": "AtmSci4004",
+"codes": [
+"AtmSci4004"
+],
+"deptPrefixes": [
+"209"
+],
+"hits": 3
+},
+"氣候學及實習": {
+"code": "Geog2002",
+"codes": [
+"Geog2002"
+],
+"deptPrefixes": [
+"208"
+],
+"hits": 3
+},
+"氣候變遷問題與對策": {
+"code": "IPCS7039",
+"codes": [
+"IPCS7039"
+],
+"deptPrefixes": [
+"IPC"
+],
+"hits": 2
+},
+"氣候變遷科學": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"氣候變遷與人居環境議題實作": {
+"code": "IPCS5013",
+"codes": [
+"IPCS5013"
+],
+"deptPrefixes": [
+"IPC"
+],
+"hits": 2
+},
+"氣候變遷與環境生態": {
+"code": "BSE5071",
+"codes": [
+"BSE5071"
+],
+"deptPrefixes": [
+"622"
+],
+"hits": 2
+},
+"氣候資料分析及數據應用": {
+"code": "IPCS5016",
+"codes": [
+"IPCS5016"
+],
+"deptPrefixes": [
+"IPC"
+],
+"hits": 2
+},
+"水文學": {
+"code": "CIE3011",
+"codes": [
+"CIE3011"
+],
+"deptPrefixes": [
+"501"
+],
+"hits": 2
+},
+"水聲海洋學": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"永續治理與影響力": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"永續科學的研究方法": {
+"code": "IPCS7048",
+"codes": [
+"IPCS7048"
+],
+"deptPrefixes": [
+"IPC"
+],
+"hits": 2
+},
+"永續轉型理論與應用": {
+"code": "IPCS7045",
+"codes": [
+"IPCS7045"
+],
+"deptPrefixes": [
+"IPC"
+],
+"hits": 2
+},
+"流體力學": {
+"code": "",
+"codes": [
+"BME3105",
+"BSE2015",
+"ESOE2006",
+"EnvE7079",
+"Phys5015"
+],
+"deptPrefixes": [
+"222",
+"541",
+"602",
+"611",
+"ESO"
+],
+"hits": 10
+},
+"浪漫時期英國文學": {
+"code": "FL3002",
+"codes": [
+"FL3002"
+],
+"deptPrefixes": [
+"102"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"海德格的《存有與時間》上": {
+"code": "Phl7686",
+"codes": [
+"Phl7686"
+],
+"deptPrefixes": [
+"124"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"海洋元素循環與環境變遷": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"海洋光合作用": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"海洋地質概論": {
+"code": "Ocean5001",
+"codes": [
+"Ocean5001"
+],
+"deptPrefixes": [
+"241"
+],
+"hits": 5
+},
+"海洋氣候變遷的觀測": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"海洋科學概論": {
+"code": "Ocean5008",
+"codes": [
+"Ocean5008"
+],
+"deptPrefixes": [
+"241"
+],
+"hits": 7
+},
+"海洋與氣候：過去到未來": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"淨零排放路徑的情境探索與政策設計": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"深海生態學": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"演化生物學": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"演算法": {
+"code": "EE4033",
+"codes": [
+"EE4033"
+],
+"deptPrefixes": [
+"901"
+],
+"hits": 2
+},
+"無限": {
+"code": "Phl7955",
+"codes": [
+"Phl7955"
+],
+"deptPrefixes": [
+"124"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"熱力學": {
+"code": "",
+"codes": [
+"ESOE5159",
+"ME2005"
+],
+"deptPrefixes": [
+"502",
+"ESO"
+],
+"hits": 7
+},
+"熱質量傳遞上": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"物理冶金上": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"物理化學一": {
+"code": "ChemE2005",
+"codes": [
+"ChemE2005"
+],
+"deptPrefixes": [
+"504"
+],
+"hits": 3
+},
+"物理海洋概論": {
+"code": "Ocean5037",
+"codes": [
+"Ocean5037"
+],
+"deptPrefixes": [
+"241"
+],
+"hits": 5
+},
+"現代農業體驗": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"環境化學": {
+"code": "EnvE7010",
+"codes": [
+"EnvE7010"
+],
+"deptPrefixes": [
+"541"
+],
+"hits": 4
+},
+"環境水文學及實習": {
+"code": "Geog5147",
+"codes": [
+"Geog5147"
+],
+"deptPrefixes": [
+"228"
+],
+"hits": 3
+},
+"環境污染整治與復育": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"生命的學問": {
+"code": "Phl1907",
+"codes": [
+"Phl1907"
+],
+"deptPrefixes": [
+"104"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"生地化循環與氣候": {
+"code": "AtmSci5058",
+"codes": [
+"AtmSci5058"
+],
+"deptPrefixes": [
+"229"
+],
+"hits": 3
+},
+"生態學": {
+"code": "LS3023",
+"codes": [
+"LS3023"
+],
+"deptPrefixes": [
+"B01"
+],
+"hits": 4
+},
+"生物化學乙上": {
+"code": "BChem3007",
+"codes": [
+"BChem3007"
+],
+"deptPrefixes": [
+"B46"
+],
+"hits": 7
+},
+"生物化學乙下": {
+"code": "BChem3008",
+"codes": [
+"BChem3008"
+],
+"deptPrefixes": [
+"B46"
+],
+"hits": 8
+},
+"生物化學乙（上）": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"生物化學乙（下）": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"生物地球化學導論": {
+"code": "Ocean5045",
+"codes": [
+"Ocean5045"
+],
+"deptPrefixes": [
+"241"
+],
+"hits": 3
+},
+"生物多樣性與保育": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"生物技術核心實驗": {
+"code": "Prog5074",
+"codes": [
+"Prog5074"
+],
+"deptPrefixes": [
+"P05"
+],
+"hits": 5
+},
+"生物海洋概論": {
+"code": "Ocean5129",
+"codes": [
+"Ocean5129"
+],
+"deptPrefixes": [
+"241"
+],
+"hits": 5
+},
+"生物科學繪圖": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"生物科技概論": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"生物統計學": {
+"code": "",
+"codes": [
+"LS3022",
+"Med2027"
+],
+"deptPrefixes": [
+"401",
+"B01"
+],
+"hits": 9
+},
+"生物醫學材料概論": {
+"code": "DBME5001",
+"codes": [
+"DBME5001"
+],
+"deptPrefixes": [
+"DBM"
+],
+"hits": 6
+},
+"生理學": {
+"code": "",
+"codes": [
+"EE4042",
+"Med2014"
+],
+"deptPrefixes": [
+"401",
+"901"
+],
+"hits": 16
+},
+"產業及競爭分析": {
+"code": "Fin5074",
+"codes": [
+"Fin5074"
+],
+"deptPrefixes": [
+"723"
+],
+"hits": 2
+},
+"用AI探究虛構中的真實": {
+"code": "Phl1921",
+"codes": [
+"Phl1921"
+],
+"deptPrefixes": [
+"104"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"當代法國哲學": {
+"code": "Phl7584",
+"codes": [
+"Phl7584"
+],
+"deptPrefixes": [
+"124"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"當代社會學理論": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"知識論": {
+"code": "Phl2063",
+"codes": [
+"Phl2063"
+],
+"deptPrefixes": [
+"104"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"石油及天然氣資源導論": {
+"code": "Geo5014",
+"codes": [
+"Geo5014"
+],
+"deptPrefixes": [
+"224"
+],
+"hits": 4
+},
+"確信服務與公司治理研討": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"社區組織與社區發展": {
+"code": "SW3005",
+"codes": [
+"SW3005"
+],
+"deptPrefixes": [
+"310"
+],
+"hits": 3
+},
+"社會學甲上": {
+"code": "Soc1004",
+"codes": [
+"Soc1004"
+],
+"deptPrefixes": [
+"305"
+],
+"hits": 3
+},
+"社會學甲下": {
+"code": "Soc1005",
+"codes": [
+"Soc1005"
+],
+"deptPrefixes": [
+"305"
+],
+"hits": 3
+},
+"社會工作概論上": {
+"code": "SW1004",
+"codes": [
+"SW1004"
+],
+"deptPrefixes": [
+"310"
+],
+"hits": 4
+},
+"社會工作概論下": {
+"code": "SW1005",
+"codes": [
+"SW1005"
+],
+"deptPrefixes": [
+"310"
+],
+"hits": 6
+},
+"社會心理學": {
+"code": "Psy3004",
+"codes": [
+"Psy3004"
+],
+"deptPrefixes": [
+"207"
+],
+"hits": 2
+},
+"社會政策與社會立法": {
+"code": "SW4001",
+"codes": [
+"SW4001"
+],
+"deptPrefixes": [
+"310"
+],
+"hits": 3
+},
+"社會研究方法甲上": {
+"code": "Soc3048",
+"codes": [
+"Soc3048"
+],
+"deptPrefixes": [
+"305"
+],
+"hits": 2
+},
+"社會研究方法甲下": {
+"code": "Soc3049",
+"codes": [
+"Soc3049"
+],
+"deptPrefixes": [
+"305"
+],
+"hits": 2
+},
+"社會福利概論": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"社會科學研究方法": {
+"code": "",
+"codes": [
+"BICD2039",
+"NtlDev7061",
+"SW8016"
+],
+"deptPrefixes": [
+"330",
+"341",
+"BIC"
+],
+"hits": 3
+},
+"社會統計": {
+"code": "",
+"codes": [
+"PS4645",
+"Soc1028"
+],
+"deptPrefixes": [
+"302",
+"305"
+],
+"hits": 10
+},
+"社會階層化": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"科學哲學": {
+"code": "Phl4083",
+"codes": [
+"Phl4083"
+],
+"deptPrefixes": [
+"104"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"科技與社會研究": {
+"code": "Soc7112",
+"codes": [
+"Soc7112"
+],
+"deptPrefixes": [
+"325"
+],
+"hits": 2
+},
+"科技與社會研究一": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"程式與科學計算": {
+"code": "AtmSci2010",
+"codes": [
+"AtmSci2010"
+],
+"deptPrefixes": [
+"209"
+],
+"hits": 2
+},
+"程式設計": {
+"code": "IM1003",
+"codes": [
+"IM1003"
+],
+"deptPrefixes": [
+"705"
+],
+"hits": 2
+},
+"程式設計於地球科學之運用": {
+"code": "Geo5101",
+"codes": [
+"Geo5101"
+],
+"deptPrefixes": [
+"224"
+],
+"hits": 3
+},
+"穩定同位素地球化學": {
+"code": "Ocean7128",
+"codes": [
+"Ocean7128"
+],
+"deptPrefixes": [
+"241"
+],
+"hits": 2
+},
+"管理學": {
+"code": "IB2009",
+"codes": [
+"IB2009"
+],
+"deptPrefixes": [
+"704"
+],
+"hits": 2
+},
+"管理決策會計": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"細胞生物學": {
+"code": "",
+"codes": [
+"BST5024",
+"ENT5054"
+],
+"deptPrefixes": [
+"632",
+"B22"
+],
+"hits": 4
+},
+"統計在地球科學的應用": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"統計學": {
+"code": "",
+"codes": [
+"Agron2002",
+"AniSci2002",
+"BSE2028",
+"Forest2031",
+"MGT2003"
+],
+"deptPrefixes": [
+"601",
+"602",
+"605",
+"606",
+"700"
+],
+"hits": 18
+},
+"統計學暨實習": {
+"code": "ECON2022",
+"codes": [
+"ECON2022"
+],
+"deptPrefixes": [
+"ECO"
+],
+"hits": 7
+},
+"統計學習與深度學習": {
+"code": "IM5056",
+"codes": [
+"IM5056"
+],
+"deptPrefixes": [
+"725"
+],
+"hits": 7
+},
+"統計與大氣科學": {
+"code": "AtmSci2019",
+"codes": [
+"AtmSci2019"
+],
+"deptPrefixes": [
+"209"
+],
+"hits": 2
+},
+"維多利亞時期英國文學": {
+"code": "FL3003",
+"codes": [
+"FL3003"
+],
+"deptPrefixes": [
+"102"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"總體經濟學上": {
+"code": "ECON2020",
+"codes": [
+"ECON2020"
+],
+"deptPrefixes": [
+"ECO"
+],
+"hits": 8
+},
+"總體經濟學下": {
+"code": "ECON2021",
+"codes": [
+"ECON2021"
+],
+"deptPrefixes": [
+"ECO"
+],
+"hits": 8
+},
+"總體經濟學原理與實習": {
+"code": "ECON1021",
+"codes": [
+"ECON1021"
+],
+"deptPrefixes": [
+"ECO"
+],
+"hits": 24
+},
+"聯合國永續目標與校園實作": {
+"code": "IPCS5071",
+"codes": [
+"IPCS5071"
+],
+"deptPrefixes": [
+"IPC"
+],
+"hits": 1
+},
+"自然史博物館實習": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"臺灣區域海洋學": {
+"code": "Ocean5115",
+"codes": [
+"Ocean5115"
+],
+"deptPrefixes": [
+"241"
+],
+"hits": 7
+},
+"臺灣史一": {
+"code": "Hist1015",
+"codes": [
+"Hist1015"
+],
+"deptPrefixes": [
+"103"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"臺灣史檔案解讀": {
+"code": "Hist2236",
+"codes": [
+"Hist2236"
+],
+"deptPrefixes": [
+"103"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"臺灣農業": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"英國歷史與文化專題": {
+"code": "Hist5437",
+"codes": [
+"Hist5437"
+],
+"deptPrefixes": [
+"123"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"荀子哲學討論": {
+"code": "Phl7111",
+"codes": [
+"Phl7111"
+],
+"deptPrefixes": [
+"124"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"行政學一": {
+"code": "PS1021",
+"codes": [
+"PS1021"
+],
+"deptPrefixes": [
+"302"
+],
+"hits": 8
+},
+"行政學二": {
+"code": "PS1022",
+"codes": [
+"PS1022"
+],
+"deptPrefixes": [
+"302"
+],
+"hits": 8
+},
+"行政法一": {
+"code": "PS2301",
+"codes": [
+"PS2301"
+],
+"deptPrefixes": [
+"302"
+],
+"hits": 2
+},
+"行政法二": {
+"code": "PS2302",
+"codes": [
+"PS2302"
+],
+"deptPrefixes": [
+"302"
+],
+"hits": 2
+},
+"行銷研究": {
+"code": "",
+"codes": [
+"IB3002",
+"IB7059"
+],
+"deptPrefixes": [
+"704",
+"724"
+],
+"hits": 3
+},
+"行銷管理": {
+"code": "",
+"codes": [
+"BA3001",
+"IB7055"
+],
+"deptPrefixes": [
+"701",
+"724"
+],
+"hits": 5
+},
+"西方古代政治思想": {
+"code": "Phl3503",
+"codes": [
+"Phl3503"
+],
+"deptPrefixes": [
+"104"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"西洋政治哲學一": {
+"code": "PS3103",
+"codes": [
+"PS3103"
+],
+"deptPrefixes": [
+"302"
+],
+"hits": 3
+},
+"西洋政治哲學二": {
+"code": "PS3104",
+"codes": [
+"PS3104"
+],
+"deptPrefixes": [
+"302"
+],
+"hits": 3
+},
+"西洋政治哲學概論": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"西洋文學概論一": {
+"code": "FL1015",
+"codes": [
+"FL1015"
+],
+"deptPrefixes": [
+"102"
+],
+"hits": 2,
+"source": "文學院院學士課程清單"
+},
+"計算機程式": {
+"code": "",
+"codes": [
+"ChemE1004",
+"EE1004",
+"ME2009"
+],
+"deptPrefixes": [
+"502",
+"504",
+"901"
+],
+"hits": 11
+},
+"計量經濟學一": {
+"code": "",
+"codes": [
+"AGEC5003",
+"ECON5176",
+"Fin8036"
+],
+"deptPrefixes": [
+"723",
+"AGE",
+"ECO"
+],
+"hits": 9
+},
+"計量經濟學二": {
+"code": "",
+"codes": [
+"ECON5164",
+"Fin8037"
+],
+"deptPrefixes": [
+"723",
+"ECO"
+],
+"hits": 6
+},
+"計量經濟學導論暨實習": {
+"code": "ECON2023",
+"codes": [
+"ECON2023"
+],
+"deptPrefixes": [
+"ECO"
+],
+"hits": 6
+},
+"訊息設計與視覺傳達": {
+"code": "LIS5090",
+"codes": [
+"LIS5090"
+],
+"deptPrefixes": [
+"126"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"財務報告分析": {
+"code": "Fin3002",
+"codes": [
+"Fin3002"
+],
+"deptPrefixes": [
+"703"
+],
+"hits": 2
+},
+"財務管理": {
+"code": "",
+"codes": [
+"ECON5144",
+"Fin7023",
+"IB7014"
+],
+"deptPrefixes": [
+"723",
+"724",
+"ECO"
+],
+"hits": 13
+},
+"財務計量": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"貨幣銀行學甲": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"資料庫管理": {
+"code": "",
+"codes": [
+"BA2004",
+"IM3008"
+],
+"deptPrefixes": [
+"701",
+"705"
+],
+"hits": 4
+},
+"資料庫管理系統": {
+"code": "LIS5076",
+"codes": [
+"LIS5076"
+],
+"deptPrefixes": [
+"126"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"資料科學與社會研究": {
+"code": "ECON5166",
+"codes": [
+"ECON5166"
+],
+"deptPrefixes": [
+"ECO"
+],
+"hits": 4
+},
+"資料科學與社會研究總整課程": {
+"code": "ECON5157",
+"codes": [
+"ECON5157"
+],
+"deptPrefixes": [
+"ECO"
+],
+"hits": 4
+},
+"資料結構與演算法": {
+"code": "CSIE1212",
+"codes": [
+"CSIE1212"
+],
+"deptPrefixes": [
+"CSI"
+],
+"hits": 4
+},
+"資訊傳播專題": {
+"code": "LIS5069",
+"codes": [
+"LIS5069"
+],
+"deptPrefixes": [
+"126"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"資訊檢索": {
+"code": "LIS4012",
+"codes": [
+"LIS4012"
+],
+"deptPrefixes": [
+"106"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"資訊科學導論": {
+"code": "LIS1008",
+"codes": [
+"LIS1008"
+],
+"deptPrefixes": [
+"106"
+],
+"hits": 3
+},
+"資訊組織一": {
+"code": "LIS3001",
+"codes": [
+"LIS3001"
+],
+"deptPrefixes": [
+"106"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"資訊組織二": {
+"code": "LIS3004",
+"codes": [
+"LIS3004"
+],
+"deptPrefixes": [
+"106"
+],
+"hits": 2
+},
+"資訊與文化消費": {
+"code": "LIS3043",
+"codes": [
+"LIS3043"
+],
+"deptPrefixes": [
+"106"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"超內涵主義": {
+"code": "Phl7954",
+"codes": [
+"Phl7954"
+],
+"deptPrefixes": [
+"124"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"趨勢締造": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"身體與自我意識一": {
+"code": "Phl3809",
+"codes": [
+"Phl3809"
+],
+"deptPrefixes": [
+"104"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"進階社會統計": {
+"code": "Soc1029",
+"codes": [
+"Soc1029"
+],
+"deptPrefixes": [
+"305"
+],
+"hits": 2
+},
+"遺傳學": {
+"code": "",
+"codes": [
+"ENT2002",
+"HORT3001",
+"LS2037"
+],
+"deptPrefixes": [
+"612",
+"B01",
+"HOR"
+],
+"hits": 5
+},
+"遼宋金的物質世界": {
+"code": "Hist3134",
+"codes": [
+"Hist3134"
+],
+"deptPrefixes": [
+"103"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"醫用高分子": {
+"code": "DBME5011",
+"codes": [
+"DBME5011"
+],
+"deptPrefixes": [
+"DBM"
+],
+"hits": 4
+},
+"金融機構管理": {
+"code": "ECON7952",
+"codes": [
+"ECON7952"
+],
+"deptPrefixes": [
+"ECO"
+],
+"hits": 1
+},
+"關鍵區碳循環": {
+"code": "Geo5166",
+"codes": [
+"Geo5166"
+],
+"deptPrefixes": [
+"224"
+],
+"hits": 3
+},
+"陸地大氣交互作用": {
+"code": "AtmSci7066",
+"codes": [
+"AtmSci7066"
+],
+"deptPrefixes": [
+"229"
+],
+"hits": 3
+},
+"電腦網路與通訊": {
+"code": "LIS2010",
+"codes": [
+"LIS2010"
+],
+"deptPrefixes": [
+"106"
+],
+"hits": 1,
+"source": "文學院院學士課程清單"
+},
+"電腦計算基礎": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"靜力學": {
+"code": "ME1005",
+"codes": [
+"ME1005"
+],
+"deptPrefixes": [
+"502"
+],
+"hits": 4
+},
+"頤賢講座": {
+"code": "",
+"codes": [],
+"deptPrefixes": [],
+"hits": 0
+},
+"高級日語上": {
+"code": "JpnL3011",
+"codes": [
+"JpnL3011"
+],
+"deptPrefixes": [
+"107"
+],
+"hits": 2,
+"source": "文學院院學士課程清單"
+}
+},
+"semesters": [
+"115-1",
+"114-2"
+]
+}
